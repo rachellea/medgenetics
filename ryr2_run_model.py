@@ -21,7 +21,8 @@ class RYR2(object):
                  inputx,
                  train_percent,
                  valid_percent,
-                 test_percent):
+                 test_percent,
+                 seed=1029384):
         """<inputx> is a pandas dataframe potentially containing inputx healthy and
         diseased data, with columns Position, Consensus, and Change."""
         self.inputx = inputx
@@ -30,9 +31,6 @@ class RYR2(object):
         self.add_domain_info()
         #add a column with conservation score
         self.add_conservation_info()
-        
-        #testing only on real data (valid_percent>0), not everyAA (where train_percent=1)
-        if valid_percent>0: self.test_domains_and_conservation() 
         
         #Create splits
         print('Shape of data and labels together',str(self.inputx.shape))
@@ -52,7 +50,7 @@ class RYR2(object):
                              one_hotify_these_categorical = ['Consensus', 'Change', 'Domain'],
                              normalize_data = True,
                              normalize_these_continuous = ['Position','Conservation'],
-                             seed = 1029384,
+                             seed = seed,
                              batch_size = 300)
     
     def add_domain_info(self):
@@ -88,20 +86,6 @@ class RYR2(object):
                                    header = None,
                                    names=['Position','Conservation'])
         self.inputx = self.inputx.merge(conservation, how='inner', on='Position')
-
-    def test_domains_and_conservation(self):
-        assert ((self.inputx['Position'] ==24) & (self.inputx['Consensus']=='C')
-            & (self.inputx['Change'] == 'R') & (self.inputx['Label']==0)
-            & (self.inputx['Domain']=='NTD')
-            & ((self.inputx['Conservation']-0.548673) < 1e-5)).any()
-        assert ((self.inputx['Position'] ==2111) & (self.inputx['Consensus']=='V')
-            & (self.inputx['Change'] == 'A') & (self.inputx['Label']==0)
-            & (self.inputx['Domain']=='HD1')
-            & ((self.inputx['Conservation']-0.725663717) < 1e-5)).any()
-        assert ((self.inputx['Position'] ==4851) & (self.inputx['Consensus']=='F')
-            & (self.inputx['Change'] == 'C') & (self.inputx['Label']==1)
-            & (self.inputx['Domain']=='Channel-domain')
-            & ((self.inputx['Conservation']-0.769911504) < 1e-5)).any()
 
 #############
 # Functions #-------------------------------------------------------------------
@@ -172,6 +156,7 @@ def prepare_everyAA(real_data):
     return everyAA
 
 def make_small_everyAA_for_testing():
+    """Dummy version of everyAA to be able to run the MLP code quickly"""
     possible_aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
                     'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
     everyAA = pd.DataFrame(np.transpose(np.array([possible_aas, possible_aas])),
@@ -193,7 +178,6 @@ def run_ryr2_model():
     
     #Fake data with all possible combos of every AA at every position
     everyAA = prepare_everyAA(realdata)
-    
     everyAA_split = RYR2( inputx = everyAA,
                     train_percent = 1.0, valid_percent = 0,
                     test_percent = 0).split.train
