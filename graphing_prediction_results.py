@@ -25,11 +25,19 @@ def graph_everyAA_results():
     result.to_csv('/data/rlb61/Collaborations/Landstrom/2018-11-02-Neural-Net-All-Probabilities/everyAA_mean.csv',
                   header=True,index=False)
     
+    #Load signal-to-noise data
+    signoise = pd.read_csv('/data/rlb61/Collaborations/Landstrom/datafiles/RyR2_SCD-GnomAD_Signal_to_Noise.csv',
+                           header=0, index_col = False)
+    #the signal to noise ratio is not between 0 and 1 so I will force it there:
+    signoise_vals = (signoise['SigNoise'].values)/np.max(signoise['SigNoise'].values)
+    
     #Plot
-    plt.plot([x for x in range(1,4968)], result.values, color='blue', lw=0.05 )
+    plt.plot([x for x in range(1,4968)], result.values, color='blue', lw=0.05, label='mlp-pred-prob' )
+    plt.plot([x for x in range(1,4968)], signoise_vals, color='red', lw=0.05, label='sig-to-noise')
     plt.xlabel('Position')
-    plt.ylabel('Predicted Probability')
-    plt.title('Predicted Mutation Pathogenicity for RYR2')
+    plt.ylabel('Pred Prob and Sig-to-Noise')
+    plt.title('RYR2 Pred Mutation Pathogenicity and Sig-Noise')
+    plt.legend(loc='lower right')
     plt.savefig('everyAA_pred_probs_figure.pdf')
     plt.close()
 
