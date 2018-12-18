@@ -1,0 +1,14 @@
+Domain,Start,Stop
+phosphorylation-site-1,27,27
+Transmemberane-1,122,142
+Transmemberane-2,148,168
+Transmemberane-3,197,217
+Transmemberane-4,226,248
+Transmemberane-5,262,282
+Selected-filter ,312,317
+Transmemberane-6,328,348
+phosphorylation-site-2,407,407
+phosphorylation-site-3,409,409
+Interaction-with-KCNE1-C-terminus,535,572
+Interaction-with-AKAP9,588,616
+C-terminal-assembly-domain,589,620

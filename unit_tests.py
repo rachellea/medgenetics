@@ -3,8 +3,8 @@
 import numpy as np
 import pandas as pd
 
-import ryr2_run_model
-import utils
+import main
+from data_handling import utils
 ###########
 # Globals #---------------------------------------------------------------------
 ###########
@@ -30,7 +30,7 @@ COLUMNS = ['Position', 'Conservation', 'Consensus_A',
 def testing_add_domain_and_conservation():
     """Test that domain information and conservation information were
     added correctly to Healthy and Pathologic examples"""
-    result = ryr2_run_model.RYR2(inputx = ryr2_run_model.prepare_real_data(),
+    result = main.RYR2(inputx = main.prepare_real_data(),
                        train_percent = 0.7, valid_percent = 0.15,
                        test_percent = 0.15)
     x = result.inputx
@@ -54,7 +54,7 @@ def testing_utils():
                         columns=['Position','Consensus','Change','Label'])
     fake['Position'] = pd.to_numeric(fake['Position'], downcast = 'integer')
     fake['Label'] = pd.to_numeric(fake['Label'], downcast = 'integer')
-    fakesplit = ryr2_run_model.RYR2(inputx = fake,
+    fakesplit = main.RYR2(inputx = fake,
                        train_percent = 1.0, valid_percent = 0,
                        test_percent = 0, seed = 5).split #seed of 5 means order stays same
     
