@@ -21,11 +21,11 @@ class BareGene(object):
         what was removed and why."""
         self.gene_name = gene_name
         self.obtain_reference_sequence() #creates self.reference_df
-        self.history = pd.DataFrame(np.empty(100000,5),dtype=str), columns=['Healthy_or_Path','Consensus','Position','Change','Reason_Removed'])
+        self.history = pd.DataFrame(np.empty((100000,5),dtype=str), columns=['Healthy_or_Path','Consensus','Position','Change','Reason_Removed'])
         self.history_idx = 0
         
-        self.healthy = pd.read_csv(os.path.join(gene_name,gene_name+'_variants_healthy_raw.csv'),header=0)
-        self.diseased = pd.read_csv(os.path.join(gene_name,gene_name+'_variants_pathologic_raw.csv'),header=0)
+        self.healthy = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_healthy_raw.csv'),header=0)
+        self.diseased = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_pathologic_raw.csv'),header=0)
         
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
@@ -36,14 +36,17 @@ class BareGene(object):
         for key in dfs.keys():
             df = dfs[key]
             print('Working on',key)
-            df = self.remove_disallowed_symbols(df, key)
+            df = self.remove_missing_values(df, key)
+            df = self.clean_up_symbols(df, key)
             df = self.remove_consensus_equals_change(df, key)
             df = self.remove_consensus_disagrees_with_reference(df, key)
             df = self.remove_dups(df, key, 'duplicate_within_file')
         
         #Merge healthy and diseased
         merged = self.merge_healthy_and_diseased()
+        print('merged shape:',merged.shape)
         merged = self.remove_dups(merged, 'merged','duplicate_across_files')
+        self.merged = merged.reset_index(drop=True)#Reindex
         
         #Save history
         self.history.to_csv(self.gene_name+'_data_cleaning_history.csv')
@@ -51,9 +54,6 @@ class BareGene(object):
         #TODO write function that checks that everything listed in self.history
         #is present in the original files and is absent from the current version
         #of the file.
-        
-        #Done
-        return self.all
     
     ####################
     # Cleaning Methods #--------------------------------------------------------
@@ -105,16 +105,14 @@ class BareGene(object):
         self.update_history_using_temp(temp, key, 'consensus_equals_change')
         
         #Perform change
-        print('remove_consensus_equals_change():\n\tRows before:', df.shape[0])
         df = df.loc[df['Consensus']!=df['Change']]
-        print('\tRows after:',df.shape[0])
+        print('remove_consensus_equals_change(): Rows after:',df.shape[0])
         return df
     
     def remove_consensus_disagrees_with_reference(self, df, key):
         """Remove anything where the consensus amino acid disagrees with the
         ground truth reference amino acid for that position."""
         #Prepare for the removal
-        print('remove_consensus_disagrees_with_reference()')
         reference_df = copy.deepcopy(self.reference_df)
         df['Position'] = pd.to_numeric(df['Position'], downcast='integer')
         df = df.merge(copy.deepcopy(reference_df), how = 'left', on='Position')
@@ -125,19 +123,19 @@ class BareGene(object):
         
         #Perform change
         df = df.loc[df['Consensus']==df['Reference']]
-        print('\tRows after:',df.shape[0])
+        print('remove_consensus_disagrees_with_reference(): Rows after:',df.shape[0])
         return df
     
     def remove_dups(self, df, key, reason_removed):
         """Remove duplicates"""
-        print('remove_dups()')
         #Document history of upcoming change
         temp = df[df.duplicated(subset=['Consensus','Position','Change'],keep='first')]
         self.update_history_using_temp(temp, key, reason_removed)
         
         #Perform change
         df = df.drop_duplicates(keep = 'first')
-        print('\tRows after:',df.shape[0])
+        print('remove_dups(): Rows after:',df.shape[0])
+        return df
     
     def merge_healthy_and_diseased(self):
         """Return 'inputx' dataframe for self.healthy and self.diseased"""
@@ -155,15 +153,7 @@ class BareGene(object):
     # Helper Methods #----------------------------------------------------------
     ##################
     def obtain_reference_sequence(self):
-        geneseq = ''
-        with open(os.path.join(self.gene_name,self.gene_name+'_reference_sequence.txt', 'r') as f:
-            for line in f:
-                geneseq = geneseq + line.rstrip()
-        if self.gene_name == 'ryr2':
-            assert len(geneseq) == 4967
-        elif self.gene_name == 'scn5a':
-            pass #TODO (for scn5a and all other genes)
-        geneseq = geneseq.upper()
+        geneseq = get_geneseq(self.gene_name)
         #In this df we create the index starting from 1 because 'healthy' and
         #'diseased' use one-based positions and we must be consistent.
         reference_df = pd.DataFrame(np.transpose(np.array([list(geneseq), [x for x in range(1,len(geneseq)+1)]])),
@@ -188,26 +178,23 @@ class AnnotatedGene(object):
     def __init__(self, gene_name):
         """Add domain and conservation information to the bare gene and to everyAA;
         return gene and everyAA dataframes"""
-        self.inputx = BareGene(gene_name)
-        self.everyAA = prepare_everyAA(self.inputx)
+        self.gene_name = gene_name
+        self.inputx = BareGene(gene_name).merged
+        #self.everyAA = prepare_everyAA(self.inputx, gene_name)
+        self.everyAA = make_small_everyAA_for_testing()
+        self.create_domain_dictionary()
         
-        for df in [self.inputx, self.everyAA]:
-            #add a column denoting the component of the protein it is part of
-            df = self.add_domain_info(df)
-            #add a column with conservation score
-            df = self.add_conservation_info(df)
+        #add a column denoting the component of the protein it is part of
+        self.inputx = self.add_domain_info(self.inputx)
+        self.everyAA = self.add_domain_info(self.everyAA)
         
-        return self.inputx, self.everyAA
+        #add a column with conservation score
+        self.inputx = self.add_conservation_info(self.inputx)
+        self.everyAA = self.add_conservation_info(self.everyAA)
+        print('Done with AnnotatedGene')
        
     def add_domain_info(self, df):
-        self.domains = {'NTD':[1,642],
-            'SPRY1-first':[643,837], 'SPRY1-second':[1459,1484],'SPRY1-third':[1606,1641],
-            'P1':[861,1066],
-            'SPRY2-first':[828,856],'SPRY2-second':[1084,1254],
-            'SPRY3-first':[1255,1458],'SPRY3-second':[1485,1605],
-            'Handle-domain':[1642,2110],
-            'HD1':[2111,2679],'P2':[2701,2907],'HD2':[2982,3528],
-            'Central-domain':[3613,4207],'Channel-domain':[4486,4968]}
+        print('Adding domain info')
         self.inputx['Domain'] = ''
         domain_added_count = 0
         domain_not_added_count = 0
@@ -228,29 +215,43 @@ class AnnotatedGene(object):
         print('No domain annotation for',str(domain_not_added_count),'examples')
         return df
     
+    def create_domain_dictionary(self):
+        self.domains = {}
+        domain_df = pd.read_csv(os.path.join('data/'+self.gene_name,self.gene_name+'_domains.csv'),
+                                header=0)
+        for rowidx in domain_df.index.values:
+            start = domain_df.at[rowidx,'Start']
+            stop = domain_df.at[rowidx,'Stop']
+            self.domains[domain_df.at[rowidx,'Domain']] = [start,stop]
+    
     def add_conservation_info(self, df):
-        conservation = pd.read_csv('/data/rlb61/Collaborations/Landstrom/datafiles/gene_conservation.csv',
+        print('Adding conservation info')
+        con_file = os.path.join('data/'+self.gene_name,self.gene_name+'_conservation.csv')
+        conservation = pd.read_csv(con_file,
                                    header = None,
                                    names=['Position','Conservation'])
         return df.merge(conservation, how='inner', on='Position')
         
-
 #####################
 # everyAA functions #-----------------------------------------------------------
 #####################
-def prepare_everyAA(real_data):
+def get_geneseq(gene_name):
+    geneseq = ''
+    with open(os.path.join('data/'+gene_name,gene_name+'_reference_sequence.txt'), 'r') as f:
+        for line in f:
+            geneseq = geneseq + line.rstrip()
+    if gene_name == 'ryr2':
+        assert len(geneseq) == 4967
+    elif gene_name == 'scn5a':
+        pass #TODO (for scn5a and all other genes)
+    return geneseq.upper()
+
+def prepare_everyAA(real_data, gene_name):
     """Create a pandas dataframe containing every possible amino acid change
     at every position, except for anything present in the real data."""
     global AMINO_ACIDS
     print('Creating everyAA')
-    #Read in the PreparedGeneticData sequence
-    geneseq = ''
-    with open('/data/rlb61/Collaborations/Landstrom/datafiles/Gene_Protein_Sequence_Human.txt','r') as f:
-        for line in f:
-            geneseq = geneseq + line.rstrip()
-    assert len(geneseq) == 4967
-    geneseq = geneseq.upper()
-    
+    geneseq = get_geneseq(gene_name)
     #List of all possible AAs:
     max_length = len(geneseq)*(len(AMINO_ACIDS)-1) #don't count C-->C (not a change)
     print('everyAA max length is',max_length)
@@ -283,6 +284,9 @@ def prepare_everyAA(real_data):
     everyAA = everyAA.drop_duplicates(keep=False) #drop all dups
     print('After removing real data, rows are',everyAA.shape[0])
     everyAA['Label']=0 #dummy, never used
+    
+    #Reindex
+    everyAA = everyAA.reset_index(drop=True)#Reindex
     return everyAA
 
 def make_small_everyAA_for_testing():

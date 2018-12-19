@@ -223,8 +223,8 @@ def plot_learning_curves(training_loss, valid_loss, filename_prefix):
     plt.close()
     
     #save numpy array
-    np.save('training_loss.npy',training_loss)
-    np.save('valid_loss.npy',valid_loss)
+    #np.save('training_loss.npy',training_loss)
+    #np.save('valid_loss.npy',valid_loss)
 
 def plot_heatmap(numeric_array, center, filename_prefix, yticklabels):
     """Save a heatmap based on numeric_array"""

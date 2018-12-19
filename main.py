@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 
 #Custom imports
-from data import utils
-from data import clean_data
+from data import utils as utils
+from data import clean_data as clean_data
 import mlp_model
 
 def run_gene_model(gene_name):
@@ -21,28 +21,32 @@ def run_gene_model(gene_name):
                     'one_hotify_these_categorical':['Consensus', 'Change', 'Domain'],
                     'normalize_data':True,
                     'normalize_these_continuous':['Position','Conservation'],
-                    'seed':seed,
+                    'seed':12345,
                     'batch_size':300}
     
     #Real data with healthy and diseased
-    inputx, everyAA = clean_data.AnnotatedGene(gene_name)
-    clean_data = copy.deepcopy(inputx[['Position','Consensus','Change','Domain','Conservation']])
-    clean_labels = copy.deepcopy(inputx[['Label']])
-    print('Fraction of diseased:',str( np.sum(clean_labels)/len(clean_labels) ) )
-    self.split = utils.Splits(data = clean_data,
-                         labels = clean_labels,
-                         train_percent = train_percent,
-                         valid_percent = valid_percent,
-                         test_percent = test_percent,
+    ag = clean_data.AnnotatedGene(gene_name)
+    inputx = ag.inputx
+    everyAA = ag.everyAA
+    data = copy.deepcopy(inputx[['Position','Consensus','Change','Domain','Conservation']])
+    labels = copy.deepcopy(inputx[['Label']])
+    print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
+    real_data_split = utils.Splits(data = data,
+                         labels = labels,
+                         train_percent = 0.7,
+                         valid_percent = 0.15,
+                         test_percent = 0.15,
                          **shared_args)
 
     #Fake data with all possible combos of every AA at every position
-    everyAA_split = utils.Splits(data = pass,
-                                 labels = pass,
+    everyAA_data = copy.deepcopy(everyAA[['Position','Consensus','Change','Domain','Conservation']])
+    everyAA_labels = copy.deepcopy(everyAA[['Label']])
+    everyAA_split = utils.Splits(data = everyAA_data,
+                                 labels = everyAA_labels,
                                  train_percent = 1.0,
                                  valid_percent = 0,
                                  test_percent = 0,
-                                 **shared_args).split.train
+                                 **shared_args).train
     assert everyAA_split.data.shape[0] == everyAA.shape[0]
     
     #Run MLP
@@ -59,4 +63,4 @@ def run_gene_model(gene_name):
     
 
 if __name__=='__main__':
-    run_gene_model()
+    run_gene_model('scn5a')

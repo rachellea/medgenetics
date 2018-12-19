@@ -212,7 +212,7 @@ class MLP(object):
         if chosen_dataset == 'everyAA':
             out = pd.DataFrame(np.concatenate((entire_x, entire_pred_probs, entire_pred_labels),axis = 1),
                                columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
-            out.to_csv('everyAA_results_epoch_'+str(self.num_epochs_done)+'.csv',
+            out.to_csv(self.descriptor+'_everyAA_results_epoch_'+str(self.num_epochs_done)+'.csv',
                       header=True,index=False)
             return #Don't perform "evaluations" on everyAA
         
