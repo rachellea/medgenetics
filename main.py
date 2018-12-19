@@ -63,4 +63,7 @@ def run_gene_model(gene_name):
     
 
 if __name__=='__main__':
+    run_gene_model('ryr2')
     run_gene_model('scn5a')
+    run_gene_model('kcnq1')
+    run_gene_model('kcnh2')

@@ -180,8 +180,8 @@ class AnnotatedGene(object):
         return gene and everyAA dataframes"""
         self.gene_name = gene_name
         self.inputx = BareGene(gene_name).merged
-        #self.everyAA = prepare_everyAA(self.inputx, gene_name)
-        self.everyAA = make_small_everyAA_for_testing()
+        self.everyAA = prepare_everyAA(self.inputx, gene_name)
+        #self.everyAA = make_small_everyAA_for_testing()
         self.create_domain_dictionary()
         
         #add a column denoting the component of the protein it is part of
