@@ -1,0 +1,568 @@
+2018-12-19 06:01:56.388077: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2018-12-19 06:01:56.965730: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:964] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2018-12-19 06:01:56.966001: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Tesla P100-PCIE-16GB major: 6 minor: 0 memoryClockRate(GHz): 1.3285
+pciBusID: 0000:13:00.0
+totalMemory: 15.90GiB freeMemory: 466.88MiB
+2018-12-19 06:01:56.966032: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2018-12-19 06:01:57.386266: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-12-19 06:01:57.386337: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2018-12-19 06:01:57.386348: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2018-12-19 06:01:57.386545: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 177 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2018-12-19 07:12:26.245783: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2018-12-19 07:12:26.260926: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-12-19 07:12:26.260974: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2018-12-19 07:12:26.260994: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2018-12-19 07:12:26.261233: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 177 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2018-12-19 07:43:35.590967: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2018-12-19 07:43:35.591420: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-12-19 07:43:35.591433: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2018-12-19 07:43:35.591440: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2018-12-19 07:43:35.591902: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 177 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2018-12-19 08:12:54.277583: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2018-12-19 08:12:54.278011: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-12-19 08:12:54.278025: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2018-12-19 08:12:54.278034: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2018-12-19 08:12:54.278356: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 177 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+Working on healthy
+remove_missing_values()
+	Rows before: 1786
+	Rows after: 1786
+clean_up_symbols()
+	[ 23 , Change ] - --> empty
+	[ 101 , Change ] - --> empty
+	[ 178 , Change ] RfsX2 --> fs
+	[ 216 , Change ] - --> empty
+	[ 223 , Change ] VfsX11 --> fs
+	[ 406 , Change ] VfsX7 --> fs
+	[ 453 , Change ] - --> empty
+	[ 748 , Change ] - --> empty
+	[ 760 , Change ] RfsX26 --> fs
+	[ 827 , Change ] - --> empty
+	[ 866 , Change ] SdelinsG --> misc
+	[ 957 , Change ] - --> empty
+	[ 958 , Change ] QdelinsK --> misc
+	[ 1026 , Change ] RfsX17 --> fs
+	[ 1037 , Change ] MfsX55 --> fs
+	[ 1050 , Change ] QfsX19 --> fs
+	[ 1103 , Change ] - --> empty
+	[ 1185 , Change ] - --> empty
+	[ 1273 , Change ] TfsX47 --> fs
+	[ 1334 , Change ] GfsX12 --> fs
+	[ 1358 , Change ] RfsX9 --> fs
+	[ 1411 , Change ] DfsX30 --> fs
+	[ 1417 , Change ] LfsX9 --> fs
+	[ 1433 , Change ] GdelinsR --> misc
+	[ 1498 , Change ] TfsX39 --> fs
+	[ 1499 , Change ] SfsX42 --> fs
+	[ 1576 , Change ] - --> empty
+	[ 1653 , Change ] RfsX10 --> fs
+	[ 1655 , Change ] TfsX8 --> fs
+	[ 1669 , Change ] RfsX22 --> fs
+	[ 1677 , Change ] - --> empty
+	[ 1678 , Change ] dupK --> dup
+	[ 1696 , Change ] IfsX23 --> fs
+	[ 1699 , Change ] - --> empty
+	[ 1709 , Change ] TfsX14 --> fs
+	[ 1740 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 1761
+remove_consensus_disagrees_with_reference(): Rows after: 1631
+remove_dups(): Rows after: 1625
+Working on diseased
+remove_missing_values()
+	Rows before: 153
+	Rows after: 153
+clean_up_symbols()
+	[ 122 , Consensus ] - --> empty
+	[ 122 , Change ] insEY --> misc
+	[ 125 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 153
+remove_consensus_disagrees_with_reference(): Rows after: 147
+remove_dups(): Rows after: 147
+merged shape: (1939, 4)
+remove_dups(): Rows after: 1932
+Creating everyAA
+everyAA max length is 99340
+Done with 0
+Done with 500
+Done with 1000
+Done with 1500
+Done with 2000
+Done with 2500
+Done with 3000
+Done with 3500
+Done with 4000
+Done with 4500
+Shape of everyAA: (99340, 3)
+After removing real data, rows should be 97408
+After removing real data, rows are 97822
+Adding domain info
+Added domain annotation to 1729 examples
+No domain annotation for 206 examples
+Adding domain info
+Added domain annotation to 88594 examples
+No domain annotation for 9425 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.079193
+dtype: float64
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (1932, 5)
+	Data shape after one-hotifying: (1932, 70)
+Normalizing data:
+	scaler.mean_ [2.28096598e+03 6.50134838e-01] 
+	scaler.scale_ [1.39681384e+03 1.98667170e-01]
+Finished making splits
+	Train data shape: (1352, 58)
+	Valid data shape: (290, 58)
+	Test data shape: (290, 58)
+	Length of one label: 1
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (97822, 5)
+	Data shape after one-hotifying: (97822, 85)
+Normalizing data:
+	scaler.mean_ [2.48834120e+03 6.56862121e-01] 
+	scaler.scale_ [1.43410425e+03 1.96818641e-01]
+Finished making splits
+	Train data shape: (97822, 58)
+	Valid data shape: (0, 58)
+	Test data shape: (0, 58)
+	Length of one label: 1
+
+
+
+
+********** ryr2 **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 58]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.239231362938881
+	Valid loss= 0.2166866511106491
+No more patience left at epoch 489
+--> Implementing early stopping. Best epoch was: 459
+Variable: mlp/layer_0_weights:0
+Shape: (58, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for ryr2_MLP_Valid ***
+	Epoch 459 accuracy
+		 Label : 0.9379310344827586
+	Epoch 459 auroc
+		 Label : 0.7046568627450981
+	Epoch 459 partial_auroc
+		 Label : 0.045138888888888895
+	Epoch 459 avg_precision
+		 Label : 0.24564055900233572
+***Final Summary for ryr2_MLP_Test ***
+	Epoch 459 accuracy
+		 Label : 0.9344827586206896
+	Epoch 459 auroc
+		 Label : 0.7125655467080987
+	Epoch 459 partial_auroc
+		 Label : 0.03126820741891628
+	Epoch 459 avg_precision
+		 Label : 0.1953141357728476
+Working on healthy
+remove_missing_values()
+	Rows before: 1008
+	Rows after: 1008
+clean_up_symbols()
+	[ 196 , Change ] - --> empty
+	[ 497 , Change ] - --> empty
+	[ 546 , Change ] - --> empty
+	[ 552 , Change ] - --> empty
+	[ 671 , Change ] - --> empty
+	[ 775 , Change ] - --> empty
+	[ 808 , Change ] - --> empty
+	[ 990 , Change ] - --> empty
+	[ 1001 , Change ] 2017RextX10 --> misc
+	[ 1002 , Change ] - --> empty
+	[ 1003 , Change ] - --> empty
+	[ 1004 , Change ] - --> empty
+	[ 1007 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 1008
+remove_consensus_disagrees_with_reference(): Rows after: 590
+remove_dups(): Rows after: 589
+Working on diseased
+remove_missing_values()
+	Rows before: 86
+	Rows after: 86
+clean_up_symbols()
+	[ 82 , Consensus ] - --> empty
+	[ 84 , Consensus ] KPQ --> misc
+	[ 85 , Consensus ] - --> empty
+	[ 55 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 83 , Change ] - --> empty
+	[ 84 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 85
+remove_consensus_disagrees_with_reference(): Rows after: 38
+remove_dups(): Rows after: 38
+merged shape: (1094, 4)
+remove_dups(): Rows after: 1093
+Creating everyAA
+everyAA max length is 39680
+Done with 0
+Done with 500
+Done with 1000
+Done with 1500
+Shape of everyAA: (39680, 3)
+After removing real data, rows should be 38587
+After removing real data, rows are 39539
+Adding domain info
+Added domain annotation to 442 examples
+No domain annotation for 662 examples
+Adding domain info
+Added domain annotation to 18386 examples
+No domain annotation for 21810 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.078755
+dtype: float64
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (1092, 5)
+	Data shape after one-hotifying: (1092, 49)
+Normalizing data:
+	scaler.mean_ [1.0257644e+03 7.1736285e-01] 
+	scaler.scale_ [6.06008920e+02 2.38193484e-01]
+Finished making splits
+	Train data shape: (764, 58)
+	Valid data shape: (164, 58)
+	Test data shape: (164, 58)
+	Length of one label: 1
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (39538, 5)
+	Data shape after one-hotifying: (39538, 95)
+Normalizing data:
+	scaler.mean_ [1.00449026e+03 7.53267632e-01] 
+	scaler.scale_ [5.73886050e+02 2.42525031e-01]
+Finished making splits
+	Train data shape: (39538, 58)
+	Valid data shape: (0, 58)
+	Test data shape: (0, 58)
+	Length of one label: 1
+
+
+
+
+********** scn5a **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 58]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 0.8697472810745239
+	Valid loss= 0.16781693696975708
+No more patience left at epoch 567
+--> Implementing early stopping. Best epoch was: 537
+Variable: mlp/layer_0_weights:0
+Shape: (58, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for scn5a_MLP_Valid ***
+	Epoch 537 accuracy
+		 Label : 0.975609756097561
+	Epoch 537 auroc
+		 Label : 0.46249999999999997
+	Epoch 537 partial_auroc
+		 Label : 0.0
+	Epoch 537 avg_precision
+		 Label : 0.0293055725940011
+***Final Summary for scn5a_MLP_Test ***
+	Epoch 537 accuracy
+		 Label : 0.9390243902439024
+	Epoch 537 auroc
+		 Label : 0.6324675324675324
+	Epoch 537 partial_auroc
+		 Label : 0.01038961038961039
+	Epoch 537 avg_precision
+		 Label : 0.2145730542394703
+Working on healthy
+remove_missing_values()
+	Rows before: 337
+	Rows after: 335
+clean_up_symbols()
+	[ 166 , Change ] - --> empty
+	[ 334 , Change ] - --> empty
+	[ 335 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 335
+remove_consensus_disagrees_with_reference(): Rows after: 305
+remove_dups(): Rows after: 305
+Working on diseased
+remove_missing_values()
+	Rows before: 226
+	Rows after: 225
+clean_up_symbols()
+	[ 219 , Consensus ] VVF --> misc
+	[ 221 , Consensus ] QK --> misc
+	[ 223 , Consensus ] AAP --> misc
+	[ 225 , Consensus ] SPA --> misc
+	[ 78 , Change ] - --> empty
+	[ 79 , Change ] - --> empty
+	[ 121 , Change ] - --> empty
+	[ 122 , Change ] - --> empty
+	[ 219 , Change ] - --> empty
+	[ 220 , Change ] - --> empty
+	[ 221 , Change ] - --> empty
+	[ 222 , Change ] IAP --> misc
+	[ 223 , Change ] - --> empty
+	[ 225 , Change ] GA --> misc
+remove_consensus_equals_change(): Rows after: 224
+remove_consensus_disagrees_with_reference(): Rows after: 220
+remove_dups(): Rows after: 219
+merged shape: (563, 4)
+remove_dups(): Rows after: 562
+Creating everyAA
+everyAA max length is 13520
+Done with 0
+Done with 500
+Shape of everyAA: (13520, 3)
+After removing real data, rows should be 12958
+After removing real data, rows are 13213
+Adding domain info
+Added domain annotation to 171 examples
+No domain annotation for 406 examples
+Adding domain info
+Added domain annotation to 4610 examples
+No domain annotation for 9152 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.400356
+dtype: float64
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (562, 5)
+	Data shape after one-hotifying: (562, 53)
+Normalizing data:
+	scaler.mean_ [332.39185751   0.63857404] 
+	scaler.scale_ [175.7826096    0.29501975]
+Finished making splits
+	Train data shape: (393, 58)
+	Valid data shape: (85, 58)
+	Test data shape: (84, 58)
+	Length of one label: 1
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (13213, 5)
+	Data shape after one-hotifying: (13213, 66)
+Normalizing data:
+	scaler.mean_ [337.43903731   0.60944952] 
+	scaler.scale_ [196.38121354   0.28573997]
+Finished making splits
+	Train data shape: (13213, 58)
+	Valid data shape: (0, 58)
+	Test data shape: (0, 58)
+	Length of one label: 1
+
+
+
+
+********** kcnq1 **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 58]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.2709147334098816
+	Valid loss= 0.6322882175445557
+No more patience left at epoch 596
+--> Implementing early stopping. Best epoch was: 566
+Variable: mlp/layer_0_weights:0
+Shape: (58, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnq1_MLP_Valid ***
+	Epoch 566 accuracy
+		 Label : 0.7176470588235294
+	Epoch 566 auroc
+		 Label : 0.6705495818399044
+	Epoch 566 partial_auroc
+		 Label : 0.05973715651135005
+	Epoch 566 avg_precision
+		 Label : 0.5983455982588293
+***Final Summary for kcnq1_MLP_Test ***
+	Epoch 566 accuracy
+		 Label : 0.7023809523809523
+	Epoch 566 auroc
+		 Label : 0.6988338192419825
+	Epoch 566 partial_auroc
+		 Label : 0.05743440233236152
+	Epoch 566 avg_precision
+		 Label : 0.67347666040273
+Working on healthy
+remove_missing_values()
+	Rows before: 489
+	Rows after: 489
+clean_up_symbols()
+	[ 44 , Change ] - --> empty
+	[ 405 , Change ] p --> misc
+	[ 410 , Change ] p --> misc
+	[ 481 , Change ] - --> empty
+	[ 482 , Change ] - --> empty
+	[ 484 , Change ] - --> empty
+	[ 485 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 489
+remove_consensus_disagrees_with_reference(): Rows after: 20
+remove_dups(): Rows after: 20
+Working on diseased
+remove_missing_values()
+	Rows before: 285
+	Rows after: 285
+clean_up_symbols()
+	[ 0 , Consensus ] - --> empty
+	[ 1 , Consensus ] - --> empty
+	[ 31 , Consensus ] - --> empty
+	[ 32 , Consensus ] - --> empty
+	[ 113 , Consensus ] IAQ --> misc
+	[ 1 , Change ] - --> empty
+	[ 31 , Change ] - --> empty
+	[ 32 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 113 , Change ] - --> empty
+	[ 141 , Change ] 1 --> misc
+	[ 189 , Change ] p --> misc
+	[ 254 , Change ] - --> empty
+	[ 280 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 282
+remove_consensus_disagrees_with_reference(): Rows after: 5
+remove_dups(): Rows after: 5
+merged shape: (774, 4)
+remove_dups(): Rows after: 761
+Creating everyAA
+everyAA max length is 7860
+Done with 0
+Shape of everyAA: (7860, 3)
+After removing real data, rows should be 7099
+After removing real data, rows are 8526
+Adding domain info
+Added domain annotation to 303 examples
+No domain annotation for 460 examples
+Adding domain info
+Added domain annotation to 2393 examples
+No domain annotation for 6135 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.360053
+dtype: float64
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (761, 5)
+	Data shape after one-hotifying: (761, 51)
+Normalizing data:
+	scaler.mean_ [616.55827068   0.66431549] 
+	scaler.scale_ [3.40572492e+02 2.32177417e-01]
+Finished making splits
+	Train data shape: (532, 58)
+	Valid data shape: (115, 58)
+	Test data shape: (114, 58)
+	Length of one label: 1
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (8526, 5)
+	Data shape after one-hotifying: (8526, 67)
+Normalizing data:
+	scaler.mean_ [231.26600985   0.57487638] 
+	scaler.scale_ [184.49431705   0.21042494]
+Finished making splits
+	Train data shape: (8526, 58)
+	Valid data shape: (0, 58)
+	Test data shape: (0, 58)
+	Length of one label: 1
+
+
+
+
+********** kcnh2 **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 58]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.225176215171814
+	Valid loss= 0.6213995218276978
+No more patience left at epoch 384
+--> Implementing early stopping. Best epoch was: 354
+Variable: mlp/layer_0_weights:0
+Shape: (58, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnh2_MLP_Valid ***
+	Epoch 354 accuracy
+		 Label : 0.6782608695652174
+	Epoch 354 auroc
+		 Label : 0.5869715869715869
+	Epoch 354 partial_auroc
+		 Label : 0.03603603603603604
+	Epoch 354 avg_precision
+		 Label : 0.4759520380852708
+***Final Summary for kcnh2_MLP_Test ***
+	Epoch 354 accuracy
+		 Label : 0.6578947368421053
+	Epoch 354 auroc
+		 Label : 0.6992983628466422
+	Epoch 354 partial_auroc
+		 Label : 0.046107584363514864
+	Epoch 354 avg_precision
+		 Label : 0.6217564060844951
