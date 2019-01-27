@@ -23,6 +23,9 @@ class Splits(object):
              normalize_data, #if True, normalize data based on training set
              normalize_these_continuous, #columns to normalize
              seed, #seed to determine shuffling order before making splits; used for testing
+             max_position, #int for the last position of the gene
+             columns_to_ensure, #list of column names you must have
+             use_signal_to_noise, #bool, whether to add signal to noise
              batch_size):
         """Variables:
         <data> is a pandas dataframe where the index is example IDs
@@ -40,6 +43,9 @@ class Splits(object):
         self.impute_these_continuous = impute_these_continuous
         self.one_hotify_these_categorical = one_hotify_these_categorical
         self.normalize_these_continuous = normalize_these_continuous
+        self.max_position = max_position
+        self.columns_to_ensure = columns_to_ensure
+        self.use_signal_to_noise = use_signal_to_noise
         
         self.train_percent = train_percent
         self.valid_percent = valid_percent
@@ -52,6 +58,16 @@ class Splits(object):
         
         self._get_split_indices() #defines self.trainidx and self.testidx
         self._shuffle_before_splitting()
+        
+        #Add signal to noise if indicated
+        if self.use_signal_to_noise:
+            print('Adding signal to noise feature')
+            self.impute_these_continuous = self.impute_these_continuous+['Signal_To_Noise']
+            self.normalize_these_continuous = self.normalize_these_continuous+['Signal_To_Noise']
+            self.columns_to_ensure = self.columns_to_ensure+['Signal_To_Noise']
+            self._add_signal_to_noise()
+        
+        #Further data prep:
         if impute:
             self._impute()
         if one_hotify:
@@ -76,7 +92,36 @@ class Splits(object):
         np.random.shuffle(idx)
         self.clean_data = self.clean_data.iloc[idx]
         self.clean_labels = self.clean_labels.iloc[idx]
-
+    
+    def _add_signal_to_noise(self):
+        """Add a signal to noise column based on the training data. Signal to noise is
+        calculated as the total number of pathologic mutations out of the total number of
+        reported variants at a particular position."""
+        train_df = self.clean_data.iloc[0:self.trainidx,:]
+        train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+        justpos = train_df[['Position','Label']]
+        #How many times does each position appear (regardless of label):
+        total_counts = justpos.Position.value_counts()
+        #How many times does each position appear with a positive label:
+        diseased_counts = justpos.groupby(['Position']).sum()
+        #Filter out anything that's zero because its overall value will be 0:
+        diseased_counts = diseased_counts[diseased_counts['Label']>0]
+        
+        #Create empty signal-to-noise df
+        sig_to_noise_df = pd.DataFrame(np.zeros((self.max_position,2)),
+                                       columns = ['Position','Signal_To_Noise'],
+                                       index = [x for x in range(1,self.max_position+1)])
+        sig_to_noise_df['Position'] = [x for x in range(1,self.max_position+1)]
+        
+        #Fill in the sig_to_noise_df
+        for pos in diseased_counts.index.values.tolist():
+            sig_to_noise = float(diseased_counts.at[pos,'Label'])/float(total_counts.at[pos])
+            assert sig_to_noise <= 1 #sanity check
+        
+        #Add to clean_data
+        self.clean_data = self.clean_data.merge(sig_to_noise_df,how='inner',on='Position')
+        self.clean_data = self.clean_data.loc[self.clean_labels.index.values.tolist(),:] #ensure same order
+        
     def _impute(self):
         """Impute categorical variables using the mode of the training data
         and continuous variables using the median of the training data."""
@@ -121,25 +166,11 @@ class Splits(object):
         """For small input data, 'one-hotifying' might not produce all of the
         columns or it might not produce them in the right order. Ensure that
         the columns needed are all present and are all in the right order."""
-        columns = ['Position', 'Conservation', 'Consensus_A',
-            'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F',
-            'Consensus_G', 'Consensus_H','Consensus_I', 'Consensus_K',
-            'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P',
-            'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T',
-            'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Change_A', 'Change_C',
-            'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H',
-            'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N',
-            'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T',
-            'Change_V', 'Change_W', 'Change_Y', 'Domain_Central-domain',
-            'Domain_Channel-domain', 'Domain_HD1', 'Domain_HD2',
-            'Domain_Handle-domain', 'Domain_NTD', 'Domain_Outside', 'Domain_P1',
-             'Domain_P2', 'Domain_SPRY1-first', 'Domain_SPRY1-second',
-             'Domain_SPRY1-third', 'Domain_SPRY2-first', 'Domain_SPRY2-second',
-             'Domain_SPRY3-first', 'Domain_SPRY3-second']
-        for required_column in columns:
+        print('Ensuring columns',self.columns_to_ensure)
+        for required_column in self.columns_to_ensure:
             if required_column not in self.clean_data.columns.values:
                 self.clean_data[required_column] = 0
-        self.clean_data = self.clean_data[columns]
+        self.clean_data = self.clean_data[self.columns_to_ensure]
     
     def _normalize(self):
         #TODO test this
@@ -153,7 +184,7 @@ class Splits(object):
               '\n\tscaler.scale_',str(scaler.scale_))
         assert len(self.normalize_these_continuous)==scaler.mean_.shape[0]==scaler.scale_.shape[0]
         self.clean_data[self.normalize_these_continuous] = scaler.transform((self.clean_data[self.normalize_these_continuous]).values)
-        
+    
     def _make_splits(self):
         """Split up self.clean_data and self.clean_labels
         into train, test, and valid data."""

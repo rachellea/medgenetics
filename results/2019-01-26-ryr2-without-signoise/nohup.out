@@ -1,0 +1,127 @@
+2019-01-26 23:03:00.679350: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2019-01-26 23:03:01.305057: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:964] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2019-01-26 23:03:01.305652: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Tesla P100-PCIE-16GB major: 6 minor: 0 memoryClockRate(GHz): 1.3285
+pciBusID: 0000:13:00.0
+totalMemory: 15.90GiB freeMemory: 15.61GiB
+2019-01-26 23:03:01.305685: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-01-26 23:03:03.292122: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-01-26 23:03:03.292210: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-01-26 23:03:03.292224: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-01-26 23:03:03.292635: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+Working on healthy
+remove_missing_values()
+	Rows before: 1959
+	Rows after: 1959
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 1959
+remove_consensus_disagrees_with_reference(): Rows after: 1958
+remove_dups(): Rows after: 1950
+Working on diseased
+remove_missing_values()
+	Rows before: 142
+	Rows after: 142
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 142
+remove_consensus_disagrees_with_reference(): Rows after: 142
+remove_dups(): Rows after: 142
+merged shape: (2101, 4)
+remove_dups(): Rows after: 2093
+Creating everyAA
+everyAA max length is 99340
+Done with 0
+Done with 500
+Done with 1000
+Done with 1500
+Done with 2000
+Done with 2500
+Done with 3000
+Done with 3500
+Done with 4000
+Done with 4500
+Shape of everyAA: (99340, 3)
+After removing real data, rows should be 97247
+After removing real data, rows are 97281
+Adding domain info
+Added domain annotation to 1870 examples
+No domain annotation for 226 examples
+Adding domain info
+Added domain annotation to 88139 examples
+No domain annotation for 9339 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.067845
+dtype: float64
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (2093, 5)
+	Data shape after one-hotifying: (2093, 44)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain']
+Normalizing data:
+	scaler.mean_ [2.28020137e+03 6.42441632e-01] 
+	scaler.scale_ [1.38066842e+03 2.06069292e-01]
+Finished making splits
+	Train data shape: (1465, 59)
+	Valid data shape: (314, 59)
+	Test data shape: (314, 59)
+	Length of one label: 1
+Creating splits based on seed 12345
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (97281, 5)
+	Data shape after one-hotifying: (97281, 59)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain']
+Normalizing data:
+	scaler.mean_ [2.48810190e+03 6.57128383e-01] 
+	scaler.scale_ [1.43461161e+03 1.96580684e-01]
+Finished making splits
+	Train data shape: (97281, 59)
+	Valid data shape: (0, 59)
+	Test data shape: (0, 59)
+	Length of one label: 1
+
+
+
+
+********** ryr2 **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 59]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+No more patience left at epoch 221
+--> Implementing early stopping. Best epoch was: 191
+Variable: mlp/layer_0_weights:0
+Shape: (59, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for ryr2_MLP_Valid ***
+	Epoch 191 accuracy
+		 Label : 0.9363057324840764
+	Epoch 191 auroc
+		 Label : 0.610969387755102
+	Epoch 191 partial_auroc
+		 Label : 0.028061224489795922
+	Epoch 191 avg_precision
+		 Label : 0.1655329865975404
+***Final Summary for ryr2_MLP_Test ***
+	Epoch 191 accuracy
+		 Label : 0.945859872611465
+	Epoch 191 auroc
+		 Label : 0.7498514557338087
+	Epoch 191 partial_auroc
+		 Label : 0.08259061200237672
+	Epoch 191 avg_precision
+		 Label : 0.3247398287125611

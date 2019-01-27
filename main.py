@@ -22,7 +22,8 @@ def run_gene_model(gene_name):
                     'normalize_data':True,
                     'normalize_these_continuous':['Position','Conservation'],
                     'seed':12345,
-                    'batch_size':300}
+                    'batch_size':300,
+                    'use_signal_to_noise':False}
     
     #Real data with healthy and diseased
     ag = clean_data.AnnotatedGene(gene_name)
@@ -36,6 +37,8 @@ def run_gene_model(gene_name):
                          train_percent = 0.7,
                          valid_percent = 0.15,
                          test_percent = 0.15,
+                         max_position = ag.max_position,
+                         columns_to_ensure = ag.columns_to_ensure,
                          **shared_args)
 
     #Fake data with all possible combos of every AA at every position
@@ -46,6 +49,8 @@ def run_gene_model(gene_name):
                                  train_percent = 1.0,
                                  valid_percent = 0,
                                  test_percent = 0,
+                                 max_position = ag.max_position,
+                                 columns_to_ensure = ag.columns_to_ensure,
                                  **shared_args).train
     assert everyAA_split.data.shape[0] == everyAA.shape[0]
     
@@ -64,6 +69,6 @@ def run_gene_model(gene_name):
 
 if __name__=='__main__':
     run_gene_model('ryr2')
-    run_gene_model('scn5a')
-    run_gene_model('kcnq1')
-    run_gene_model('kcnh2')
+  #  run_gene_model('scn5a')
+  #  run_gene_model('kcnq1')
+  #  run_gene_model('kcnh2')

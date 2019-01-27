@@ -54,7 +54,6 @@ class BareGene(object):
         #TODO write function that checks that everything listed in self.history
         #is present in the original files and is absent from the current version
         #of the file.
-    
     ####################
     # Cleaning Methods #--------------------------------------------------------
     ####################
@@ -161,6 +160,9 @@ class BareGene(object):
         #pos columns must have same type in order to be merged with other df later
         reference_df['Position'] = pd.to_numeric(reference_df['Position'], downcast='integer')
         self.reference_df = reference_df
+        #Save max position
+        assert len(reference_df.index.values.tolist())==max(reference_df['Position'].values.tolist())
+        self.max_position = max(reference_df['Position'].values.tolist())
 
     def update_history_using_temp(self, temp, key, reason_removed):
         """Update history of the data cleaning process"""
@@ -178,8 +180,13 @@ class AnnotatedGene(object):
     def __init__(self, gene_name):
         """Add domain and conservation information to the bare gene and to everyAA;
         return gene and everyAA dataframes"""
+        global AMINO_ACIDS
         self.gene_name = gene_name
-        self.inputx = BareGene(gene_name).merged
+        
+        b = BareGene(gene_name)
+        self.inputx = b.merged
+        self.max_position = b.max_position
+        
         self.everyAA = prepare_everyAA(self.inputx, gene_name)
         #self.everyAA = make_small_everyAA_for_testing()
         self.create_domain_dictionary()
@@ -191,6 +198,11 @@ class AnnotatedGene(object):
         #add a column with conservation score
         self.inputx = self.add_conservation_info(self.inputx)
         self.everyAA = self.add_conservation_info(self.everyAA)
+        
+        self.columns_to_ensure = (['Position', 'Conservation']
+            +['Consensus_'+letter for letter in AMINO_ACIDS]
+            +['Change_'+letter for letter in AMINO_ACIDS]
+            +['Domain_'+domname for domname in list(self.domains.keys())])
         print('Done with AnnotatedGene')
        
     def add_domain_info(self, df):
