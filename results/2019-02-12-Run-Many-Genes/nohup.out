@@ -1,0 +1,1064 @@
+2019-02-12 16:27:23.822127: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2019-02-12 16:27:24.419322: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:964] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2019-02-12 16:27:24.419910: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Tesla P100-PCIE-16GB major: 6 minor: 0 memoryClockRate(GHz): 1.3285
+pciBusID: 0000:13:00.0
+totalMemory: 15.90GiB freeMemory: 15.61GiB
+2019-02-12 16:27:24.419943: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:27:24.850461: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:27:24.850529: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:27:24.850541: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:27:24.850937: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:31:48.160380: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:31:48.160776: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:31:48.160790: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:31:48.160799: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:31:48.160954: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:32:52.530197: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:32:52.530283: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:32:52.530296: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:32:52.530305: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:32:52.530454: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:34:27.695016: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:34:27.695115: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:34:27.695129: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:34:27.695138: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:34:27.695274: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:41:20.956988: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:41:20.957332: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:41:20.957347: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:41:20.957355: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:41:20.957506: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:42:48.342889: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:42:48.342977: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:42:48.342990: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:42:48.342999: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:42:48.343153: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:49:39.963599: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:49:39.963685: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:49:39.963697: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:49:39.963705: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:49:39.963852: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+2019-02-12 16:50:34.263428: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-02-12 16:50:34.263795: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-12 16:50:34.263809: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-02-12 16:50:34.263818: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-02-12 16:50:34.263967: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 15123 MB memory) -> physical GPU (device: 0, name: Tesla P100-PCIE-16GB, pci bus id: 0000:13:00.0, compute capability: 6.0)
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/opt/anaconda/lib/python3.6/site-packages/pandas/core/indexing.py:1472: FutureWarning: 
+Passing list-likes to .loc or [] with any missing label will raise
+KeyError in the future, you can use .reindex() as an alternative.
+
+See the documentation here:
+https://pandas.pydata.org/pandas-docs/stable/indexing.html#deprecate-loc-reindex-listlike
+  return self._getitem_tuple(key)
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+/opt/anaconda/lib/python3.6/site-packages/pandas/core/indexing.py:1472: FutureWarning: 
+Passing list-likes to .loc or [] with any missing label will raise
+KeyError in the future, you can use .reindex() as an alternative.
+
+See the documentation here:
+https://pandas.pydata.org/pandas-docs/stable/indexing.html#deprecate-loc-reindex-listlike
+  return self._getitem_tuple(key)
+/data/rlb61/Landstrom/medgenetics/data/utils.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
+Working on healthy
+remove_missing_values()
+	Rows before: 1958
+	Rows after: 1958
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 1958
+remove_consensus_disagrees_with_reference(): Rows after: 1958
+remove_dups(): Rows after: 1950
+Working on diseased
+remove_missing_values()
+	Rows before: 142
+	Rows after: 142
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 142
+remove_consensus_disagrees_with_reference(): Rows after: 142
+remove_dups(): Rows after: 142
+merged shape: (2100, 4)
+remove_dups(): Rows after: 2092
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 1869 examples
+No domain annotation for 226 examples
+Adding domain info
+Added domain annotation to 21 examples
+No domain annotation for 0 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.067878
+dtype: float64
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (2092, 5)
+	Data shape after one-hotifying: (2092, 44)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain']
+Normalizing data:
+	scaler.mean_ [2.28669672e+03 6.42560085e-01] 
+	scaler.scale_ [1.40299923e+03 2.07153084e-01]
+Finished making splits
+	Train data shape: (1464, 59)
+	Valid data shape: (314, 59)
+	Test data shape: (314, 59)
+	Length of one label: 1
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 5)
+	Data shape after one-hotifying: (21, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain']
+Normalizing data:
+	scaler.mean_ [11.          0.20016856] 
+	scaler.scale_ [6.05530071 0.18276458]
+Finished making splits
+	Train data shape: (21, 59)
+	Valid data shape: (0, 59)
+	Test data shape: (0, 59)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** ryr2_snFalse **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 59]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.1946613490581512
+	Valid loss= 0.3464090973138809
+Finished Epoch 666.
+	Training loss= 1.1500828862190247
+	Valid loss= 0.328438401222229
+No more patience left at epoch 773
+--> Implementing early stopping. Best epoch was: 743
+Variable: mlp/layer_0_weights:0
+Shape: (59, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for ryr2_snFalse_MLP_Valid ***
+	Epoch 743 accuracy
+		 Label : 0.9554140127388535
+	Epoch 743 auroc
+		 Label : 0.7130952380952381
+	Epoch 743 partial_auroc
+		 Label : 0.047619047619047616
+	Epoch 743 avg_precision
+		 Label : 0.21274285616455776
+***Final Summary for ryr2_snFalse_MLP_Test ***
+	Epoch 743 accuracy
+		 Label : 0.9363057324840764
+	Epoch 743 auroc
+		 Label : 0.6517857142857143
+	Epoch 743 partial_auroc
+		 Label : 0.028486394557823126
+	Epoch 743 avg_precision
+		 Label : 0.1670013414158498
+Working on healthy
+remove_missing_values()
+	Rows before: 1008
+	Rows after: 1008
+clean_up_symbols()
+	[ 196 , Change ] - --> empty
+	[ 497 , Change ] - --> empty
+	[ 546 , Change ] - --> empty
+	[ 552 , Change ] - --> empty
+	[ 671 , Change ] - --> empty
+	[ 775 , Change ] - --> empty
+	[ 808 , Change ] - --> empty
+	[ 990 , Change ] - --> empty
+	[ 1001 , Change ] 2017RextX10 --> misc
+	[ 1002 , Change ] - --> empty
+	[ 1003 , Change ] - --> empty
+	[ 1004 , Change ] - --> empty
+	[ 1007 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 1008
+remove_consensus_disagrees_with_reference(): Rows after: 590
+remove_dups(): Rows after: 589
+Working on diseased
+remove_missing_values()
+	Rows before: 86
+	Rows after: 86
+clean_up_symbols()
+	[ 82 , Consensus ] - --> empty
+	[ 84 , Consensus ] KPQ --> misc
+	[ 85 , Consensus ] - --> empty
+	[ 55 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 83 , Change ] - --> empty
+	[ 84 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 85
+remove_consensus_disagrees_with_reference(): Rows after: 38
+remove_dups(): Rows after: 38
+merged shape: (1094, 4)
+remove_dups(): Rows after: 1093
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 442 examples
+No domain annotation for 662 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.078755
+dtype: float64
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (1092, 5)
+	Data shape after one-hotifying: (1092, 49)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_phosphorylation-site-7', 'Domain_phosphorylation-site-8', 'Domain_phosphorylation-site-9', 'Domain_Methylation-1', 'Domain_Methylation-2', 'Domain_phosphorylation-site-10', 'Domain_phosphorylation-site-11', 'Domain_phosphorylation-site-12', 'Domain_phosphorylation-site-13', 'Domain_Methylation-3', 'Domain_Transmemberane-domain-6', 'Domain_Transmemberane-domain-7', 'Domain_Transmemberane-domain-8', 'Domain_Transmemberane-domain-9', 'Domain_Transmemberane-domain-10', 'Domain_Transmemberane-domain-11', 'Domain_Transmemberane-domain-12', 'Domain_Sodium-ion-transport', 'Domain_Transmemberane-domain-13', 'Domain_Transmemberane-domain-14', 'Domain_Transmemberane-domain-15', 'Domain_Transmemberane-domain-16', 'Domain_Transmemberane-domain-17', 'Domain_Transmemberane-domain-18', 'Domain_Na_channel_gate', 'Domain_phosphorylation-site-14', 'Domain_Transmemberane-domain-19', 'Domain_Transmemberane-domain-20', 'Domain_Transmemberane-domain-21', 'Domain_Transmemberane-domain-22', 'Domain_Transmemberane-domain-23', 'Domain_Transmemberane-domain-24', 'Domain_GPHH', 'Domain_Interaction-with-FGF13', 'Domain_Interaction-with-NEDD4-NEDD4L-WWP2']
+Normalizing data:
+	scaler.mean_ [1.00969372e+03 7.21061917e-01] 
+	scaler.scale_ [6.08086825e+02 2.37373675e-01]
+Finished making splits
+	Train data shape: (764, 90)
+	Valid data shape: (164, 90)
+	Test data shape: (164, 90)
+	Length of one label: 1
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 5)
+	Data shape after one-hotifying: (21, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_phosphorylation-site-7', 'Domain_phosphorylation-site-8', 'Domain_phosphorylation-site-9', 'Domain_Methylation-1', 'Domain_Methylation-2', 'Domain_phosphorylation-site-10', 'Domain_phosphorylation-site-11', 'Domain_phosphorylation-site-12', 'Domain_phosphorylation-site-13', 'Domain_Methylation-3', 'Domain_Transmemberane-domain-6', 'Domain_Transmemberane-domain-7', 'Domain_Transmemberane-domain-8', 'Domain_Transmemberane-domain-9', 'Domain_Transmemberane-domain-10', 'Domain_Transmemberane-domain-11', 'Domain_Transmemberane-domain-12', 'Domain_Sodium-ion-transport', 'Domain_Transmemberane-domain-13', 'Domain_Transmemberane-domain-14', 'Domain_Transmemberane-domain-15', 'Domain_Transmemberane-domain-16', 'Domain_Transmemberane-domain-17', 'Domain_Transmemberane-domain-18', 'Domain_Na_channel_gate', 'Domain_phosphorylation-site-14', 'Domain_Transmemberane-domain-19', 'Domain_Transmemberane-domain-20', 'Domain_Transmemberane-domain-21', 'Domain_Transmemberane-domain-22', 'Domain_Transmemberane-domain-23', 'Domain_Transmemberane-domain-24', 'Domain_GPHH', 'Domain_Interaction-with-FGF13', 'Domain_Interaction-with-NEDD4-NEDD4L-WWP2']
+Normalizing data:
+	scaler.mean_ [11.          0.72619048] 
+	scaler.scale_ [6.05530071 0.18569738]
+Finished making splits
+	Train data shape: (21, 90)
+	Valid data shape: (0, 90)
+	Test data shape: (0, 90)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** scn5a_snFalse **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 90]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+No more patience left at epoch 330
+--> Implementing early stopping. Best epoch was: 300
+Variable: mlp/layer_0_weights:0
+Shape: (90, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for scn5a_snFalse_MLP_Valid ***
+	Epoch 300 accuracy
+		 Label : 0.8902439024390244
+	Epoch 300 auroc
+		 Label : 0.5953196347031964
+	Epoch 300 partial_auroc
+		 Label : 0.010083713850837138
+	Epoch 300 avg_precision
+		 Label : 0.1711724117532817
+***Final Summary for scn5a_snFalse_MLP_Test ***
+	Epoch 300 accuracy
+		 Label : 0.926829268292683
+	Epoch 300 auroc
+		 Label : 0.6313048245614035
+	Epoch 300 partial_auroc
+		 Label : 0.0038377192982456143
+	Epoch 300 avg_precision
+		 Label : 0.10249952563278206
+Working on healthy
+remove_missing_values()
+	Rows before: 329
+	Rows after: 329
+clean_up_symbols()
+	[ 152 , Change ] l --> misc
+remove_consensus_equals_change(): Rows after: 329
+remove_consensus_disagrees_with_reference(): Rows after: 327
+remove_dups(): Rows after: 323
+Working on diseased
+remove_missing_values()
+	Rows before: 177
+	Rows after: 176
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 176
+remove_consensus_disagrees_with_reference(): Rows after: 176
+remove_dups(): Rows after: 176
+merged shape: (506, 4)
+remove_dups(): Rows after: 502
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 163 examples
+No domain annotation for 356 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.35259
+dtype: float64
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (502, 5)
+	Data shape after one-hotifying: (502, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_Transmemberane-1', 'Domain_Transmemberane-2', 'Domain_Transmemberane-3', 'Domain_Transmemberane-4', 'Domain_Transmemberane-5', 'Domain_Selected-filter ', 'Domain_Transmemberane-6', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_Interaction-with-KCNE1-C-terminus', 'Domain_Interaction-with-AKAP9', 'Domain_C-terminal-assembly-domain']
+Normalizing data:
+	scaler.mean_ [348.53846154   0.65207632] 
+	scaler.scale_ [166.22297549   0.29580372]
+Finished making splits
+	Train data shape: (351, 57)
+	Valid data shape: (76, 57)
+	Test data shape: (75, 57)
+	Length of one label: 1
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 5)
+	Data shape after one-hotifying: (21, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_Transmemberane-1', 'Domain_Transmemberane-2', 'Domain_Transmemberane-3', 'Domain_Transmemberane-4', 'Domain_Transmemberane-5', 'Domain_Selected-filter ', 'Domain_Transmemberane-6', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_Interaction-with-KCNE1-C-terminus', 'Domain_Interaction-with-AKAP9', 'Domain_C-terminal-assembly-domain']
+Normalizing data:
+	scaler.mean_ [11.          0.32708033] 
+	scaler.scale_ [6.05530071 0.05743476]
+Finished making splits
+	Train data shape: (21, 57)
+	Valid data shape: (0, 57)
+	Test data shape: (0, 57)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** kcnq1_snFalse **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 57]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.2146060466766357
+	Valid loss= 0.6326900124549866
+No more patience left at epoch 404
+--> Implementing early stopping. Best epoch was: 374
+Variable: mlp/layer_0_weights:0
+Shape: (57, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnq1_snFalse_MLP_Valid ***
+	Epoch 374 accuracy
+		 Label : 0.618421052631579
+	Epoch 374 auroc
+		 Label : 0.6933235509904623
+	Epoch 374 partial_auroc
+		 Label : 0.049889948642699924
+	Epoch 374 avg_precision
+		 Label : 0.6195337187523557
+***Final Summary for kcnq1_snFalse_MLP_Test ***
+	Epoch 374 accuracy
+		 Label : 0.6933333333333334
+	Epoch 374 auroc
+		 Label : 0.7445652173913043
+	Epoch 374 partial_auroc
+		 Label : 0.05518394648829432
+	Epoch 374 avg_precision
+		 Label : 0.6230199068111362
+Working on healthy
+remove_missing_values()
+	Rows before: 489
+	Rows after: 489
+clean_up_symbols()
+	[ 44 , Change ] - --> empty
+	[ 405 , Change ] p --> misc
+	[ 410 , Change ] p --> misc
+	[ 481 , Change ] - --> empty
+	[ 482 , Change ] - --> empty
+	[ 484 , Change ] - --> empty
+	[ 485 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 489
+remove_consensus_disagrees_with_reference(): Rows after: 20
+remove_dups(): Rows after: 20
+Working on diseased
+remove_missing_values()
+	Rows before: 285
+	Rows after: 285
+clean_up_symbols()
+	[ 0 , Consensus ] - --> empty
+	[ 1 , Consensus ] - --> empty
+	[ 31 , Consensus ] - --> empty
+	[ 32 , Consensus ] - --> empty
+	[ 113 , Consensus ] IAQ --> misc
+	[ 1 , Change ] - --> empty
+	[ 31 , Change ] - --> empty
+	[ 32 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 113 , Change ] - --> empty
+	[ 141 , Change ] 1 --> misc
+	[ 189 , Change ] p --> misc
+	[ 254 , Change ] - --> empty
+	[ 280 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 282
+remove_consensus_disagrees_with_reference(): Rows after: 5
+remove_dups(): Rows after: 5
+merged shape: (774, 4)
+remove_dups(): Rows after: 761
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 303 examples
+No domain annotation for 460 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.360053
+dtype: float64
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (761, 5)
+	Data shape after one-hotifying: (761, 51)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_PAS-domain', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_Glycolysation', 'Domain_Transmemberane-domain-6', 'Domain_CAP-Effector-domain', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_SSTK-interacting-protein', 'Domain_Methylation', 'Domain_phosphorylation-site-7']
+Normalizing data:
+	scaler.mean_ [611.96052632   0.66064915] 
+	scaler.scale_ [3.3601991e+02 2.3214401e-01]
+Finished making splits
+	Train data shape: (532, 62)
+	Valid data shape: (115, 62)
+	Test data shape: (114, 62)
+	Length of one label: 1
+Creating splits based on seed 10393
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 5)
+	Data shape after one-hotifying: (21, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_PAS-domain', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_Glycolysation', 'Domain_Transmemberane-domain-6', 'Domain_CAP-Effector-domain', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_SSTK-interacting-protein', 'Domain_Methylation', 'Domain_phosphorylation-site-7']
+Normalizing data:
+	scaler.mean_ [11.          0.43705799] 
+	scaler.scale_ [6.05530071 0.12826913]
+Finished making splits
+	Train data shape: (21, 62)
+	Valid data shape: (0, 62)
+	Test data shape: (0, 62)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** kcnh2_snFalse **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 62]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.2156814336776733
+	Valid loss= 0.6406660676002502
+Finished Epoch 666.
+	Training loss= 1.1253860592842102
+	Valid loss= 0.6370561718940735
+Finished Epoch 999.
+	Training loss= 1.0196639597415924
+	Valid loss= 0.6293745040893555
+Variable: mlp/layer_0_weights:0
+Shape: (62, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnh2_snFalse_MLP_Valid ***
+	Epoch 1000 accuracy
+		 Label : 0.6869565217391305
+	Epoch 1000 auroc
+		 Label : 0.6865079365079366
+	Epoch 1000 partial_auroc
+		 Label : 0.05904761904761906
+	Epoch 1000 avg_precision
+		 Label : 0.6475638068096854
+***Final Summary for kcnh2_snFalse_MLP_Test ***
+	Epoch 1000 accuracy
+		 Label : 0.6403508771929824
+	Epoch 1000 auroc
+		 Label : 0.6837837837837837
+	Epoch 1000 partial_auroc
+		 Label : 0.03851351351351351
+	Epoch 1000 avg_precision
+		 Label : 0.531373917491667
+Working on healthy
+remove_missing_values()
+	Rows before: 1958
+	Rows after: 1958
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 1958
+remove_consensus_disagrees_with_reference(): Rows after: 1958
+remove_dups(): Rows after: 1950
+Working on diseased
+remove_missing_values()
+	Rows before: 142
+	Rows after: 142
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 142
+remove_consensus_disagrees_with_reference(): Rows after: 142
+remove_dups(): Rows after: 142
+merged shape: (2100, 4)
+remove_dups(): Rows after: 2092
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 1869 examples
+No domain annotation for 226 examples
+Adding domain info
+Added domain annotation to 21 examples
+No domain annotation for 0 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.067878
+dtype: float64
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (2092, 6)
+	Data shape after one-hotifying: (2092, 45)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [2.27722131e+03 6.44518594e-01 0.00000000e+00] 
+	scaler.scale_ [1.38309628e+03 2.03424938e-01 1.00000000e+00]
+Finished making splits
+	Train data shape: (1464, 60)
+	Valid data shape: (314, 60)
+	Test data shape: (314, 60)
+	Length of one label: 1
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 6)
+	Data shape after one-hotifying: (21, 46)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_NTD', 'Domain_SPRY1-first', 'Domain_SPRY1-second', 'Domain_SPRY1-third', 'Domain_P1', 'Domain_SPRY2-first', 'Domain_SPRY2-second', 'Domain_SPRY3-first', 'Domain_SPRY3-second', 'Domain_Handle-domain', 'Domain_HD1', 'Domain_P2', 'Domain_HD2', 'Domain_Central-domain', 'Domain_Channel-domain', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [11.          0.20016856  0.        ] 
+	scaler.scale_ [6.05530071 0.18276458 1.        ]
+Finished making splits
+	Train data shape: (21, 60)
+	Valid data shape: (0, 60)
+	Test data shape: (0, 60)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** ryr2_snTrue **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 60]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.2790539860725403
+	Valid loss= 0.45549704134464264
+No more patience left at epoch 369
+--> Implementing early stopping. Best epoch was: 339
+Variable: mlp/layer_0_weights:0
+Shape: (60, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for ryr2_snTrue_MLP_Valid ***
+	Epoch 339 accuracy
+		 Label : 0.9554140127388535
+	Epoch 339 auroc
+		 Label : 0.4880952380952381
+	Epoch 339 partial_auroc
+		 Label : 0.0007142857142857142
+	Epoch 339 avg_precision
+		 Label : 0.06085552498492839
+***Final Summary for ryr2_snTrue_MLP_Test ***
+	Epoch 339 accuracy
+		 Label : 0.9363057324840764
+	Epoch 339 auroc
+		 Label : 0.46828231292517003
+	Epoch 339 partial_auroc
+		 Label : 0.0
+	Epoch 339 avg_precision
+		 Label : 0.057822071691041727
+Working on healthy
+remove_missing_values()
+	Rows before: 1008
+	Rows after: 1008
+clean_up_symbols()
+	[ 196 , Change ] - --> empty
+	[ 497 , Change ] - --> empty
+	[ 546 , Change ] - --> empty
+	[ 552 , Change ] - --> empty
+	[ 671 , Change ] - --> empty
+	[ 775 , Change ] - --> empty
+	[ 808 , Change ] - --> empty
+	[ 990 , Change ] - --> empty
+	[ 1001 , Change ] 2017RextX10 --> misc
+	[ 1002 , Change ] - --> empty
+	[ 1003 , Change ] - --> empty
+	[ 1004 , Change ] - --> empty
+	[ 1007 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 1008
+remove_consensus_disagrees_with_reference(): Rows after: 590
+remove_dups(): Rows after: 589
+Working on diseased
+remove_missing_values()
+	Rows before: 86
+	Rows after: 86
+clean_up_symbols()
+	[ 82 , Consensus ] - --> empty
+	[ 84 , Consensus ] KPQ --> misc
+	[ 85 , Consensus ] - --> empty
+	[ 55 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 83 , Change ] - --> empty
+	[ 84 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 85
+remove_consensus_disagrees_with_reference(): Rows after: 38
+remove_dups(): Rows after: 38
+merged shape: (1094, 4)
+remove_dups(): Rows after: 1093
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 442 examples
+No domain annotation for 662 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.078755
+dtype: float64
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (1092, 6)
+	Data shape after one-hotifying: (1092, 50)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_phosphorylation-site-7', 'Domain_phosphorylation-site-8', 'Domain_phosphorylation-site-9', 'Domain_Methylation-1', 'Domain_Methylation-2', 'Domain_phosphorylation-site-10', 'Domain_phosphorylation-site-11', 'Domain_phosphorylation-site-12', 'Domain_phosphorylation-site-13', 'Domain_Methylation-3', 'Domain_Transmemberane-domain-6', 'Domain_Transmemberane-domain-7', 'Domain_Transmemberane-domain-8', 'Domain_Transmemberane-domain-9', 'Domain_Transmemberane-domain-10', 'Domain_Transmemberane-domain-11', 'Domain_Transmemberane-domain-12', 'Domain_Sodium-ion-transport', 'Domain_Transmemberane-domain-13', 'Domain_Transmemberane-domain-14', 'Domain_Transmemberane-domain-15', 'Domain_Transmemberane-domain-16', 'Domain_Transmemberane-domain-17', 'Domain_Transmemberane-domain-18', 'Domain_Na_channel_gate', 'Domain_phosphorylation-site-14', 'Domain_Transmemberane-domain-19', 'Domain_Transmemberane-domain-20', 'Domain_Transmemberane-domain-21', 'Domain_Transmemberane-domain-22', 'Domain_Transmemberane-domain-23', 'Domain_Transmemberane-domain-24', 'Domain_GPHH', 'Domain_Interaction-with-FGF13', 'Domain_Interaction-with-NEDD4-NEDD4L-WWP2', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [9.99079088e+02 7.30096748e-01 0.00000000e+00] 
+	scaler.scale_ [5.96453804e+02 2.38448199e-01 1.00000000e+00]
+Finished making splits
+	Train data shape: (764, 91)
+	Valid data shape: (164, 91)
+	Test data shape: (164, 91)
+	Length of one label: 1
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 6)
+	Data shape after one-hotifying: (21, 46)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_phosphorylation-site-7', 'Domain_phosphorylation-site-8', 'Domain_phosphorylation-site-9', 'Domain_Methylation-1', 'Domain_Methylation-2', 'Domain_phosphorylation-site-10', 'Domain_phosphorylation-site-11', 'Domain_phosphorylation-site-12', 'Domain_phosphorylation-site-13', 'Domain_Methylation-3', 'Domain_Transmemberane-domain-6', 'Domain_Transmemberane-domain-7', 'Domain_Transmemberane-domain-8', 'Domain_Transmemberane-domain-9', 'Domain_Transmemberane-domain-10', 'Domain_Transmemberane-domain-11', 'Domain_Transmemberane-domain-12', 'Domain_Sodium-ion-transport', 'Domain_Transmemberane-domain-13', 'Domain_Transmemberane-domain-14', 'Domain_Transmemberane-domain-15', 'Domain_Transmemberane-domain-16', 'Domain_Transmemberane-domain-17', 'Domain_Transmemberane-domain-18', 'Domain_Na_channel_gate', 'Domain_phosphorylation-site-14', 'Domain_Transmemberane-domain-19', 'Domain_Transmemberane-domain-20', 'Domain_Transmemberane-domain-21', 'Domain_Transmemberane-domain-22', 'Domain_Transmemberane-domain-23', 'Domain_Transmemberane-domain-24', 'Domain_GPHH', 'Domain_Interaction-with-FGF13', 'Domain_Interaction-with-NEDD4-NEDD4L-WWP2', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [11.          0.72619048  0.        ] 
+	scaler.scale_ [6.05530071 0.18569738 1.        ]
+Finished making splits
+	Train data shape: (21, 91)
+	Valid data shape: (0, 91)
+	Test data shape: (0, 91)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** scn5a_snTrue **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 91]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.5835891962051392
+	Valid loss= 0.5414343476295471
+Finished Epoch 666.
+	Training loss= 0.9927356839179993
+	Valid loss= 0.3813689947128296
+Finished Epoch 999.
+	Training loss= 0.8438348919153214
+	Valid loss= 0.3461604416370392
+Variable: mlp/layer_0_weights:0
+Shape: (91, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for scn5a_snTrue_MLP_Valid ***
+	Epoch 1000 accuracy
+		 Label : 0.8902439024390244
+	Epoch 1000 auroc
+		 Label : 0.5
+	Epoch 1000 partial_auroc
+		 Label : nan
+	Epoch 1000 avg_precision
+		 Label : 0.10975609756097561
+***Final Summary for scn5a_snTrue_MLP_Test ***
+	Epoch 1000 accuracy
+		 Label : 0.926829268292683
+	Epoch 1000 auroc
+		 Label : 0.5
+	Epoch 1000 partial_auroc
+		 Label : nan
+	Epoch 1000 avg_precision
+		 Label : 0.07317073170731707
+Working on healthy
+remove_missing_values()
+	Rows before: 329
+	Rows after: 329
+clean_up_symbols()
+	[ 152 , Change ] l --> misc
+remove_consensus_equals_change(): Rows after: 329
+remove_consensus_disagrees_with_reference(): Rows after: 327
+remove_dups(): Rows after: 323
+Working on diseased
+remove_missing_values()
+	Rows before: 177
+	Rows after: 176
+clean_up_symbols()
+remove_consensus_equals_change(): Rows after: 176
+remove_consensus_disagrees_with_reference(): Rows after: 176
+remove_dups(): Rows after: 176
+merged shape: (506, 4)
+remove_dups(): Rows after: 502
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 163 examples
+No domain annotation for 356 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.35259
+dtype: float64
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (502, 6)
+	Data shape after one-hotifying: (502, 46)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_Transmemberane-1', 'Domain_Transmemberane-2', 'Domain_Transmemberane-3', 'Domain_Transmemberane-4', 'Domain_Transmemberane-5', 'Domain_Selected-filter ', 'Domain_Transmemberane-6', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_Interaction-with-KCNE1-C-terminus', 'Domain_Interaction-with-AKAP9', 'Domain_C-terminal-assembly-domain', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [354.41025641   0.65388932   0.        ] 
+	scaler.scale_ [166.79665805   0.29473246   1.        ]
+Finished making splits
+	Train data shape: (351, 58)
+	Valid data shape: (76, 58)
+	Test data shape: (75, 58)
+	Length of one label: 1
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 6)
+	Data shape after one-hotifying: (21, 46)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_phosphorylation-site-1', 'Domain_Transmemberane-1', 'Domain_Transmemberane-2', 'Domain_Transmemberane-3', 'Domain_Transmemberane-4', 'Domain_Transmemberane-5', 'Domain_Selected-filter ', 'Domain_Transmemberane-6', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_Interaction-with-KCNE1-C-terminus', 'Domain_Interaction-with-AKAP9', 'Domain_C-terminal-assembly-domain', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [11.          0.32708033  0.        ] 
+	scaler.scale_ [6.05530071 0.05743476 1.        ]
+Finished making splits
+	Train data shape: (21, 58)
+	Valid data shape: (0, 58)
+	Test data shape: (0, 58)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** kcnq1_snTrue **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 58]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+No more patience left at epoch 275
+--> Implementing early stopping. Best epoch was: 245
+Variable: mlp/layer_0_weights:0
+Shape: (58, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnq1_snTrue_MLP_Valid ***
+	Epoch 245 accuracy
+		 Label : 0.618421052631579
+	Epoch 245 auroc
+		 Label : 0.4247982391782832
+	Epoch 245 partial_auroc
+		 Label : 0.006603081438004403
+	Epoch 245 avg_precision
+		 Label : 0.3391824322056987
+***Final Summary for kcnq1_snTrue_MLP_Test ***
+	Epoch 245 accuracy
+		 Label : 0.6933333333333334
+	Epoch 245 auroc
+		 Label : 0.5836120401337792
+	Epoch 245 partial_auroc
+		 Label : 0.01421404682274247
+	Epoch 245 avg_precision
+		 Label : 0.3864834671857765
+Working on healthy
+remove_missing_values()
+	Rows before: 489
+	Rows after: 489
+clean_up_symbols()
+	[ 44 , Change ] - --> empty
+	[ 405 , Change ] p --> misc
+	[ 410 , Change ] p --> misc
+	[ 481 , Change ] - --> empty
+	[ 482 , Change ] - --> empty
+	[ 484 , Change ] - --> empty
+	[ 485 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 489
+remove_consensus_disagrees_with_reference(): Rows after: 20
+remove_dups(): Rows after: 20
+Working on diseased
+remove_missing_values()
+	Rows before: 285
+	Rows after: 285
+clean_up_symbols()
+	[ 0 , Consensus ] - --> empty
+	[ 1 , Consensus ] - --> empty
+	[ 31 , Consensus ] - --> empty
+	[ 32 , Consensus ] - --> empty
+	[ 113 , Consensus ] IAQ --> misc
+	[ 1 , Change ] - --> empty
+	[ 31 , Change ] - --> empty
+	[ 32 , Change ] - --> empty
+	[ 82 , Change ] - --> empty
+	[ 113 , Change ] - --> empty
+	[ 141 , Change ] 1 --> misc
+	[ 189 , Change ] p --> misc
+	[ 254 , Change ] - --> empty
+	[ 280 , Change ] - --> empty
+remove_consensus_equals_change(): Rows after: 282
+remove_consensus_disagrees_with_reference(): Rows after: 5
+remove_dups(): Rows after: 5
+merged shape: (774, 4)
+remove_dups(): Rows after: 761
+Using fake everyAA for now
+Adding domain info
+Added domain annotation to 303 examples
+No domain annotation for 460 examples
+Adding domain info
+Added domain annotation to 0 examples
+No domain annotation for 21 examples
+Adding conservation info
+Adding conservation info
+Done with AnnotatedGene
+Fraction of diseased: Label    0.360053
+dtype: float64
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (761, 6)
+	Data shape after one-hotifying: (761, 51)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_PAS-domain', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_Glycolysation', 'Domain_Transmemberane-domain-6', 'Domain_CAP-Effector-domain', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_SSTK-interacting-protein', 'Domain_Methylation', 'Domain_phosphorylation-site-7', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [168.87647059   0.55259173   0.        ] 
+	scaler.scale_ [110.46704076   0.19609133   1.        ]
+Finished making splits
+	Train data shape: (532, 63)
+	Valid data shape: (115, 63)
+	Test data shape: (114, 63)
+	Length of one label: 1
+Creating splits based on seed 10393
+Adding signal to noise feature
+One-hotifying 3 categorical variables
+	Data shape before one-hotifying: (21, 6)
+	Data shape after one-hotifying: (21, 46)
+Ensuring columns ['Position', 'Conservation', 'Consensus_A', 'Consensus_C', 'Consensus_D', 'Consensus_E', 'Consensus_F', 'Consensus_G', 'Consensus_H', 'Consensus_I', 'Consensus_K', 'Consensus_L', 'Consensus_M', 'Consensus_N', 'Consensus_P', 'Consensus_Q', 'Consensus_R', 'Consensus_S', 'Consensus_T', 'Consensus_V', 'Consensus_W', 'Consensus_Y', 'Consensus_X', 'Change_A', 'Change_C', 'Change_D', 'Change_E', 'Change_F', 'Change_G', 'Change_H', 'Change_I', 'Change_K', 'Change_L', 'Change_M', 'Change_N', 'Change_P', 'Change_Q', 'Change_R', 'Change_S', 'Change_T', 'Change_V', 'Change_W', 'Change_Y', 'Change_X', 'Domain_PAS-domain', 'Domain_phosphorylation-site-1', 'Domain_phosphorylation-site-2', 'Domain_phosphorylation-site-3', 'Domain_phosphorylation-site-4', 'Domain_Transmemberane-domain-1', 'Domain_Transmemberane-domain-2', 'Domain_Transmemberane-domain-3', 'Domain_Transmemberane-domain-4', 'Domain_Transmemberane-domain-5', 'Domain_Glycolysation', 'Domain_Transmemberane-domain-6', 'Domain_CAP-Effector-domain', 'Domain_phosphorylation-site-5', 'Domain_phosphorylation-site-6', 'Domain_SSTK-interacting-protein', 'Domain_Methylation', 'Domain_phosphorylation-site-7', 'Signal_To_Noise']
+Normalizing data:
+	scaler.mean_ [11.          0.43705799  0.        ] 
+	scaler.scale_ [6.05530071 0.12826913 1.        ]
+Finished making splits
+	Train data shape: (21, 63)
+	Valid data shape: (0, 63)
+	Test data shape: (0, 63)
+	Length of one label: 1
+Saving pickled split
+Running MLP
+
+
+
+
+********** kcnh2_snTrue **********
+Mlp_layers is [30, 20, 1]
+Shape of self.x_input: [None, 63]
+Shape of self.y_labels: [None, 1]
+Shape of mlp layer_0: [None, 30] , relu= True
+Shape of mlp layer_1 : [None, 20] , relu= True
+Shape of mlp layer_2 : [None, 1] , relu= False
+Binary classifier: using sigmoid cross entropy
+Shape of self.pred_probs [None, 1]
+Shape of self.pred_labels: [None, 1]
+Finished Epoch 333.
+	Training loss= 1.3463555574417114
+	Valid loss= 0.6790242195129395
+Finished Epoch 666.
+	Training loss= 1.3078478574752808
+	Valid loss= 0.6693554520606995
+No more patience left at epoch 674
+--> Implementing early stopping. Best epoch was: 644
+Variable: mlp/layer_0_weights:0
+Shape: (63, 30)
+Variable: mlp/layer_0_biases:0
+Shape: (30,)
+Variable: mlp/layer_1_weights:0
+Shape: (30, 20)
+Variable: mlp/layer_1_biases:0
+Shape: (20,)
+Variable: mlp/layer_2_weights:0
+Shape: (20, 1)
+Variable: mlp/layer_2_biases:0
+Shape: (1,)
+***Final Summary for kcnh2_snTrue_MLP_Valid ***
+	Epoch 644 accuracy
+		 Label : 0.6086956521739131
+	Epoch 644 auroc
+		 Label : 0.5
+	Epoch 644 partial_auroc
+		 Label : nan
+	Epoch 644 avg_precision
+		 Label : 0.391304347826087
+***Final Summary for kcnh2_snTrue_MLP_Test ***
+	Epoch 644 accuracy
+		 Label : 0.6491228070175439
+	Epoch 644 auroc
+		 Label : 0.5
+	Epoch 644 partial_auroc
+		 Label : nan
+	Epoch 644 avg_precision
+		 Label : 0.3508771929824561

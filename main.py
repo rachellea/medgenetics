@@ -11,7 +11,7 @@ from data import utils as utils
 from data import clean_data as clean_data
 import mlp_model
 
-def run_gene_model(gene_name):
+def run_gene_model(gene_name, signoise):
     """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
     #Shared split args
     shared_args = {'impute':False,
@@ -21,9 +21,9 @@ def run_gene_model(gene_name):
                     'one_hotify_these_categorical':['Consensus', 'Change', 'Domain'],
                     'normalize_data':True,
                     'normalize_these_continuous':['Position','Conservation'],
-                    'seed':12345,
+                    'seed':10393, #make it 12345 for original split
                     'batch_size':300,
-                    'use_signal_to_noise':False}
+                    'use_signal_to_noise':signoise}
     
     #Real data with healthy and diseased
     ag = clean_data.AnnotatedGene(gene_name)
@@ -54,8 +54,13 @@ def run_gene_model(gene_name):
                                  **shared_args).train
     assert everyAA_split.data.shape[0] == everyAA.shape[0]
     
+    #Save pickled split:
+    print('Saving pickled split')
+    pickle.dump(real_data_split, open(gene_name+'_sn'+str(signoise)+'.pickle', 'wb'),-1)
+    
     #Run MLP
-    m = mlp_model.MLP(descriptor=gene_name,
+    print('Running MLP')
+    m = mlp_model.MLP(descriptor=gene_name+'_sn'+str(signoise),
                   split=copy.deepcopy(real_data_split),
                   decision_threshold = 0.5,
                   num_epochs = 1000,
@@ -68,7 +73,13 @@ def run_gene_model(gene_name):
     
 
 if __name__=='__main__':
-    run_gene_model('ryr2')
-  #  run_gene_model('scn5a')
-  #  run_gene_model('kcnq1')
-  #  run_gene_model('kcnh2')
+    run_gene_model('ryr2',signoise=False)
+    run_gene_model('scn5a',signoise=False)
+    run_gene_model('kcnq1',signoise=False)
+    run_gene_model('kcnh2',signoise=False)
+    
+    run_gene_model('ryr2',signoise=True)
+    run_gene_model('scn5a',signoise=True)
+    run_gene_model('kcnq1',signoise=True)
+    run_gene_model('kcnh2',signoise=True)
+  

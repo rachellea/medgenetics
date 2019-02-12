@@ -187,8 +187,9 @@ class AnnotatedGene(object):
         self.inputx = b.merged
         self.max_position = b.max_position
         
-        self.everyAA = prepare_everyAA(self.inputx, gene_name)
-        #self.everyAA = make_small_everyAA_for_testing()
+        #self.everyAA = prepare_everyAA(self.inputx, gene_name)
+        print('Using fake everyAA for now')
+        self.everyAA = make_small_everyAA_for_testing()
         self.create_domain_dictionary()
         
         #add a column denoting the component of the protein it is part of
@@ -303,10 +304,9 @@ def prepare_everyAA(real_data, gene_name):
 
 def make_small_everyAA_for_testing():
     """Dummy version of everyAA to be able to run the MLP code quickly"""
-    AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
-                    'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+    global AMINO_ACIDS
     everyAA = pd.DataFrame(np.transpose(np.array([AMINO_ACIDS, AMINO_ACIDS])),
                         columns=['Consensus','Change'])
     everyAA['Label'] = 0
-    everyAA['Position'] = [x for x in range(1,21)]
+    everyAA['Position'] = [x for x in range(1,1+len(AMINO_ACIDS))]
     return everyAA
