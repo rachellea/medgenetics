@@ -25,7 +25,6 @@ class Splits(object):
              seed, #seed to determine shuffling order before making splits; used for testing
              max_position, #int for the last position of the gene
              columns_to_ensure, #list of column names you must have
-             use_signal_to_noise, #bool, whether to add signal to noise
              batch_size):
         """Variables:
         <data> is a pandas dataframe where the index is example IDs
@@ -45,7 +44,6 @@ class Splits(object):
         self.normalize_these_continuous = normalize_these_continuous
         self.max_position = max_position
         self.columns_to_ensure = columns_to_ensure
-        self.use_signal_to_noise = use_signal_to_noise
         
         self.train_percent = train_percent
         self.valid_percent = valid_percent
@@ -58,15 +56,7 @@ class Splits(object):
         
         self._get_split_indices() #defines self.trainidx and self.testidx
         self._shuffle_before_splitting()
-        
-        #Add signal to noise if indicated
-        if self.use_signal_to_noise:
-            print('Adding signal to noise feature')
-            self.impute_these_continuous = self.impute_these_continuous+['Signal_To_Noise']
-            self.normalize_these_continuous = self.normalize_these_continuous+['Signal_To_Noise']
-            self.columns_to_ensure = self.columns_to_ensure+['Signal_To_Noise']
-            self._add_signal_to_noise()
-        
+         
         #Further data prep:
         if impute:
             self._impute()
@@ -92,35 +82,6 @@ class Splits(object):
         np.random.shuffle(idx)
         self.clean_data = self.clean_data.iloc[idx]
         self.clean_labels = self.clean_labels.iloc[idx]
-    
-    def _add_signal_to_noise(self):
-        """Add a signal to noise column based on the training data. Signal to noise is
-        calculated as the total number of pathologic mutations out of the total number of
-        reported variants at a particular position."""
-        train_df = self.clean_data.iloc[0:self.trainidx,:]
-        train_df['Label'] = self.clean_labels.iloc[0:self.trainidx]
-        justpos = train_df[['Position','Label']]
-        #How many times does each position appear (regardless of label):
-        total_counts = justpos.Position.value_counts()
-        #How many times does each position appear with a positive label:
-        diseased_counts = justpos.groupby(['Position']).sum()
-        #Filter out anything that's zero because its overall value will be 0:
-        diseased_counts = diseased_counts[diseased_counts['Label']>0]
-        
-        #Create empty signal-to-noise df
-        sig_to_noise_df = pd.DataFrame(np.zeros((self.max_position,2)),
-                                       columns = ['Position','Signal_To_Noise'],
-                                       index = [x for x in range(1,self.max_position+1)])
-        sig_to_noise_df['Position'] = [x for x in range(1,self.max_position+1)]
-        
-        #Fill in the sig_to_noise_df
-        for pos in diseased_counts.index.values.tolist():
-            sig_to_noise = float(diseased_counts.at[pos,'Label'])/float(total_counts.at[pos])
-            assert sig_to_noise <= 1 #sanity check
-        
-        #Add to clean_data
-        self.clean_data = self.clean_data.merge(sig_to_noise_df,how='inner',on='Position')
-        self.clean_data = self.clean_data.loc[self.clean_labels.index.values.tolist(),:] #ensure same order
         
     def _impute(self):
         """Impute categorical variables using the mode of the training data
