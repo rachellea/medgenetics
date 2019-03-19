@@ -20,15 +20,14 @@ def run_gene_model(gene_name, signoise):
                     'one_hotify':True,
                     'one_hotify_these_categorical':['Consensus', 'Change', 'Domain'],
                     'normalize_data':True,
-                    'normalize_these_continuous':['Position','Conservation'],
+                    'normalize_these_continuous':['Position','Conservation','SigNoise'],
                     'seed':10393, #make it 12345 for original split
-                    'batch_size':300,
-                    'use_signal_to_noise':signoise}
+                    'batch_size':300}
     
     #Real data with healthy and diseased
     ag = clean_data.AnnotatedGene(gene_name)
     inputx = ag.inputx
-    everyAA = ag.everyAA
+    mysteryAAs = ag.mysteryAAs
     data = copy.deepcopy(inputx[['Position','Consensus','Change','Domain','Conservation']])
     labels = copy.deepcopy(inputx[['Label']])
     print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
@@ -42,17 +41,17 @@ def run_gene_model(gene_name, signoise):
                          **shared_args)
 
     #Fake data with all possible combos of every AA at every position
-    everyAA_data = copy.deepcopy(everyAA[['Position','Consensus','Change','Domain','Conservation']])
-    everyAA_labels = copy.deepcopy(everyAA[['Label']])
-    everyAA_split = utils.Splits(data = everyAA_data,
-                                 labels = everyAA_labels,
+    mysteryAAs_data = copy.deepcopy(mysteryAAs[['Position','Consensus','Change','Domain','Conservation']])
+    mysteryAAs_labels = copy.deepcopy(mysteryAAs[['Label']])
+    mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
+                                 labels = mysteryAAs_labels,
                                  train_percent = 1.0,
                                  valid_percent = 0,
                                  test_percent = 0,
                                  max_position = ag.max_position,
                                  columns_to_ensure = ag.columns_to_ensure,
                                  **shared_args).train
-    assert everyAA_split.data.shape[0] == everyAA.shape[0]
+    assert mysteryAAs_split.data.shape[0] == mysteryAAs.shape[0]
     
     #Save pickled split:
     print('Saving pickled split')
@@ -68,7 +67,7 @@ def run_gene_model(gene_name, signoise):
                   mlp_layers = copy.deepcopy([30,20]),
                   exclusive_classes = True,
                   save_model = False,
-                  everyAA = everyAA_split)
+                  mysteryAAs = mysteryAAs_split)
     m.run_all()
     
 

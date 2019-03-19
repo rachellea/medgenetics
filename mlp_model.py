@@ -29,7 +29,7 @@ class MLP(object):
                  mlp_layers,
                  exclusive_classes,
                  save_model,
-                 everyAA):
+                 mysteryAAs):
         """
         Variables
         <descriptor>: string that will be attached to the beginning of all
@@ -39,13 +39,13 @@ class MLP(object):
             MLP has size 50 and is followed by two hidden layers, of sizes
             30 and 25 respectively.
         <exclusive_classes>: if True use softmax; if False use sigmoid
-        <everyAA>: contains all possible mutations (excluding anything
+        <mysteryAAs>: contains all possible mutations (excluding anything
             in the train, test, or validation sets)."""
         print('\n\n\n\n**********',descriptor,'**********')
         self.descriptor = descriptor
         
         #Data sets
-        self.everyAA = everyAA 
+        self.mysteryAAs = mysteryAAs 
         self.train_set = split.train
         self.test_set = split.test
         self.valid_set = split.valid
@@ -56,7 +56,7 @@ class MLP(object):
         self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
         self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
         self.num_valid_batches = math.ceil((self.valid_set.num_examples)/self.valid_set.batch_size)
-        self.num_everyAA_batches = math.ceil((self.everyAA.num_examples)/self.everyAA.batch_size)
+        self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
         self.num_epochs = num_epochs
         
         #Tracking losses and evaluation results
@@ -114,11 +114,11 @@ class MLP(object):
         self.session.close()
     
     def clean_up(self):
-        """Delete eval results for everyAA for every epoch
+        """Delete eval results for mysteryAAs for every epoch
         except the best validation epoch as determined by early stopping"""
         files = [f for f in os.listdir('.') if os.path.isfile(f)]
         for f in files:
-            if 'everyAA' in f:
+            if 'mysteryAAs' in f:
                 if str(self.best_valid_loss_epoch) not in f:
                     os.remove(f)
     
@@ -139,7 +139,7 @@ class MLP(object):
             if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
             self.test('Valid')
             self.test('Test')
-            self.test('everyAA')
+            self.test('mysteryAAs')
             
             #Early stopping. TODO: consider other early stopping methods
             #patience gets reset every time a new global minimum is reached
@@ -164,11 +164,11 @@ class MLP(object):
             chosen_set = self.test_set
             num_batches = self.num_test_batches
             all_eval_results = self.eval_results_test
-        elif chosen_dataset == 'everyAA':
-            chosen_set = self.everyAA
-            num_batches = self.num_everyAA_batches
+        elif chosen_dataset == 'mysteryAAs':
+            chosen_set = self.mysteryAAs
+            num_batches = self.num_mysteryAAs_batches
         else:
-            assert False, "chosen_dataset must be 'Test' or 'Valid' or 'everyAA' but you passed "+str(chosen_dataset)
+            assert False, "chosen_dataset must be 'Test' or 'Valid' or 'mysteryAAs' but you passed "+str(chosen_dataset)
         
         epoch_loss = 0
         for i in range(num_batches):
@@ -183,14 +183,14 @@ class MLP(object):
                 entire_pred_probs = batch_pred_probs
                 entire_pred_labels = batch_pred_labels
                 labels_true = y_labels_batch
-                if chosen_dataset == 'everyAA':
+                if chosen_dataset == 'mysteryAAs':
                     entire_x = x_data_batch
             else:
                 #concatenate results on assuming that the zeroth dimension is the training example dimension
                 entire_pred_probs = np.concatenate((entire_pred_probs,batch_pred_probs),axis = 0)
                 entire_pred_labels = np.concatenate((entire_pred_labels,batch_pred_labels),axis=0)
                 labels_true = np.concatenate((labels_true, y_labels_batch),axis=0)
-                if chosen_dataset == 'everyAA':
+                if chosen_dataset == 'mysteryAAs':
                     entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
         
         #~~~Track validation loss and control early stopping~~~#
@@ -208,13 +208,13 @@ class MLP(object):
                 #to run out.
                 self.patience_remaining -= 1
         
-        #~~~Save outputs for everyAA~~~#
-        if chosen_dataset == 'everyAA':
+        #~~~Save outputs for mysteryAAs~~~#
+        if chosen_dataset == 'mysteryAAs':
             out = pd.DataFrame(np.concatenate((entire_x, entire_pred_probs, entire_pred_labels),axis = 1),
                                columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
-            out.to_csv(self.descriptor+'_everyAA_results_epoch_'+str(self.num_epochs_done)+'.csv',
+            out.to_csv(self.descriptor+'_mysteryAAs_results_epoch_'+str(self.num_epochs_done)+'.csv',
                       header=True,index=False)
-            return #Don't perform "evaluations" on everyAA
+            return #Don't perform "evaluations" on mysteryAAs
         
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):

@@ -21,18 +21,20 @@ class BareGene(object):
         what was removed and why."""
         self.gene_name = gene_name
         self.obtain_reference_sequence() #creates self.reference_df
-        self.history = pd.DataFrame(np.empty((100000,5),dtype=str), columns=['Healthy_or_Path','Consensus','Position','Change','Reason_Removed'])
+        self.history = pd.DataFrame(np.empty((100000,5),dtype=str), columns=['Description','Consensus','Position','Change','Reason_Removed'])
         self.history_idx = 0
         
         self.healthy = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_healthy_raw.csv'),header=0)
         self.diseased = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_pathologic_raw.csv'),header=0)
+        self.mysteryAAs = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_wes_raw.csv'),header=0)
         
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
         self.diseased_original = copy.deepcopy(self.diseased)
         
-        #Clean the data
-        dfs = {'healthy':self.healthy, 'diseased':self.diseased}
+        #Clean the data and add in signal to noise
+        dfs = {'healthy':self.healthy, 'pathologic':self.diseased,
+                'wes':self.mysteryAAs}
         for key in dfs.keys():
             df = dfs[key]
             print('Working on',key)
@@ -40,13 +42,24 @@ class BareGene(object):
             df = self.clean_up_symbols(df, key)
             df = self.remove_consensus_equals_change(df, key)
             df = self.remove_consensus_disagrees_with_reference(df, key)
-            df = self.remove_dups(df, key, 'duplicate_within_file')
+            df = self.remove_dups(df, key, 'first', 'duplicate_within_file_removed_first')
         
         #Merge healthy and diseased
-        merged = self.merge_healthy_and_diseased()
+        merged = self.merge_healthy_and_diseased(self.healthy, self.diseased)
         print('merged shape:',merged.shape)
-        merged = self.remove_dups(merged, 'merged','duplicate_across_files')
+        merged = self.remove_dups(merged, 'merged', False, 'duplicate_across_healthy_sick_removed_both')
         self.merged = merged.reset_index(drop=True)#Reindex
+        
+        #make sure there are no overlaps between mystery and merged:
+        #note that duplicates between healthy and sick have been removed
+        #so those can stay in mysteryAAs (makes sense since if they're listed
+        #as both healthy and sick we don't know the right answer.)
+        print('mysteryAAs shape:',self.mysteryAAs.shape)
+        temp = copy.deepcopy(self.merged).drop('Label')
+        mystmerged = self.merge_healthy_and_diseased(temp, self.mysteryAAs)
+        mystmerged = self.remove_dups(mystmerged, 'mystmerged', False, 'duplicate_across_mystery_and_healthysick_removed_both')
+        self.mysteryAAs = (mystmerged[mystmerged['Label']==1]).drop('Label')
+        print('mysteryAAs shape after:',self.mysteryAAs.shape)
         
         #Save history
         self.history.to_csv(self.gene_name+'_data_cleaning_history.csv')
@@ -56,7 +69,7 @@ class BareGene(object):
         #of the file.
     ####################
     # Cleaning Methods #--------------------------------------------------------
-    ####################
+    ####################    
     def remove_missing_values(self, df, key):
         """Remove rows with any missing values"""
         print('remove_missing_values()\n\tRows before:',df.shape[0])
@@ -125,32 +138,37 @@ class BareGene(object):
         print('remove_consensus_disagrees_with_reference(): Rows after:',df.shape[0])
         return df
     
-    def remove_dups(self, df, key, reason_removed):
-        """Remove duplicates"""
+    def remove_dups(self, df, key, keep, reason_removed):
+        """Remove duplicates.
+        if keep == 'first' then keep first occurrence
+        if keep == False then drop all occurrences """
         #Document history of upcoming change
-        temp = df[df.duplicated(subset=['Consensus','Position','Change'],keep='first')]
+        cols = ['Consensus','Position','Change']
+        if self.use_signoise:
+            cols+=['Numerator','Denominator']
+        temp = df[df.duplicated(subset=cols,keep=keep)]
         self.update_history_using_temp(temp, key, reason_removed)
         
         #Perform change
-        df = df.drop_duplicates(keep = 'first')
+        df = df.drop_duplicates(keep = keep)
         print('remove_dups(): Rows after:',df.shape[0])
         return df
     
-    def merge_healthy_and_diseased(self):
+    def merge_healthy_and_diseased(self, healthy, diseased):
         """Return 'inputx' dataframe for self.healthy and self.diseased"""
         #add Label column, for overall columns ['Position', 'Consensus', 'Change', 'Label']
-        self.healthy['Label'] = 0
-        self.diseased['Label'] = 1
+        healthy['Label'] = 0
+        diseased['Label'] = 1
         
         #concat
-        helen = self.healthy.shape[0]
-        dislen = self.diseased.shape[0]
-        self.diseased.index = range(helen,helen+dislen)
-        return pd.concat([self.healthy,self.diseased])
+        helen = healthy.shape[0]
+        dislen = diseased.shape[0]
+        diseased.index = range(helen,helen+dislen)
+        return pd.concat([healthy,diseased])
 
     ##################
     # Helper Methods #----------------------------------------------------------
-    ##################
+    ##################    
     def obtain_reference_sequence(self):
         geneseq = get_geneseq(self.gene_name)
         #In this df we create the index starting from 1 because 'healthy' and
@@ -167,7 +185,7 @@ class BareGene(object):
     def update_history_using_temp(self, temp, key, reason_removed):
         """Update history of the data cleaning process"""
         for rowidx in temp.index.values:
-            self.history.at[self.history_idx,'Healthy_or_Path'] = key
+            self.history.at[self.history_idx,'Description'] = key
             self.history.at[self.history_idx,'Consensus'] = temp.at[rowidx,'Consensus']
             self.history.at[self.history_idx,'Position'] = temp.at[rowidx,'Position']
             self.history.at[self.history_idx,'Change'] = temp.at[rowidx,'Change']
@@ -178,37 +196,46 @@ class BareGene(object):
 
 class AnnotatedGene(object):
     def __init__(self, gene_name):
-        """Add domain and conservation information to the bare gene and to everyAA;
-        return gene and everyAA dataframes"""
+        """Add domain, conservation, and signal to noise information to the
+        bare gene and to mysteryAAs; produce gene and mysteryAAs dataframes"""
         global AMINO_ACIDS
         self.gene_name = gene_name
         
         b = BareGene(gene_name)
         self.inputx = b.merged
         self.max_position = b.max_position
+        self.mysteryAAs = b.mysteryAAs
         
-        #self.everyAA = prepare_everyAA(self.inputx, gene_name)
-        print('Using fake everyAA for now')
-        self.everyAA = make_small_everyAA_for_testing()
+        #add a column denoting the domain of the protein it is part of
         self.create_domain_dictionary()
-        
-        #add a column denoting the component of the protein it is part of
         self.inputx = self.add_domain_info(self.inputx)
-        self.everyAA = self.add_domain_info(self.everyAA)
+        self.mysteryAAs = self.add_domain_info(self.mysteryAAs)
+        
+        #replace any domain annotation that is not used with 'Outside'
+        self.domains_used = list(set(self.inputx.loc[:,'Domain'].values.tolist()))
+        self.domains_not_used = list(set(self.domains.keys()) - set(self.domains_used))
+        assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())
+        self.mysteryAAs = self.mysteryAAs.replace(to_replace = self.domains_not_used, value = 'Outside')
+        print('Domains used:',self.domains_used)
+        print('Domains not used:', self.domains_not_used)
         
         #add a column with conservation score
         self.inputx = self.add_conservation_info(self.inputx)
-        self.everyAA = self.add_conservation_info(self.everyAA)
+        self.mysteryAAs = self.add_conservation_info(self.mysteryAAs)
         
-        self.columns_to_ensure = (['Position', 'Conservation']
+        #add a column with signal to noise info
+        self.inputx = self.add_signoise_info(self.inputx)
+        self.mysteryAAs = self.add_signoise_info(self.mysteryAAs)
+        
+        self.columns_to_ensure = (['Position', 'Conservation','SigNoise']
             +['Consensus_'+letter for letter in AMINO_ACIDS]
             +['Change_'+letter for letter in AMINO_ACIDS]
-            +['Domain_'+domname for domname in list(self.domains.keys())])
+            +self.domains_used)
         print('Done with AnnotatedGene')
        
     def add_domain_info(self, df):
         print('Adding domain info')
-        self.inputx['Domain'] = ''
+        df['Domain'] = ''
         domain_added_count = 0
         domain_not_added_count = 0
         for rowname in df.index.values.tolist():
@@ -244,10 +271,18 @@ class AnnotatedGene(object):
                                    header = None,
                                    names=['Position','Conservation'])
         return df.merge(conservation, how='inner', on='Position')
-        
-#####################
-# everyAA functions #-----------------------------------------------------------
-#####################
+    
+    def add_signoise_info(self, df):
+        print('Adding signoise info')
+        signoise_file = os.path.join('data/'+self.gene_name,self.gene_name+'_signal_to_noise.csv') #Columns Position, SigNoise
+        signoise = pd.read_csv(signoise_file,
+                               header = None,
+                               names = ['Position','SigNoise'])
+        return df.merge(signoise, how = 'inner', on = 'Position')
+            
+#################################
+# Deprecated: everyAA functions #-----------------------------------------------
+#################################
 def get_geneseq(gene_name):
     geneseq = ''
     with open(os.path.join('data/'+gene_name,gene_name+'_reference_sequence.txt'), 'r') as f:
