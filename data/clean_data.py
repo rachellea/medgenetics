@@ -55,10 +55,10 @@ class BareGene(object):
         #so those can stay in mysteryAAs (makes sense since if they're listed
         #as both healthy and sick we don't know the right answer.)
         print('mysteryAAs shape:',self.mysteryAAs.shape)
-        temp = copy.deepcopy(self.merged).drop('Label')
+        temp = copy.deepcopy(self.merged).drop(columns='Label')
         mystmerged = self.merge_healthy_and_diseased(temp, self.mysteryAAs)
         mystmerged = self.remove_dups(mystmerged, 'mystmerged', False, 'duplicate_across_mystery_and_healthysick_removed_both')
-        self.mysteryAAs = (mystmerged[mystmerged['Label']==1]).drop('Label')
+        self.mysteryAAs = (mystmerged[mystmerged['Label']==1]).drop(columns='Label')
         print('mysteryAAs shape after:',self.mysteryAAs.shape)
         
         #Save history
@@ -144,8 +144,6 @@ class BareGene(object):
         if keep == False then drop all occurrences """
         #Document history of upcoming change
         cols = ['Consensus','Position','Change']
-        if self.use_signoise:
-            cols+=['Numerator','Denominator']
         temp = df[df.duplicated(subset=cols,keep=keep)]
         self.update_history_using_temp(temp, key, reason_removed)
         
@@ -214,7 +212,7 @@ class AnnotatedGene(object):
         #replace any domain annotation that is not used with 'Outside'
         self.domains_used = list(set(self.inputx.loc[:,'Domain'].values.tolist()))
         self.domains_not_used = list(set(self.domains.keys()) - set(self.domains_used))
-        assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())
+        assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())+1 #+1 for Outside
         self.mysteryAAs = self.mysteryAAs.replace(to_replace = self.domains_not_used, value = 'Outside')
         print('Domains used:',self.domains_used)
         print('Domains not used:', self.domains_not_used)
