@@ -203,7 +203,8 @@ class AnnotatedGene(object):
         self.inputx = b.merged
         self.max_position = b.max_position
         self.mysteryAAs = b.mysteryAAs
-        
+    
+    def annotate_everything(self):
         #add a column denoting the domain of the protein it is part of
         self.create_domain_dictionary()
         self.inputx = self.add_domain_info(self.inputx)
@@ -212,7 +213,8 @@ class AnnotatedGene(object):
         #replace any domain annotation that is not used with 'Outside'
         self.domains_used = list(set(self.inputx.loc[:,'Domain'].values.tolist()))
         self.domains_not_used = list(set(self.domains.keys()) - set(self.domains_used))
-        assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())+1 #+1 for Outside
+        if 'Outside' in self.domains_used:
+            assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())+1 #+1 for Outside
         self.mysteryAAs = self.mysteryAAs.replace(to_replace = self.domains_not_used, value = 'Outside')
         print('Domains used:',self.domains_used)
         print('Domains not used:', self.domains_not_used)
