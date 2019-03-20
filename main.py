@@ -12,7 +12,7 @@ from data import clean_data as clean_data
 import mlp_model
 
 class RunGeneModel(object):
-    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete):
+    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[]):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.descriptor = descriptor
@@ -31,16 +31,17 @@ class RunGeneModel(object):
         ag.annotate_everything()
         self.inputx = ag.inputx #make it self.inputx so you can access from testing script
         self.mysteryAAs = ag.mysteryAAs
+        self.columns_to_ensure_here = [x for x in ag.columns_to_ensure if x not in self.cols_to_delete]
         self.split_args = {'train_percent':0.7,
                         'valid_percent':0.15,
                         'test_percent':0.15,
                         'max_position':ag.max_position,
-                        'columns_to_ensure':[x for x in ag.columns_to_ensure if x not in self.cols_to_delete]}
+                        'columns_to_ensure':self.columns_to_ensure_here}
         self.ag = ag
     
     def _prep_split_data(self, inputx, split_args):
         """There are arguments to this function to facilitate unit testing"""
-        data = (copy.deepcopy(inputx)).drop(columns='Label')
+        data = (copy.deepcopy(inputx)).drop(columns=['Label']+self.cols_to_delete)
         labels = copy.deepcopy(inputx[['Label']])
         print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
         all_args = {**self.shared_args, **split_args}
@@ -50,7 +51,7 @@ class RunGeneModel(object):
     
     def _prep_mysteryAAs(self):
         #WES data, mysteryAAs (want predictions for these)
-        mysteryAAs_data = copy.deepcopy(self.mysteryAAs)
+        mysteryAAs_data = (copy.deepcopy(self.mysteryAAs)).drop(columns=self.cols_to_delete)
         mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
         self.mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
                                      labels = mysteryAAs_labels,
@@ -58,7 +59,7 @@ class RunGeneModel(object):
                                      valid_percent = 0,
                                      test_percent = 0,
                                      max_position = self.ag.max_position,
-                                     columns_to_ensure = self.ag.columns_to_ensure,
+                                     columns_to_ensure = self.columns_to_ensure_here,
                                      **self.shared_args).train
         assert self.mysteryAAs_split.data.shape[0] == self.mysteryAAs.shape[0]
         
@@ -81,7 +82,8 @@ class RunGeneModel(object):
         m.run_all()
 
 if __name__=='__main__':
-    variations = {'withSN':['Position','Conservation','SigNoise'],'noSN':['Position','Conservation']}
+    variations = {'noSN':['Position','Conservation'],
+        'withSN':['Position','Conservation','SigNoise']}
     for descriptor in variations:
         cont_vars = variations[descriptor]
         shared_args = {'impute':False,
