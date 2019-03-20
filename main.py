@@ -12,11 +12,12 @@ from data import clean_data as clean_data
 import mlp_model
 
 class RunGeneModel(object):
-    def __init__(self, gene_name, descriptor, shared_args):
+    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.descriptor = descriptor
         self.shared_args = shared_args
+        self.cols_to_delete = cols_to_delete
     
     def do_all(self):
         self._prep_data()
@@ -34,7 +35,7 @@ class RunGeneModel(object):
                         'valid_percent':0.15,
                         'test_percent':0.15,
                         'max_position':ag.max_position,
-                        'columns_to_ensure':ag.columns_to_ensure}
+                        'columns_to_ensure':[x for x in ag.columns_to_ensure if x not in self.cols_to_delete]}
         self.ag = ag
     
     def _prep_split_data(self, inputx, split_args):
@@ -59,7 +60,7 @@ class RunGeneModel(object):
                                      max_position = self.ag.max_position,
                                      columns_to_ensure = self.ag.columns_to_ensure,
                                      **self.shared_args).train
-        assert self.mysteryAAs_split.data.shape[0] == mysteryAAs.shape[0]
+        assert self.mysteryAAs_split.data.shape[0] == self.mysteryAAs.shape[0]
         
         #Save pickled split:
         print('Saving pickled split')
@@ -80,8 +81,9 @@ class RunGeneModel(object):
         m.run_all()
 
 if __name__=='__main__':
-    for cont_vars in [['Position','Conservation','SigNoise'],
-                      ['Position','Conservation']]:
+    variations = {'withSN':['Position','Conservation','SigNoise'],'noSN':['Position','Conservation']}
+    for descriptor in variations:
+        cont_vars = variations[descriptor]
         shared_args = {'impute':False,
                         'impute_these_categorical':[],
                         'impute_these_continuous':[],
@@ -91,6 +93,4 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor='withSN',shared_args = shared_args).do_all()
-   
-  
+        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars))).do_all()
