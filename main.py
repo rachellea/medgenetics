@@ -10,6 +10,7 @@ import numpy as np
 from data import utils as utils
 from data import clean_data as clean_data
 import mlp_model
+import regression
 
 class RunGeneModel(object):
     def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[]):
@@ -24,6 +25,7 @@ class RunGeneModel(object):
         self._prep_split_data(self.inputx,self.split_args)
         self._prep_mysteryAAs()
         self._run_mlp()
+        #self._run_logreg()
     
     def _prep_data(self):
         #Real data with healthy and diseased
@@ -80,6 +82,18 @@ class RunGeneModel(object):
                       save_model = False,
                       mysteryAAs = self.mysteryAAs_split)
         m.run_all()
+
+    def _run_logreg(self):
+        # Run Logistic Regression
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        print("Running Log Reg")
+
+        classifier_penalty= ['l1', 'l2']
+        classifier_C = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+
+        for pen in classifier_penalty:
+          for C in classifier_C:
+            lg = regression.LogisticRegression(descriptor=descriptor, split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C)
 
 if __name__=='__main__':
     variations = {'noSN':['Position','Conservation'],
