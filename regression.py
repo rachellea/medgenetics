@@ -21,7 +21,12 @@ class LogisticRegression(object):
     solver = 'liblinear' (can do l1 or l2 penalty; liblinear is good choice for
         small datasets; 'sag' and 'saga' are faster for large ones; 'sag' can
         handle l2, 'saga' can handle l1)"""
-    def __init__(self, descriptor, split, logreg_penalty, C, fold = 10, figure_num=0):
+    def __init__(self, descriptor, split, logreg_penalty, C, fold = 10):
+        
+        '''
+        Perform logistic regression with cross validation
+        '''
+
         #--------------------------Set file path--------------------------------
         # this is the folder you want results to be stored
         filepath = 'regression_results/'
@@ -93,6 +98,7 @@ class LogisticRegression(object):
             f.write('Average AUC: '+ str(np.array(aucs_val).mean()))
             f.write('\nAverage Accuracy:'+ str(np.array(accs).mean()))
             f.write('\nAverage Precision:'+ str(np.array(prec).mean()))
+
       #-----------------------------Rachel's original stuff--------------------------------      
         # print('Running logistic regression with penalty=',str(logreg_penalty),'and C=',str(C))
         # logreg = linear_model.LogisticRegression(penalty=logreg_penalty, C=C)
