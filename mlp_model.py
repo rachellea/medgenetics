@@ -126,6 +126,8 @@ class MLP(object):
         if self.cv_fold > 1:
             # initialize an empty list to store test accuracy for each fold
             self.fold_acc = []
+            self.fold_auroc = []
+            self.fold_avg_prec = []
             cv = model_selection.KFold(n_splits=self.cv_fold, shuffle=True)
             fold_num = 1
             self.split_ori = self.split
@@ -141,16 +143,42 @@ class MLP(object):
                 for label in df.index.values:
                     acc = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
                     print("The accuracy for fold number ", str(fold_num), " is ", str(acc))
-                    fold_num += 1
                 self.fold_acc.append(acc)
+                # append auroc to list
+                df = self.eval_results_test['auroc']
+                for label in df.index.values:
+                    auroc = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
+                    print("The auroc for fold number ", str(fold_num), " is ", str(auroc))
+                self.fold_auroc.append(auroc)
+                #append average precision to list
+                df = self.eval_results_test['avg_precision']
+                for label in df.index.values:
+                    avg_prec = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
+                    print("The average precision for fold number ", str(fold_num), " is ", str(avg_prec))
+                self.fold_avg_prec.append(avg_prec)
 
+                fold_num += 1
             # print the individual accuracies and the average accuracy
             print("\n\n The accuracies of the cross validation folds are:\n")
-            tot = 0
+            tot_acc = 0
             for k in range(len(self.fold_acc)):
                 print("Fold ",str(k+1), ": ", str(self.fold_acc[k]))
-                tot += self.fold_acc[k]
-            print("\n\n The average cross validation accuracy is :", tot/self.cv_fold, "\n\n\n")
+                tot_acc += self.fold_acc[k]
+            # print the individual accuracies and the average accuracy
+            print("\n\n The auroc of the cross validation folds are:\n")
+            tot_auroc = 0
+            for k in range(len(self.fold_acc)):
+                print("Fold ",str(k+1), ": ", str(self.fold_auroc[k]))
+                tot_auroc += self.fold_auroc[k]
+            # print the individual accuracies and the average accuracy
+            print("\n\n The average precision of the cross validation folds are:\n")
+            tot_avg_prec = 0
+            for k in range(len(self.fold_acc)):
+                print("Fold ",str(k+1), ": ", str(self.fold_avg_prec[k]))
+                tot_avg_prec += self.fold_avg_prec[k]
+            print("\n\n The average cross validation accuracy is :", tot_acc/self.cv_fold, "\n\n\n")
+            print("\n\n The average cross validation auroc is :", tot_auroc/self.cv_fold, "\n\n\n")
+            print("\n\n The average cross validation average precision is :", tot_avg_prec/self.cv_fold, "\n\n\n")
         else:
             self.train()
         if self.save_model: self.save()
@@ -380,28 +408,10 @@ class MLP(object):
                 tmp = hi
                 print("Shape of", variable_scope_name, "layer_"+str(i),":",str(hi.get_shape().as_list()),', relu=',str(use_relu_flag))
         return hi
-    
-    # def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
-    #     """Create a new fully-connected layer."""
-    #     weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
-    #     weights_out = tf.Variable(tf.truncated_normal([num_outputs, self.x_length], stddev=np.sqrt(num_outputs)))
-    #     biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
-    #     biases_out = tf.Variable(tf.random_normal([self.x_length]))
-    #     layer = tf.matmul(inputx, weights) + biases
-    #     if use_relu:
-    #         #return tf.nn.relu(layer)
-    #         layer = tf.nn.relu(layer)
 
-    #     # apply DropOut to hidden layer
-    #     keep_prob = 1-self.dropout
-    #     drop_out = tf.nn.dropout(layer, keep_prob)  # DROP-OUT here
-    #     # output layer with linear activation
-    #     out_layer = tf.matmul(drop_out, weights_out) + biases_out
-    #     return out_layer
-
-    #-----------------dropout try 2--------------
+    #-----------------new_fc_layer with dropout--------------
     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
-        """Create a new fully-connected layer."""
+        """Create a new fully-connected layer with the option of dropout."""
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
