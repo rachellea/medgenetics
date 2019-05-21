@@ -23,7 +23,7 @@ from data import utils_cv as utils_cv
 ##############
 # Multisense #------------------------------------------------------------------
 ##############
-class MLP_cv(object):
+class MLP(object):
     """Multilayer perceptron."""
     def __init__(self,
                  descriptor,
@@ -92,8 +92,11 @@ class MLP_cv(object):
         self.mlp_layers.append(self.y_length) #ensure predictions will have correct dimensions
         print('Mlp_layers is',str(self.mlp_layers))
        
+        # set cross validation fold
         self.cv_fold = cv_fold
     
+        # set dropout probability
+        self.dropout = dropout
     
     def run_all(self):
         """Run all key methods"""
@@ -104,8 +107,9 @@ class MLP_cv(object):
         self.report_large_and_small_inputs()
         self.close_session()
         self.clean_up()
-        # evaluate.print_final_summary(self.eval_results_valid, self.descriptor+'_MLP_Valid', self.best_valid_loss_epoch)
-        # evaluate.print_final_summary(self.eval_results_test, self.descriptor+'_MLP_Test', self.best_valid_loss_epoch)
+        if self.cv_fold <= 1:
+            evaluate.print_final_summary(self.eval_results_valid, self.descriptor+'_MLP_Valid', self.best_valid_loss_epoch)
+            evaluate.print_final_summary(self.eval_results_test, self.descriptor+'_MLP_Test', self.best_valid_loss_epoch)
 
     #~~~Key Methods~~~#
     def set_up_graph_and_session(self):
@@ -119,7 +123,7 @@ class MLP_cv(object):
     def train_test_evaluate(self):
 
         # if we're performing cross validation
-        if self.cv_fold > 0:
+        if self.cv_fold > 1:
             # initialize an empty list to store test accuracy for each fold
             self.fold_acc = []
             cv = model_selection.KFold(n_splits=self.cv_fold, shuffle=True)
@@ -172,7 +176,7 @@ class MLP_cv(object):
             for i in range(self.num_train_batches):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch}
+                                   self.y_labels: y_labels_batch, self.keep_prob:1-self.dropout}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
@@ -216,7 +220,7 @@ class MLP_cv(object):
         for i in range(num_batches):
             x_data_batch, y_labels_batch = chosen_set.next_batch()
             feed_dict = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch}
+                                   self.y_labels: y_labels_batch, self.keep_prob: 1.0}
             curr_loss, batch_pred_probs, batch_pred_labels = self.session.run([self.loss, self.pred_probs,self.pred_labels], feed_dict=feed_dict)
             epoch_loss+=curr_loss
             #Gather the outputs of subsequent batches together:
@@ -300,6 +304,8 @@ class MLP_cv(object):
                            shape = [None, self.y_length],
                            name='self.y_labels')
             print("Shape of self.y_labels: "+str(self.y_labels.get_shape().as_list()))
+
+            self.keep_prob = tf.placeholder(tf.float32)
     
             #~~~ Model ~~~#
             self.pred_raw = self._create_mlp(variable_scope_name = 'mlp',
@@ -393,15 +399,25 @@ class MLP_cv(object):
     #     out_layer = tf.matmul(drop_out, weights_out) + biases_out
     #     return out_layer
 
-#---------------original _new_fc_layer()-------------------------------------------------------
+    #-----------------dropout try 2--------------
     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
         """Create a new fully-connected layer."""
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
         if use_relu:
-            return tf.nn.relu(layer)
-        return layer
+            layer = tf.nn.relu(layer)
+        return tf.nn.dropout(layer, self.keep_prob)
+
+# #---------------original _new_fc_layer()-------------------------------------------------------
+#     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
+#         """Create a new fully-connected layer."""
+#         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
+#         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
+#         layer = tf.matmul(inputx, weights) + biases
+#         if use_relu:
+#             return tf.nn.relu(layer)
+#         return layer
     
     #~~~Methods for Viewing Variables~~~#
     def view_trainable_variables(self, view_values):
