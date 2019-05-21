@@ -77,31 +77,23 @@ class RunGeneModel(object):
     def _run_mlp(self):
         #Run MLP
         print('Running MLP')
-        # if no cross validation
-        if self.cv_fold_mlp == 0:
-            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                        split=copy.deepcopy(self.real_data_split),
-                        decision_threshold = 0.5,
-                        num_epochs = 1000,
-                        learningrate = 1e-4,
-                        mlp_layers = copy.deepcopy([30,20]),
-                        dropout=0.5,
-                        exclusive_classes = True,
-                        save_model = False,
-                        mysteryAAs = self.mysteryAAs_split)
-        # if cross validation
-        else: 
-            m = mlp_model_cv.MLP_cv(descriptor=self.gene_name+'_'+self.descriptor,
-                                  split=copy.deepcopy(self.real_data_split),
-                                  decision_threshold = 0.5,
-                                  num_epochs = 1000,
-                                  learningrate = 1e-4,
-                                  mlp_layers = copy.deepcopy([30,20]),
-                                  dropout=0.5,
-                                  exclusive_classes = True,
-                                  save_model = False,
-                                  mysteryAAs = self.mysteryAAs_split,
-                                  cv_fold = self.cv_fold_mlp)
+
+        # set hyperparameters here
+        learningrate = 1e-3
+        dropout = 0.9
+
+        m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                    split=copy.deepcopy(self.real_data_split),
+                    decision_threshold = 0.5,
+                    num_epochs = 1000,
+                    learningrate = learningrate,
+                    mlp_layers = copy.deepcopy([30,20]),
+                    dropout=dropout,
+                    exclusive_classes = True,
+                    save_model = False,
+                    mysteryAAs = self.mysteryAAs_split,
+                    cv_fold = self.cv_fold_mlp)
+
         m.run_all()
 
     def _run_logreg(self):
@@ -115,11 +107,11 @@ class RunGeneModel(object):
         # set the k value for k fold cross validation (# of folds for cross validation. Set to 0 if 
         # we don't want to do cross validation)
         kfold = self.cv_fold_lg
-
+        k = 0
         for pen in classifier_penalty:
           for C in classifier_C:
-            lg = regression.LogisticRegression(descriptor=descriptor, split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C, fold=kfold)
-
+            lg = regression.LogisticRegression(descriptor=descriptor, split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C, figure_num=k, fold=kfold)
+            k += 2
 
 
 if __name__=='__main__':
@@ -136,5 +128,5 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), cv_fold_lg=10, cv_fold_mlp=10).do_all()
+        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), cv_fold_lg=0, cv_fold_mlp=10).do_all()
 
