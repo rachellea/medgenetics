@@ -1,20 +1,22 @@
 #utils.py
 #Rachel Ballantyne Draelos
 
+import math
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing
+from sklearn import model_selection
 
-class Splits(object):
+class SplitsCV(object):
     """Split the provided data into self.train, self.valid, and self.test,
     where each is a Dataset object.
     self.train.data is a numpy array; self.train.labels is a numpy array"""
     def __init__(self,
              data,
              labels,
-             train_percent,
+             train_indices,
              valid_percent,
-             test_percent,
+             test_indices,
              impute, #if True, impute
              impute_these_categorical, #columns to impute with mode
              impute_these_continuous, #columns to impute with median
@@ -25,7 +27,8 @@ class Splits(object):
              seed, #seed to determine shuffling order before making splits; used for testing
              max_position, #int for the last position of the gene
              columns_to_ensure, #list of column names you must have
-             batch_size):
+             batch_size,
+             cross_val_fold):
         """Variables:
         <data> is a pandas dataframe where the index is example IDs
             and the values (rows) are the data for that example. 
@@ -34,24 +37,6 @@ class Splits(object):
         <categorical_variables> is a list of strings with the names
             of the columns that are categorical.
         The indices of <data> and <labels> must match."""
-
-        # initialize args for cv
-        self.cv_args = {'data': data,
-                        'labels': labels,
-                        'valid_percent': valid_percent,
-                        'impute': impute,
-                        'impute_these_categorical': impute_these_categorical,
-                        'impute_these_continuous': impute_these_continuous,
-                        'one_hotify': one_hotify,
-                        'one_hotify_these_categorical': one_hotify_these_categorical,
-                        'normalize_data': normalize_data,
-                        'normalize_these_continuous': normalize_these_continuous,
-                        'seed': seed,
-                        'max_position': max_position,
-                        'columns_to_ensure': columns_to_ensure,
-                        'batch_size': batch_size}
-                        
-        assert (train_percent+valid_percent+test_percent)==1
         assert data.index.values.tolist()==labels.index.values.tolist()
         self.clean_data = data
         self.clean_labels = labels
@@ -62,17 +47,15 @@ class Splits(object):
         self.max_position = max_position
         self.columns_to_ensure = columns_to_ensure
         
-        self.train_percent = train_percent
+        self.train_indices = train_indices
         self.valid_percent = valid_percent
-        self.test_percent = test_percent
+        self.test_indices = test_indices
         if seed is not None:
             self.seed = seed
         else:
             self.seed = np.random.randint(0,10e6)
         self.batch_size = batch_size
-        
-        self._get_split_indices() #defines self.trainidx and self.testidx
-        self._shuffle_before_splitting()
+    
          
         #Further data prep:
         if impute:
@@ -84,28 +67,28 @@ class Splits(object):
             self._normalize()
         else:
             print('WARNING: you elected not to normalize your data. This could lead to poor performance.')
-        self._make_splits() #creates self.train, self.valid, and self.test
 
-    def _get_split_indices(self):
-        """Get indices that will be used to split the data into train, test,
+
+        self.cross_val_fold = cross_val_fold
+ 
+        self._make_splits_cv()
+
+    def _shuffle_before_trainval_split(self):
+        """shuffle the indices of the training data before splitting into training
         and validation."""
-        self.trainidx = int(self.clean_data.shape[0] * self.train_percent)
-        self.testidx = int(self.clean_data.shape[0] * (self.train_percent+self.test_percent))
-
-    def _shuffle_before_splitting(self):
-        idx = np.arange(0, self.clean_data.shape[0])
+        idx = np.arange(0, self.train_data.shape[0])
         np.random.seed(self.seed)
-        print('Creating splits based on seed',str(self.seed))
+        print('Creating train-val split based on seed',str(self.seed))
         np.random.shuffle(idx)
-        self.clean_data = self.clean_data.iloc[idx]
-        self.clean_labels = self.clean_labels.iloc[idx]
+        self.train_data = self.train_data.iloc[idx]
+        self.train_labels = self.train_labels.iloc[idx]
         
     def _impute(self):
         """Impute categorical variables using the mode of the training data
         and continuous variables using the median of the training data."""
         #impute missing categorical values with the training data mode https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.mode.html
         print('Imputing categorical variables with mode:\n',str(self.impute_these_categorical))
-        training_data = self.clean_data.iloc[0:self.trainidx,:]
+        training_data = self.clean_data.iloc[self.train_indices,:]
         imputed_with_modes = (self.clean_data[self.impute_these_categorical]).fillna((training_data[self.impute_these_categorical]).mode().iloc[0])
         self.clean_data[self.impute_these_categorical] = imputed_with_modes  
         
@@ -155,7 +138,7 @@ class Splits(object):
         """Provide the features specified in self.normalize_these_continuous
         with approximately zero mean and unit variance, based on the
         training dataset only."""
-        train_data = (self.clean_data[self.normalize_these_continuous].values)[0:self.trainidx,:]
+        train_data = (self.clean_data[self.normalize_these_continuous].values)[self.train_indices,:]
         #http://scikit-learn.org/stable/modules/preprocessing.html#preprocessing-scaler
         scaler = sklearn.preprocessing.StandardScaler().fit(train_data)
         print('Normalizing data:\n\tscaler.mean_',str(scaler.mean_),
@@ -163,7 +146,7 @@ class Splits(object):
         assert len(self.normalize_these_continuous)==scaler.mean_.shape[0]==scaler.scale_.shape[0]
         self.clean_data[self.normalize_these_continuous] = scaler.transform((self.clean_data[self.normalize_these_continuous]).values)
     
-    def _make_splits(self):
+    def _make_splits_cv(self):
         """Split up self.clean_data and self.clean_labels
         into train, test, and valid data."""
         assert self.clean_data.index.values.tolist()==self.clean_labels.index.values.tolist()
@@ -171,29 +154,56 @@ class Splits(object):
             'label_meanings': self.clean_labels.columns.values.tolist(),
             'batch_size': self.batch_size}
     
-        data_matrix = self.clean_data.values
-        labels_matrix = self.clean_labels.values
+        # data_matrix = self.clean_data.values
+        # labels_matrix = self.clean_labels.values
     
-        train_data = data_matrix[0:self.trainidx,:]
-        train_labels = labels_matrix[0:self.trainidx]
-        test_data = data_matrix[self.trainidx:self.testidx,:]
-        test_labels = labels_matrix[self.trainidx:self.testidx]
-        valid_data = data_matrix[self.testidx:,:]
-        valid_labels = labels_matrix[self.testidx:]
-    
+        # train_data = data_matrix[0:self.trainidx,:]
+        # train_labels = labels_matrix[0:self.trainidx]
+        # test_data = data_matrix[self.trainidx:self.testidx,:]
+        # test_labels = labels_matrix[self.trainidx:self.testidx]
+        # valid_data = data_matrix[self.testidx:,:]
+        # valid_labels = labels_matrix[self.testidx:]
+
+        # get train data
+        self.train_data = self.clean_data.iloc[self.train_indices]
+        self.train_labels = self.clean_labels.iloc[self.train_indices]
+
+        # get test data
+        test_data = self.clean_data.iloc[self.test_indices]
+        test_labels = self.clean_labels.iloc[self.test_indices]
+
+        # shuffle before split
+        self._shuffle_before_trainval_split()
+        # get validation data
+        idx = math.ceil(self.train_data.shape[0] * self.valid_percent)
+        valid_data = self.train_data.iloc[:idx]
+        valid_labels = self.train_labels.iloc[:idx]
+
+        # update train data
+        self.train_data = self.train_data.iloc[idx:]
+        self.train_labels = self.train_labels.iloc[idx:]
+
+        # convert everything to array
+        self.train_data = self.train_data.values
+        self.train_labels = self.train_labels.values
+        valid_data = valid_data.values
+        valid_labels = valid_labels.values
+        test_data = test_data.values
+        test_labels = test_labels.values
+        
+
         #Note: you want to shuffle the training set between each epoch
         #so that the model can't cheat and learn the order of the training
         #data. You don't want to bother shuffling the validation or test
         #sets because those are just evaluated on a fixed model.
-        self.train = Dataset(train_data, train_labels, shuffle = True, **extra_args)
+        self.train = Dataset(self.train_data, self.train_labels, shuffle = True, **extra_args)
         self.test = Dataset(test_data, test_labels, shuffle = False, **extra_args)
         self.valid = Dataset(valid_data, valid_labels, shuffle= False, **extra_args)
         print('Finished making splits')
-        print('\tTrain data shape:',str(train_data.shape))
+        print('\tTrain data shape:',str(self.train_data.shape))
         print('\tValid data shape:',str(valid_data.shape))
         print('\tTest data shape:',str(test_data.shape))
-        print('\tLength of one label:',str(train_labels.shape[1]))
-
+        print('\tLength of one label:',str(self.train_labels.shape[1]))
 
 class Dataset(object):
     def __init__(self,

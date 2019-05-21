@@ -10,20 +10,25 @@ import numpy as np
 from data import utils as utils
 from data import clean_data as clean_data
 import mlp_model
+import mlp_model_cv
+import regression
 
 class RunGeneModel(object):
-    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[]):
+    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[], cv_fold_lg=10, cv_fold_mlp=10):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.descriptor = descriptor
         self.shared_args = shared_args
         self.cols_to_delete = cols_to_delete
+        self.cv_fold_lg = cv_fold_lg
+        self.cv_fold_mlp = cv_fold_mlp
     
     def do_all(self):
         self._prep_data()
         self._prep_split_data(self.inputx,self.split_args)
         self._prep_mysteryAAs()
         self._run_mlp()
+        #self._run_logreg()
     
     def _prep_data(self):
         #Real data with healthy and diseased
@@ -48,6 +53,8 @@ class RunGeneModel(object):
         self.real_data_split = utils.Splits(data = data,
                              labels = labels,
                              **all_args)
+
+
     
     def _prep_mysteryAAs(self):
         #WES data, mysteryAAs (want predictions for these)
@@ -70,16 +77,50 @@ class RunGeneModel(object):
     def _run_mlp(self):
         #Run MLP
         print('Running MLP')
-        m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                      split=copy.deepcopy(self.real_data_split),
-                      decision_threshold = 0.5,
-                      num_epochs = 1000,
-                      learningrate = 1e-4,
-                      mlp_layers = copy.deepcopy([30,20]),
-                      exclusive_classes = True,
-                      save_model = False,
-                      mysteryAAs = self.mysteryAAs_split)
+        # if no cross validation
+        if self.cv_fold_mlp == 0:
+            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                        split=copy.deepcopy(self.real_data_split),
+                        decision_threshold = 0.5,
+                        num_epochs = 1000,
+                        learningrate = 1e-4,
+                        mlp_layers = copy.deepcopy([30,20]),
+                        dropout=0.5,
+                        exclusive_classes = True,
+                        save_model = False,
+                        mysteryAAs = self.mysteryAAs_split)
+        # if cross validation
+        else: 
+            m = mlp_model_cv.MLP_cv(descriptor=self.gene_name+'_'+self.descriptor,
+                                  split=copy.deepcopy(self.real_data_split),
+                                  decision_threshold = 0.5,
+                                  num_epochs = 1000,
+                                  learningrate = 1e-4,
+                                  mlp_layers = copy.deepcopy([30,20]),
+                                  dropout=0.5,
+                                  exclusive_classes = True,
+                                  save_model = False,
+                                  mysteryAAs = self.mysteryAAs_split,
+                                  cv_fold = self.cv_fold_mlp)
         m.run_all()
+
+    def _run_logreg(self):
+        # Run Logistic Regression
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        print("Running Log Reg")
+
+        classifier_penalty= ['l1', 'l2']
+        classifier_C = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+
+        # set the k value for k fold cross validation (# of folds for cross validation. Set to 0 if 
+        # we don't want to do cross validation)
+        kfold = self.cv_fold_lg
+
+        for pen in classifier_penalty:
+          for C in classifier_C:
+            lg = regression.LogisticRegression(descriptor=descriptor, split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C, fold=kfold)
+
+
 
 if __name__=='__main__':
     variations = {'noSN':['Position','Conservation'],
@@ -95,4 +136,5 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars))).do_all()
+        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), cv_fold_lg=10, cv_fold_mlp=10).do_all()
+
