@@ -12,13 +12,9 @@ import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import math
 import random
-from sklearn import model_selection
 
 #Custom
 import evaluate
-
-# for cross validation
-from data import utils_cv as utils_cv
 
 ##############
 # Multisense #------------------------------------------------------------------
@@ -36,7 +32,8 @@ class MLP(object):
                  exclusive_classes,
                  save_model,
                  mysteryAAs,
-                 cv_fold):
+                 cv_fold,
+                 ensemble):
         """
         Variables
         <descriptor>: string that will be attached to the beginning of all
@@ -50,10 +47,10 @@ class MLP(object):
             in the train, test, or validation sets)."""
         print('\n\n\n\n**********',descriptor,'**********')
         self.descriptor = descriptor
+
         self.split = split
         
         #Data sets
-        self.mysteryAAs = mysteryAAs
         self.mysteryAAs = mysteryAAs 
         self.train_set = split.train
         self.test_set = split.test
@@ -91,12 +88,11 @@ class MLP(object):
         self.mlp_layers = mlp_layers
         self.mlp_layers.append(self.y_length) #ensure predictions will have correct dimensions
         print('Mlp_layers is',str(self.mlp_layers))
-       
-        # set cross validation fold
+
+        self.dropout = dropout
+        self.ensemble = ensemble
         self.cv_fold = cv_fold
     
-        # set dropout probability
-        self.dropout = dropout
     
     def run_all(self):
         """Run all key methods"""
@@ -107,9 +103,8 @@ class MLP(object):
         self.report_large_and_small_inputs()
         self.close_session()
         self.clean_up()
-        if self.cv_fold <= 1:
-            evaluate.print_final_summary(self.eval_results_valid, self.descriptor+'_MLP_Valid', self.best_valid_loss_epoch)
-            evaluate.print_final_summary(self.eval_results_test, self.descriptor+'_MLP_Test', self.best_valid_loss_epoch)
+        evaluate.print_final_summary(self.eval_results_valid, self.descriptor+'_MLP_Valid', self.best_valid_loss_epoch)
+        evaluate.print_final_summary(self.eval_results_test, self.descriptor+'_MLP_Test', self.best_valid_loss_epoch)
 
     #~~~Key Methods~~~#
     def set_up_graph_and_session(self):
@@ -121,66 +116,7 @@ class MLP(object):
         self.session.run(self.initialize)            
     
     def train_test_evaluate(self):
-
-        # if we're performing cross validation
-        if self.cv_fold > 1:
-            # initialize an empty list to store test accuracy for each fold
-            self.fold_acc = []
-            self.fold_auroc = []
-            self.fold_avg_prec = []
-            cv = model_selection.KFold(n_splits=self.cv_fold, shuffle=True)
-            fold_num = 1
-            self.split_ori = self.split
-            for train, test in cv.split(self.split_ori.clean_data, self.split_ori.clean_labels):
-                # create a new split object
-                self.split = utils_cv.SplitsCV(**self.split_ori.cv_args, train_indices=train, test_indices=test, cross_val_fold=self.cv_fold)
-                # redefine variables by calling reinit()
-                self.reinit(self.split)
-                # train as per normal
-                self.train()
-                # append test accuracy to list
-                df = self.eval_results_test['accuracy']
-                for label in df.index.values:
-                    acc = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
-                    print("The accuracy for fold number ", str(fold_num), " is ", str(acc))
-                self.fold_acc.append(acc)
-                # append auroc to list
-                df = self.eval_results_test['auroc']
-                for label in df.index.values:
-                    auroc = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
-                    print("The auroc for fold number ", str(fold_num), " is ", str(auroc))
-                self.fold_auroc.append(auroc)
-                #append average precision to list
-                df = self.eval_results_test['avg_precision']
-                for label in df.index.values:
-                    avg_prec = df.loc[label,'epoch_'+str(self.best_valid_loss_epoch)]
-                    print("The average precision for fold number ", str(fold_num), " is ", str(avg_prec))
-                self.fold_avg_prec.append(avg_prec)
-
-                fold_num += 1
-            # print the individual accuracies and the average accuracy
-            print("\n\n The accuracies of the cross validation folds are:\n")
-            tot_acc = 0
-            for k in range(len(self.fold_acc)):
-                print("Fold ",str(k+1), ": ", str(self.fold_acc[k]))
-                tot_acc += self.fold_acc[k]
-            # print the individual accuracies and the average accuracy
-            print("\n\n The auroc of the cross validation folds are:\n")
-            tot_auroc = 0
-            for k in range(len(self.fold_acc)):
-                print("Fold ",str(k+1), ": ", str(self.fold_auroc[k]))
-                tot_auroc += self.fold_auroc[k]
-            # print the individual accuracies and the average accuracy
-            print("\n\n The average precision of the cross validation folds are:\n")
-            tot_avg_prec = 0
-            for k in range(len(self.fold_acc)):
-                print("Fold ",str(k+1), ": ", str(self.fold_avg_prec[k]))
-                tot_avg_prec += self.fold_avg_prec[k]
-            print("\n\n The average cross validation accuracy is :", tot_acc/self.cv_fold, "\n\n\n")
-            print("\n\n The average cross validation auroc is :", tot_auroc/self.cv_fold, "\n\n\n")
-            print("\n\n The average cross validation average precision is :", tot_avg_prec/self.cv_fold, "\n\n\n")
-        else:
-            self.train()
+        self.train()
         if self.save_model: self.save()
         self.save_evals()
     
@@ -199,29 +135,34 @@ class MLP(object):
     #~~~Methods~~~#
     def train(self):
         #TODO redo all of this using queues so you don't need a feed dict at all
+        """For cross validation, we are doing all 300 epochs so no early stopping"""
         for j in range(self.num_epochs):
             epoch_loss = 0
             for i in range(self.num_train_batches):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch, self.keep_prob:1-self.dropout}
+                                   self.y_labels: y_labels_batch}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
             self.num_epochs_done+=1
             self.training_loss[self.num_epochs_done-1] = epoch_loss
             if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
-            self.test('Valid')
+            # only validating when not doing cross validation because this is used for early stopping
+            if self.cv_fold < 2:
+                self.test('Valid')
             self.test('Test')
             self.test('mysteryAAs')
             
+            # Early stopping is only for non cross validation
             #Early stopping. TODO: consider other early stopping methods
             #patience gets reset every time a new global minimum is reached
-            #patience is calculated in the validation function
-            if self.patience_remaining == 0:
-                print('No more patience left at epoch',self.num_epochs_done)
-                print('--> Implementing early stopping. Best epoch was:',self.best_valid_loss_epoch)
-                break
+            #patience is calculated in the validation 
+            if self.cv_fold < 2:
+                if self.patience_remaining == 0:
+                    print('No more patience left at epoch',self.num_epochs_done)
+                    print('--> Implementing early stopping. Best epoch was:',self.best_valid_loss_epoch)
+                    break
 
     def test(self, chosen_dataset):
         #TODO redo this to use tensorflow streaming auc and other built in evaluations (so you don't need scikit learn)
@@ -248,7 +189,7 @@ class MLP(object):
         for i in range(num_batches):
             x_data_batch, y_labels_batch = chosen_set.next_batch()
             feed_dict = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch, self.keep_prob: 1.0}
+                                   self.y_labels: y_labels_batch}
             curr_loss, batch_pred_probs, batch_pred_labels = self.session.run([self.loss, self.pred_probs,self.pred_labels], feed_dict=feed_dict)
             epoch_loss+=curr_loss
             #Gather the outputs of subsequent batches together:
@@ -271,7 +212,7 @@ class MLP(object):
         if chosen_dataset == 'Valid':
             self.valid_loss[self.num_epochs_done-1] = epoch_loss
             if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('\tValid loss=',str(epoch_loss))
-            # Set early stopping signal
+            #Set early stopping signal
             if epoch_loss < self.best_valid_loss:
                 self.best_valid_loss = epoch_loss
                 self.best_valid_loss_epoch = self.num_epochs_done
@@ -332,8 +273,6 @@ class MLP(object):
                            shape = [None, self.y_length],
                            name='self.y_labels')
             print("Shape of self.y_labels: "+str(self.y_labels.get_shape().as_list()))
-
-            self.keep_prob = tf.placeholder(tf.float32)
     
             #~~~ Model ~~~#
             self.pred_raw = self._create_mlp(variable_scope_name = 'mlp',
@@ -408,26 +347,15 @@ class MLP(object):
                 tmp = hi
                 print("Shape of", variable_scope_name, "layer_"+str(i),":",str(hi.get_shape().as_list()),', relu=',str(use_relu_flag))
         return hi
-
-    #-----------------new_fc_layer with dropout--------------
+    
     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
-        """Create a new fully-connected layer with the option of dropout."""
+        """Create a new fully-connected layer."""
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
         if use_relu:
-            layer = tf.nn.relu(layer)
-        return tf.nn.dropout(layer, self.keep_prob)
-
-# #---------------original _new_fc_layer()-------------------------------------------------------
-#     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
-#         """Create a new fully-connected layer."""
-#         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
-#         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
-#         layer = tf.matmul(inputx, weights) + biases
-#         if use_relu:
-#             return tf.nn.relu(layer)
-#         return layer
+            return tf.nn.relu(layer)
+        return layer
     
     #~~~Methods for Viewing Variables~~~#
     def view_trainable_variables(self, view_values):
@@ -448,50 +376,20 @@ class MLP(object):
         with self.graph.as_default():
             layer_0_weights = self.session.run('mlp/layer_0_weights:0')
         evaluate.plot_heatmap(layer_0_weights, center=0,
-                              filename_prefix=self.descriptor + '_layer_0_weights',
+                              filename_prefix = self.descriptor+'_layer_0_weights',
                               yticklabels=self.preserved_data_meanings)
-
-
+    
     def report_large_and_small_inputs(self):
         """Save a file reporting the input variables corresponding to rows
         in layer_0_weights with the largest and smallest average values."""
         with self.graph.as_default():
             layer_0_weights = self.session.run('mlp/layer_0_weights:0')
-        avgs = np.average(layer_0_weights, axis=1)
-        report = pd.DataFrame(avgs, index=self.preserved_data_meanings)
+        avgs = np.average(layer_0_weights, axis = 1)
+        report = pd.DataFrame(avgs, index = self.preserved_data_meanings)
         report = report.astype(dtype='float')
         report.sort_values(by=report.columns.values.tolist(),
                            ascending=False,
                            inplace=True,
                            na_position='first')
-        report.to_csv(self.descriptor + '_layer_0_weight_avgs_sorted.csv')
-
-    def reinit(self, split):
-        """redefine object variables that depend on split."""
-        #dataset
-        self.train_set = split.train
-        self.test_set = split.test
-        self.valid_set = split.valid
-        self.preserved_data_meanings = split.train.data_meanings
-        
-        #Number of batches per epoch
-        assert self.train_set.batch_size == self.test_set.batch_size == self.valid_set.batch_size
-        self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
-        self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
-        self.num_valid_batches = math.ceil((self.valid_set.num_examples)/self.valid_set.batch_size)
-        self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
-        
-        #Tracking losses and evaluation results
-        self.training_loss = np.zeros((self.num_epochs))
-        self.valid_loss = np.zeros((self.num_epochs))
-        self.eval_results_valid, self.eval_results_test = evaluate.initialize_evaluation_dfs(self.train_set.label_meanings, self.num_epochs)
-        self.num_batches_done = 0
-        self.num_epochs_done = 0
-        
-        #For early stopping:
-        self.initial_patience = 30
-        self.best_valid_loss = np.inf
-        self.best_valid_loss_epoch = 0
-        self.patience_remaining = 30
-        
-
+        report.to_csv(self.descriptor+'_layer_0_weight_avgs_sorted.csv')
+    
