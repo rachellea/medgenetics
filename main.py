@@ -80,7 +80,7 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        learningrate = 1e-3
+        learningrate = 1e-2
         dropout = 0
 
         # if we are performing cross validation
@@ -91,9 +91,9 @@ class RunGeneModel(object):
             fold_avg_prec = []
             cv = model_selection.KFold(n_splits=self.cv_fold_mlp)
             fold_num = 1
-            x = self.real_data_split.clean_data
-            y = self.real_data_split.clean_labels
-            for train, test in cv.split(x, y):
+            data = self.real_data_split.clean_data
+            label = self.real_data_split.clean_labels
+            for train, test in cv.split(data, label):
                 # create a copy of the real_data_split
                 split = copy.deepcopy(self.real_data_split)
                 
@@ -171,7 +171,7 @@ class RunGeneModel(object):
 
             # write results to a txtfile
             path = "mlp_results/"
-            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
+            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(learningrate) + 'learnrate_' + str(dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
             with open(path+filename, 'w') as f:
                 f.write("\n\n The average cross validation accuracy is :"+ str(tot_acc/self.cv_fold_mlp)+ "\n\n\n")
                 f.write("\n\n The average cross validation auroc is :"+ str(tot_auroc/self.cv_fold_mlp)+ "\n\n\n")
