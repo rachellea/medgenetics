@@ -80,7 +80,7 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        learningrate = 1e-3
+        learningrate = 1e-4
         dropout = 0
 
         # if we are performing cross validation
