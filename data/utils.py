@@ -1,6 +1,7 @@
 #utils.py
 #Rachel Ballantyne Draelos
 
+import math
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing
@@ -50,7 +51,7 @@ class Splits(object):
                         'max_position': max_position,
                         'columns_to_ensure': columns_to_ensure,
                         'batch_size': batch_size}
-                        
+
         assert (train_percent+valid_percent+test_percent)==1
         assert data.index.values.tolist()==labels.index.values.tolist()
         self.clean_data = data
@@ -191,6 +192,41 @@ class Splits(object):
         print('Finished making splits')
         print('\tTrain data shape:',str(train_data.shape))
         print('\tValid data shape:',str(valid_data.shape))
+        print('\tTest data shape:',str(test_data.shape))
+        print('\tLength of one label:',str(train_labels.shape[1]))
+
+    def _make_splits_cv(self, train_indices, test_indices):
+        """Split up self.clean_data and self.clean_labels
+        into train, test, and valid data."""
+        assert self.clean_data.index.values.tolist()==self.clean_labels.index.values.tolist()
+        extra_args = {'data_meanings':self.clean_data.columns.values.tolist(),
+            'label_meanings': self.clean_labels.columns.values.tolist(),
+            'batch_size': self.batch_size}
+
+        # get train data
+        train_data = self.clean_data.iloc[train_indices]
+        train_labels = self.clean_labels.iloc[train_indices]
+
+        # get test data
+        test_data = self.clean_data.iloc[test_indices]
+        test_labels = self.clean_labels.iloc[test_indices]
+
+        # convert everything to array
+        train_data = train_data.values
+        train_labels = train_labels.values
+        test_data = test_data.values
+        test_labels = test_labels.values
+        
+
+        #Note: you want to shuffle the training set between each epoch
+        #so that the model can't cheat and learn the order of the training
+        #data. You don't want to bother shuffling the validation or test
+        #sets because those are just evaluated on a fixed model.
+        self.train = Dataset(train_data, train_labels, shuffle = True, **extra_args)
+        self.test = Dataset(test_data, test_labels, shuffle = False, **extra_args)
+
+        print('Finished making cross validation splits')
+        print('\tTrain data shape:',str(train_data.shape))
         print('\tTest data shape:',str(test_data.shape))
         print('\tLength of one label:',str(train_labels.shape[1]))
 
