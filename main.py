@@ -104,7 +104,8 @@ class RunGeneModel(object):
                 m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                     split=split,
                     decision_threshold = 0.5,
-                    num_epochs = 300, # fix number of epochs to 300
+                    num_epochs
+= 1000, # fix number of epochs to 300
                     learningrate = learningrate,
                     mlp_layers = copy.deepcopy([30,20]),
                     dropout=dropout,
