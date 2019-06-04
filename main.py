@@ -177,7 +177,7 @@ class RunGeneModel(object):
 
             # write results to a txtfile
             path = "mlp_results/"
-            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(learningrate) + 'learnrate_' + str(dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
+            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(self.learningrate) + 'learnrate_' + str(self.dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
             with open(path+filename, 'w') as f:
                 f.write("\n\n The average cross validation accuracy is :"+ str(tot_acc/self.cv_fold_mlp)+ "\n\n\n")
                 f.write("\n\n The average cross validation auroc is :"+ str(tot_auroc/self.cv_fold_mlp)+ "\n\n\n")
