@@ -251,7 +251,7 @@ class RunGeneModel(object):
             for i in range(0,5):
                 m = self.ensemble_lst[i]
                 pred_label.append(m.selected_pred_labels[i])
-                pred_prob += m.selected_pred_probs
+                pred_prob += m.selected_pred_probs[i]
             # for predicted labels, get the most frequent predicted label
             if pred_label.count(0) > pred_label.count(1):
                 pred_label_lst.append(0)
