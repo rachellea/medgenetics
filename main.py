@@ -99,26 +99,6 @@ class RunGeneModel(object):
                 
                 # update the splits with the train and test indices for this cv loop
                 split._make_splits_cv(train, test)
-<<<<<<< HEAD
-                
-                #redefine mlp object with the new split
-                m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                    split=split,
-                    decision_threshold = 0.5,
-                    num_epochs = 300, # fix number of epochs to 300
-                    learningrate = learningrate,
-                    mlp_layers = copy.deepcopy([30,20]),
-                    dropout=dropout,
-                    exclusive_classes = True,
-                    save_model = False,
-                    mysteryAAs = self.mysteryAAs_split,
-                    cv_fold = self.cv_fold_mlp,
-                    ensemble=self.ensemble)
-
-                # set up graph and session for the model
-                m.set_up_graph_and_session()
-=======
->>>>>>> 5373d720768bb0ec4f609a4d621d517c0939a275
 
                 # check if we're doing ensembling
                 if self.ensemble:
@@ -260,10 +240,11 @@ class RunGeneModel(object):
 
         # get the true label
         print("Check if all true labels are the same")
-        m_ori = self.ensemble_list[0].selected_labels_true
-        for i in range(len(5)):
+        m_ori = self.ensemble_lst[0].selected_labels_true
+        for i in range(1,5):
             print('\n\n\n\n\n')
-            print(m_ori == self.ensemble_list[i+1].selected_labels_true)
+            print(m_ori ==
+self.ensemble_lst[i].selected_labels_true)
             print('\n\n\n\n\n')
     def _run_logreg(self):
         # Run Logistic Regression
@@ -298,4 +279,5 @@ if __name__=='__main__':
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
         RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), ensemble=True, cv_fold_lg=0, cv_fold_mlp=5).do_all()
+
 
