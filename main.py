@@ -111,9 +111,9 @@ class RunGeneModel(object):
                     # evaluate the accuracy of this fold using the ensemble initialized
                     accuracy, auroc, avg_prec = self._evaluate_ensemble()
 
-                    m.fold_acc.append(accuracy)
-                    m.fold_auroc.append(auroc)
-                    m.fold_avg_prec.append(avg_prec)
+                    fold_acc.append(accuracy)
+                    fold_auroc.append(auroc)
+                    fold_avg_prec.append(avg_prec)
 
                 else:
                     #redefine mlp object with the new split
@@ -236,16 +236,37 @@ class RunGeneModel(object):
             self.ensemble_lst.append(m)
 
     def _evaluate_ensemble(self):
-        """This function evaluates the test set for the ensemble of mlps"""
+        """This function evaluates the test set for the ensemble of mlps
+            output: accuracy, auroc, and average precision of the ensemble"""
 
         # get the true label
-        print("Check if all true labels are the same")
-        m_ori = self.ensemble_lst[0].selected_labels_true
-        for i in range(1,5):
-            print('\n\n\n\n\n')
-            print(m_ori ==
-self.ensemble_lst[i].selected_labels_true)
-            print('\n\n\n\n\n')
+        true_label = self.ensemble_lst[0].selected_labels_true
+        pred_label_lst = []
+        pred_prob_lst = []
+        for i in range(len(true_label)):
+            label = true_label[i]
+            pred_label = []
+            pred_prob = 0
+            # for each mlp, get the predicted label and predicted proba
+            for i in range(0,5):
+                m = self.ensemble_lst[i]
+                pred_label.append(m.selected_pred_labels[i])
+                pred_prob += m.selected_pred_probs
+            # for predicted labels, get the most frequent predicted label
+            if pred_label.count(0) > pred_label.count(1):
+                pred_label_lst.append(0)
+            else:
+                pred_label_lst.append(1)
+            # for predicted probability, get the average predicted probability
+            pred_prob_lst(pred_prob/len(true_label))
+
+        # calculate accuracy, auroc, and average precision
+        accuracy = metrics.accuracy_score(true_label, pred_label_lst)
+        auroc = metrics.roc_auc_score(true_label, pred_prob_lst)
+        avg_prec = metrics.average_precision_score(true_label, pred_label_lst)
+
+        return accuracy, auroc, avg_prec
+
     def _run_logreg(self):
         # Run Logistic Regression
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
