@@ -80,8 +80,8 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        learningrate = 1e-2
-        dropout = 0
+        self.learningrate = 1e-2
+        self.dropout = 0
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -99,33 +99,39 @@ class RunGeneModel(object):
                 
                 # update the splits with the train and test indices for this cv loop
                 split._make_splits_cv(train, test)
-                
-                #redefine mlp object with the new split
-                m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                    split=split,
-                    decision_threshold = 0.5,
-                    num_epochs = 1000, # fix number of epochs to 300
-                    learningrate = learningrate,
-                    mlp_layers = copy.deepcopy([30,20]),
-                    dropout=dropout,
-                    exclusive_classes = True,
-                    save_model = False,
-                    mysteryAAs = self.mysteryAAs_split,
-                    cv_fold = self.cv_fold_mlp,
-                    ensemble=self.ensemble)
-
-                # set up graph and session for the model
-                m.set_up_graph_and_session()
 
                 # check if we're doing ensembling
-                if m.ensemble:
-                    m.train_ensemble()
-                    accuracy, auroc, avg_prec = self.evaluate_ensemble()
+                if self.ensemble:
+                    # set number of mlps in the ensemble
+                    num_ensemble = 5
+
+                    # initialize ensembles
+                    self._init_ensemble(num_ensemble, split)
+
+                    # evaluate the accuracy of this fold using the ensemble initialized
+                    accuracy, auroc, avg_prec = self._evaluate_ensemble()
+
                     m.fold_acc.append(accuracy)
                     m.fold_auroc.append(auroc)
                     m.fold_avg_prec.append(avg_prec)
 
                 else:
+                    #redefine mlp object with the new split
+                    m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                        split=split,
+                        decision_threshold = 0.5,
+                        num_epochs = 300, # fix number of epochs to 300
+                        learningrate = self.learningrate,
+                        mlp_layers = copy.deepcopy([30,20]),
+                        dropout=self.dropout,
+                        exclusive_classes = True,
+                        save_model = False,
+                        mysteryAAs = self.mysteryAAs_split,
+                        cv_fold = self.cv_fold_mlp,
+                        ensemble=self.ensemble)
+
+                    # set up graph and session for the model
+                    m.set_up_graph_and_session()
                     # train as per normal if we are not doing ensembling
                     m.train()
 
@@ -186,9 +192,9 @@ class RunGeneModel(object):
                 split=copy.deepcopy(self.real_data_split),
                 decision_threshold = 0.5,
                 num_epochs = 300, # set number of epochs to 300
-                learningrate = learningrate,
+                learningrate = self.learningrate,
                 mlp_layers = copy.deepcopy([30,20]),
-                dropout=dropout,
+                dropout=self.dropout,
                 exclusive_classes = True,
                 save_model = False,
                 mysteryAAs = self.mysteryAAs_split,
@@ -196,6 +202,49 @@ class RunGeneModel(object):
                 ensemble=self.ensemble)
             m.run_all()
 
+    def _init_ensemble(self, num_ensemble, split):
+        """This function initializes mlps for the ensemble.
+           Inputs: num_ensemble, the number of mlps in the ensemble
+                   split, the split object to specify training and testing data
+        """
+        # define a list to store mlps for our ensemble
+        self.ensemble_lst = []
+
+        # initialize ensembles and store in the list
+        for _ in range(num_ensemble):
+            # initialize mlp
+            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                split=split,
+                decision_threshold = 0.5,
+                num_epochs = 300, # fix number of epochs to 300
+                learningrate = self.learningrate,
+                mlp_layers = copy.deepcopy([30,20]),
+                dropout=self.dropout,
+                exclusive_classes = True,
+                save_model = False,
+                mysteryAAs = self.mysteryAAs_split,
+                cv_fold = self.cv_fold_mlp,
+                ensemble=self.ensemble)
+
+            # set up graph and session for the model
+            m.set_up_graph_and_session()
+
+            # train as per normal
+            m.train()
+
+            # store to list
+            self.ensemble_lst.append(m)
+
+    def _evaluate_ensemble(self):
+        """This function evaluates the test set for the ensemble of mlps"""
+
+        # get the true label
+        print("Check if all true labels are the same")
+        m_ori = self.ensemble_list[0].selected_labels_true
+        for i in range(len(5)):
+            print('\n\n\n\n\n')
+            print(m_ori == self.ensemble_list[i+1].selected_labels_true)
+            print('\n\n\n\n\n')
     def _run_logreg(self):
         # Run Logistic Regression
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
@@ -228,5 +277,5 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), ensemble=False, cv_fold_lg=0, cv_fold_mlp=10).do_all()
+        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), ensemble=True, cv_fold_lg=0, cv_fold_mlp=5).do_all()
 
