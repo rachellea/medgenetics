@@ -80,8 +80,8 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        learningrate = 1e-2
-        dropout = 0
+        learningrate = 1e-3
+        dropout = 0.9
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -104,7 +104,7 @@ class RunGeneModel(object):
                 m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                     split=split,
                     decision_threshold = 0.5,
-                    num_epochs = 1000, # fix number of epochs to 300
+                    num_epochs = 300, # fix number of epochs to 300
                     learningrate = learningrate,
                     mlp_layers = copy.deepcopy([30,20]),
                     dropout=dropout,
