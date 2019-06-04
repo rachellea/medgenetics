@@ -234,17 +234,17 @@ class MLP(object):
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):
             current_label = self.train_set.label_meanings[label_number]
-            selected_labels_true = labels_true[:,label_number]
-            selected_pred_labels = entire_pred_labels[:,label_number]
-            selected_pred_probs = entire_pred_probs[:,label_number]
+            self.selected_labels_true = labels_true[:,label_number]
+            self.selected_pred_labels = entire_pred_labels[:,label_number]
+            self.selected_pred_probs = entire_pred_probs[:,label_number]
             
             #Update results dictionary of dataframes
             all_eval_results = evaluate.evaluate_all(all_eval_results,
                                                      self.num_epochs_done,
                                                      current_label,
-                                                     selected_labels_true,
-                                                     selected_pred_labels,
-                                                     selected_pred_probs,
+                                                     self.selected_labels_true,
+                                                     self.selected_pred_labels,
+                                                     self.selected_pred_probs,
                                                      self.descriptor+'MLP_'+chosen_dataset,
                                                      self.num_epochs)
 
