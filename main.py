@@ -258,7 +258,7 @@ class RunGeneModel(object):
             else:
                 pred_label_lst.append(1)
             # for predicted probability, get the average predicted probability
-            pred_prob_lst.append((pred_prob/len(true_label)))
+            pred_prob_lst.append(pred_prob/len(true_label))
 
         # calculate accuracy, auroc, and average precision
         accuracy = metrics.accuracy_score(true_label, pred_label_lst)
