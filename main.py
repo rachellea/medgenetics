@@ -80,7 +80,7 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        self.learningrate = 100
+        self.learningrate = 1e-1
         self.dropout = 0
         self.num_epochs = 1000
 
@@ -300,6 +300,10 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), ensemble=True, cv_fold_lg=0, cv_fold_mlp=5).do_all()
+        RunGeneModel(gene_name='ryr2',
+descriptor=descriptor,shared_args =
+shared_args,
+cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
+ensemble=True, cv_fold_lg=0, cv_fold_mlp=10).do_all()
 
 
