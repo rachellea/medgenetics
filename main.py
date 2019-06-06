@@ -80,9 +80,9 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        self.learningrate = 1e-1
+        self.learningrate = 1e-4
         self.dropout = 0
-        self.num_epochs = 1000
+        self.num_epochs = 300
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -104,7 +104,7 @@ class RunGeneModel(object):
                 # check if we're doing ensembling
                 if self.ensemble:
                     # set number of mlps in the ensemble
-                    num_ensemble = 5
+                    num_ensemble = 10
 
                     # initialize ensembles
                     self._init_ensemble(num_ensemble, split)
@@ -245,7 +245,6 @@ class RunGeneModel(object):
         pred_label_lst = []
         pred_prob_lst = []
         for i in range(len(true_label)):
-            label = true_label[i]
             pred_label = []
             pred_prob = 0
             # for each mlp, get the predicted label and predicted proba
