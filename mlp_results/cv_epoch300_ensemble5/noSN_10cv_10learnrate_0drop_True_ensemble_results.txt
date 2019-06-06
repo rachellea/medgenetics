@@ -5,7 +5,7 @@
 
 
 
- The average cross validation auroc is :0.5
+ The average cross validation auroc is :0.6933189374481683
 
 
 
