@@ -80,8 +80,9 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        self.learningrate = 1e-1
+        self.learningrate = 1e-4
         self.dropout = 0
+        self.num_epochs = 300
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -103,7 +104,7 @@ class RunGeneModel(object):
                 # check if we're doing ensembling
                 if self.ensemble:
                     # set number of mlps in the ensemble
-                    num_ensemble = 5
+                    num_ensemble = 10
 
                     # initialize ensembles
                     self._init_ensemble(num_ensemble, split)
@@ -120,7 +121,7 @@ class RunGeneModel(object):
                     m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                         split=split,
                         decision_threshold = 0.5,
-                        num_epochs = 300, # fix number of epochs to 300
+                        num_epochs = self.num_epochs, # fix number of epochs to 300
                         learningrate = self.learningrate,
                         mlp_layers = copy.deepcopy([30,20]),
                         dropout=self.dropout,
@@ -191,7 +192,7 @@ class RunGeneModel(object):
             m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                 split=copy.deepcopy(self.real_data_split),
                 decision_threshold = 0.5,
-                num_epochs = 300, # set number of epochs to 300
+                num_epochs = self.num_epochs, # set number of epochs to 300
                 learningrate = self.learningrate,
                 mlp_layers = copy.deepcopy([30,20]),
                 dropout=self.dropout,
@@ -216,7 +217,7 @@ class RunGeneModel(object):
             m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                 split=split,
                 decision_threshold = 0.5,
-                num_epochs = 300, # fix number of epochs to 300
+                num_epochs = self.num_epochs, # fix number of epochs to 300
                 learningrate = self.learningrate,
                 mlp_layers = copy.deepcopy([30,20]),
                 dropout=self.dropout,
@@ -244,12 +245,11 @@ class RunGeneModel(object):
         pred_label_lst = []
         pred_prob_lst = []
         for i in range(len(true_label)):
-            label = true_label[i]
             pred_label = []
             pred_prob = 0
             # for each mlp, get the predicted label and predicted proba
-            for i in range(0,5):
-                m = self.ensemble_lst[i]
+            for j in range(0,5):
+                m = self.ensemble_lst[j]
                 pred_label.append(m.selected_pred_labels[i])
                 pred_prob += m.selected_pred_probs[i]
             # for predicted labels, get the most frequent predicted label
