@@ -248,7 +248,7 @@ class RunGeneModel(object):
             pred_label = []
             pred_prob = 0
             # for each mlp, get the predicted label and predicted proba
-            for j in range(0,5):
+            for j in range(len(self.ensemble_lst)):
                 m = self.ensemble_lst[j]
                 pred_label.append(m.selected_pred_labels[i])
                 pred_prob += m.selected_pred_probs[i]
@@ -258,7 +258,7 @@ class RunGeneModel(object):
             else:
                 pred_label_lst.append(1)
             # for predicted probability, get the average predicted probability
-            pred_prob_lst.append(pred_prob/len(true_label))
+            pred_prob_lst.append(pred_prob/len(self.ensemble_lst))
 
         # calculate accuracy, auroc, and average precision
         accuracy = metrics.accuracy_score(true_label, pred_label_lst)
