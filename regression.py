@@ -149,7 +149,7 @@ class LogisticRegression(object):
 
             aucs_val.append(auc)
             accs.append(metrics.accuracy_score(y[test], y_pred))
-            prec.append(metrics.average_precision_score(y[test], y_pred))
+            prec.append(metrics.average_precision_score(y[test], y_score[:,1]))
 
             # precision recall curve
             precision, recall, _ = metrics.precision_recall_curve(y[test], y_score[:,1])
