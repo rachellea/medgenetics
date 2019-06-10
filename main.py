@@ -80,7 +80,7 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        self.learningrate = 1e-4
+        self.learningrate = 100
         self.dropout = 0
         self.num_epochs = 300
 
@@ -104,7 +104,7 @@ class RunGeneModel(object):
                 # check if we're doing ensembling
                 if self.ensemble:
                     # set number of mlps in the ensemble
-                    num_ensemble = 10
+                    num_ensemble = 2
 
                     # initialize ensembles
                     self._init_ensemble(num_ensemble, split)
@@ -241,7 +241,7 @@ class RunGeneModel(object):
             output: accuracy, auroc, and average precision of the ensemble"""
 
         # get the true label
-        true_label = self.ensemble_lst[0].selected_labels_true
+        true_label = self.ensemble_lst[0].labels_true
         pred_label_lst = []
         pred_prob_lst = []
         for i in range(len(true_label)):
@@ -250,14 +250,17 @@ class RunGeneModel(object):
             # for each mlp, get the predicted label and predicted proba
             for j in range(len(self.ensemble_lst)):
                 m = self.ensemble_lst[j]
-                pred_label.append(m.selected_pred_labels[i])
-                pred_prob += m.selected_pred_probs[i]
+                pred_label.append(m.entire_pred_labels[i])
+                print("Adding the predicted probability: ", m.entire_pred_probs[i])
+                pred_prob += m.entire_pred_probs[i]
             # for predicted labels, get the most frequent predicted label
             if pred_label.count(0) > pred_label.count(1):
                 pred_label_lst.append(0)
             else:
                 pred_label_lst.append(1)
             # for predicted probability, get the average predicted probability
+            print("Adding the average predicted probability: ",
+pred_prob/len(self.ensemble_lst))
             pred_prob_lst.append(pred_prob/len(self.ensemble_lst))
 
         # calculate accuracy, auroc, and average precision
@@ -303,6 +306,6 @@ if __name__=='__main__':
 descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
-ensemble=True, cv_fold_lg=0, cv_fold_mlp=10).do_all()
+ensemble=True, cv_fold_lg=0, cv_fold_mlp=2).do_all()
 
 
