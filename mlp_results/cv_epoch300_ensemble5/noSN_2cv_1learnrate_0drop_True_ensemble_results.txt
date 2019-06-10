@@ -1,0 +1,24 @@
+Total accuracy is :1.7539697453725454
+
+
+Total auroc is :1.3599342670349648
+
+
+Total avg prec is:0.24603025462745465
+
+
+
+
+ The average cross validation accuracy is :0.8769848726862727
+
+
+
+
+ The average cross validation auroc is :0.6799671335174824
+
+
+
+
+ The average cross validation average precision is :0.12301512731372732
+
+

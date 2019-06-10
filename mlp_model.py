@@ -234,19 +234,29 @@ class MLP(object):
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):
             current_label = self.train_set.label_meanings[label_number]
-            selected_labels_true = labels_true[:,label_number]
-            selected_pred_labels = entire_pred_labels[:,label_number]
-            selected_pred_probs = entire_pred_probs[:,label_number]
+            self.selected_labels_true = labels_true[:,label_number]
+            self.selected_pred_labels = entire_pred_labels[:,label_number]
+            self.selected_pred_probs = entire_pred_probs[:,label_number]
             
             #Update results dictionary of dataframes
             all_eval_results = evaluate.evaluate_all(all_eval_results,
                                                      self.num_epochs_done,
                                                      current_label,
-                                                     selected_labels_true,
-                                                     selected_pred_labels,
-                                                     selected_pred_probs,
+                                                     self.selected_labels_true,
+                                                     self.selected_pred_labels,
+                                                     self.selected_pred_probs,
                                                      self.descriptor+'MLP_'+chosen_dataset,
                                                      self.num_epochs)
+
+    def update(self):
+        """ Update train, test, and related variables after updating split"""
+        self.train_set = split.train
+        self.test_set = split.test
+        self.preserved_data_meanings = split.train.data_meanings
+
+        #Number of batches per epoch
+        self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
+        self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
             
     def save(self):
         self.saver.save(self.session, os.path.join(os.getcwd(),'model_MLP'))

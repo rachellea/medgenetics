@@ -80,47 +80,59 @@ class RunGeneModel(object):
         print('Running MLP')
 
         # set hyperparameters here
-        learningrate = 1e-3
-        dropout = 0
-
-        # create an mlp object
-        m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-            split=copy.deepcopy(self.real_data_split),
-            decision_threshold = 0.5,
-            num_epochs = 300, # set number of epochs to 300
-            learningrate = learningrate,
-            mlp_layers = copy.deepcopy([30,20]),
-            dropout=dropout,
-            exclusive_classes = True,
-            save_model = False,
-            mysteryAAs = self.mysteryAAs_split,
-            cv_fold = self.cv_fold_mlp,
-            ensemble=self.ensemble)
+        self.learningrate = 1e-4
+        self.dropout = 0
+        self.num_epochs = 300
 
         # if we are performing cross validation
-        if m.cv_fold > 1:
+        if self.cv_fold_mlp > 1:
             # initialize an empty list to store test accuracy for each fold
             fold_acc = []
             fold_auroc = []
             fold_avg_prec = []
-            cv = model_selection.KFold(n_splits=m.cv_fold, shuffle=True)
+            cv = model_selection.KFold(n_splits=self.cv_fold_mlp)
             fold_num = 1
-            for train, test in cv.split(m.split.clean_data, m.split.clean_labels):
-                # set up graph and session for the model
-                m.set_up_graph_and_session()
-
+            data = self.real_data_split.clean_data
+            label = self.real_data_split.clean_labels
+            for train, test in cv.split(data, label):
+                # create a copy of the real_data_split
+                split = copy.deepcopy(self.real_data_split)
+                
                 # update the splits with the train and test indices for this cv loop
-                m.split._make_splits_cv(train, test)
+                split._make_splits_cv(train, test)
 
                 # check if we're doing ensembling
-                if m.ensemble:
-                    m.train_ensemble()
-                    accuracy, auroc, avg_prec = self.evaluate_ensemble()
-                    m.fold_acc.append(accuracy)
-                    m.fold_auroc.append(auroc)
-                    m.fold_avg_prec.append(avg_prec)
+                if self.ensemble:
+                    # set number of mlps in the ensemble
+                    num_ensemble = 10
+
+                    # initialize ensembles
+                    self._init_ensemble(num_ensemble, split)
+
+                    # evaluate the accuracy of this fold using the ensemble initialized
+                    accuracy, auroc, avg_prec = self._evaluate_ensemble()
+
+                    fold_acc.append(accuracy)
+                    fold_auroc.append(auroc)
+                    fold_avg_prec.append(avg_prec)
 
                 else:
+                    #redefine mlp object with the new split
+                    m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                        split=split,
+                        decision_threshold = 0.5,
+                        num_epochs = self.num_epochs, # fix number of epochs to 300
+                        learningrate = self.learningrate,
+                        mlp_layers = copy.deepcopy([30,20]),
+                        dropout=self.dropout,
+                        exclusive_classes = True,
+                        save_model = False,
+                        mysteryAAs = self.mysteryAAs_split,
+                        cv_fold = self.cv_fold_mlp,
+                        ensemble=self.ensemble)
+
+                    # set up graph and session for the model
+                    m.set_up_graph_and_session()
                     # train as per normal if we are not doing ensembling
                     m.train()
 
@@ -143,20 +155,6 @@ class RunGeneModel(object):
                         print("The average precision for fold number ", str(fold_num), " is ", str(avg_prec))
                     fold_avg_prec.append(avg_prec)
 
-                #redefine mlp object at the end of each fold
-                m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                    split=copy.deepcopy(self.real_data_split),
-                    decision_threshold = 0.5,
-                    num_epochs = 300, # fix number of epochs to 300
-                    learningrate = learningrate,
-                    mlp_layers = copy.deepcopy([30,20]),
-                    dropout=dropout,
-                    exclusive_classes = True,
-                    save_model = False,
-                    mysteryAAs = self.mysteryAAs_split,
-                    cv_fold = self.cv_fold_mlp,
-                    ensemble=self.ensemble)
-
                 fold_num += 1
 
             # print the individual accuracies and the average accuracy
@@ -168,29 +166,106 @@ class RunGeneModel(object):
             # print the individual accuracies and the average accuracy
             print("\n\n The auroc of the cross validation folds are:\n")
             tot_auroc = 0
-            for k in range(len(fold_acc)):
+            for k in range(len(fold_auroc)):
                 print("Fold ",str(k+1), ": ", str(fold_auroc[k]))
                 tot_auroc += fold_auroc[k]
             # print the individual accuracies and the average accuracy
             print("\n\n The average precision of the cross validation folds are:\n")
             tot_avg_prec = 0
-            for k in range(len(fold_acc)):
+            for k in range(len(fold_avg_prec)):
                 print("Fold ",str(k+1), ": ", str(fold_avg_prec[k]))
                 tot_avg_prec += fold_avg_prec[k]
 
             # write results to a txtfile
             path = "mlp_results/"
-            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
+            filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(self.learningrate) + 'learnrate_' + str(self.dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
             with open(path+filename, 'w') as f:
-                f.write("\n\n The average cross validation accuracy is :", tot_acc/self.cv_fold, "\n\n\n")
-                f.write("\n\n The average cross validation auroc is :", tot_auroc/self.cv_fold, "\n\n\n")
-                f.write("\n\n The average cross validation average precision is :", tot_avg_prec/self.cv_fold, "\n\n\n")
+                f.write("\n\n The average cross validation accuracy is :"+ str(tot_acc/self.cv_fold_mlp)+ "\n\n\n")
+                f.write("\n\n The average cross validation auroc is :"+ str(tot_auroc/self.cv_fold_mlp)+ "\n\n\n")
+                f.write("\n\n The average cross validation average precision is :"+ str(tot_avg_prec/self.cv_fold_mlp)+ "\n\n\n")
 
             print("\n\n\nDone\n\n\n")
         
         # otherwise, run all
         else:
+            # create an mlp object
+            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                split=copy.deepcopy(self.real_data_split),
+                decision_threshold = 0.5,
+                num_epochs = self.num_epochs, # set number of epochs to 300
+                learningrate = self.learningrate,
+                mlp_layers = copy.deepcopy([30,20]),
+                dropout=self.dropout,
+                exclusive_classes = True,
+                save_model = False,
+                mysteryAAs = self.mysteryAAs_split,
+                cv_fold = self.cv_fold_mlp,
+                ensemble=self.ensemble)
             m.run_all()
+
+    def _init_ensemble(self, num_ensemble, split):
+        """This function initializes mlps for the ensemble.
+           Inputs: num_ensemble, the number of mlps in the ensemble
+                   split, the split object to specify training and testing data
+        """
+        # define a list to store mlps for our ensemble
+        self.ensemble_lst = []
+
+        # initialize ensembles and store in the list
+        for _ in range(num_ensemble):
+            # initialize mlp
+            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                split=split,
+                decision_threshold = 0.5,
+                num_epochs = self.num_epochs, # fix number of epochs to 300
+                learningrate = self.learningrate,
+                mlp_layers = copy.deepcopy([30,20]),
+                dropout=self.dropout,
+                exclusive_classes = True,
+                save_model = False,
+                mysteryAAs = self.mysteryAAs_split,
+                cv_fold = self.cv_fold_mlp,
+                ensemble=self.ensemble)
+
+            # set up graph and session for the model
+            m.set_up_graph_and_session()
+
+            # train as per normal
+            m.train()
+
+            # store to list
+            self.ensemble_lst.append(m)
+
+    def _evaluate_ensemble(self):
+        """This function evaluates the test set for the ensemble of mlps
+            output: accuracy, auroc, and average precision of the ensemble"""
+
+        # get the true label
+        true_label = self.ensemble_lst[0].selected_labels_true
+        pred_label_lst = []
+        pred_prob_lst = []
+        for i in range(len(true_label)):
+            pred_label = []
+            pred_prob = 0
+            # for each mlp, get the predicted label and predicted proba
+            for j in range(len(self.ensemble_lst)):
+                m = self.ensemble_lst[j]
+                pred_label.append(m.selected_pred_labels[i])
+                pred_prob += m.selected_pred_probs[i]
+            # for predicted labels, get the most frequent predicted label
+            if pred_label.count(0) > pred_label.count(1):
+                pred_label_lst.append(0)
+            else:
+                pred_label_lst.append(1)
+            # for predicted probability, get the average predicted probability
+            pred_prob_lst.append(pred_prob/len(self.ensemble_lst))
+
+        # calculate accuracy, auroc, and average precision
+        accuracy = metrics.accuracy_score(true_label, pred_label_lst)
+        auroc = metrics.roc_auc_score(true_label, pred_prob_lst)
+        avg_prec = metrics.average_precision_score(true_label, pred_label_lst)
+
+        return accuracy, auroc, avg_prec
 
     def _run_logreg(self):
         # Run Logistic Regression
@@ -224,5 +299,10 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2', descriptor=descriptor,shared_args = shared_args, cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)), ensemble=False, cv_fold_lg=0, cv_fold_mlp=3).do_all()
+        RunGeneModel(gene_name='ryr2',
+descriptor=descriptor,shared_args =
+shared_args,
+cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
+ensemble=True, cv_fold_lg=0, cv_fold_mlp=10).do_all()
+
 

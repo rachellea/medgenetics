@@ -21,31 +21,113 @@ class LogisticRegression(object):
     solver = 'liblinear' (can do l1 or l2 penalty; liblinear is good choice for
         small datasets; 'sag' and 'saga' are faster for large ones; 'sag' can
         handle l2, 'saga' can handle l1)"""
-    def __init__(self, descriptor, split, logreg_penalty, C, fold = 10):
+    def __init__(self, descriptor, split, logreg_penalty, C, figure_num, fold = 10):
         
         '''
         Perform logistic regression with cross validation
         '''
+#-------------------Just roc curve--------------------------
+       #--------------------------Set file path--------------------------------
+        # # this is the folder you want results to be stored
+        # filepath = 'regression_results/'
 
+        # #------------------------------Start logistic regression--------------------
+        # print('Running logistic regression with penalty=',str(logreg_penalty),'and C=',str(C))
+        # clf = linear_model.LogisticRegression(penalty=logreg_penalty, C=C)
+
+        # cv = model_selection.KFold(n_splits=fold,shuffle=True)
+
+        # k = figure_num
+        # plt.figure(k)
+
+        # # Compute ROC curve and ROC area with averaging
+        # tprs = []
+        # aucs_val = []
+        # accs = []
+        # prec = []
+        # auc_str = []
+        # base_fpr = np.linspace(0, 1, 101)
+        # x = np.array(split.clean_data)
+        # y = np.array(split.clean_labels)
+        # i = 1
+        # for train, test in cv.split(x,y):
+        #     model = clf.fit(x[train], y[train])
+        #     y_score = model.predict_proba(x[test])
+        #     y_pred = model.predict(x[test])
+        #     fpr, tpr, _ = metrics.roc_curve(y[test], y_score[:, 1])
+        #     auc = metrics.roc_auc_score(y[test], y_score[:,1])
+        #     plt.figure(k)
+        #     plt.plot(fpr, tpr, 'b', alpha=0.15)
+        #     auc_str.append("fold " + str(i) + " AUC: " + str(auc))
+            
+        #     tpr = scipy.interp(base_fpr, fpr, tpr)
+        #     tpr[0] = 0.0
+        #     tprs.append(tpr)
+        #     aucs_val.append(auc)
+        #     accs.append(metrics.accuracy_score(y[test], y_pred))
+        #     prec.append(metrics.average_precision_score(y[test], y_pred))
+
+        #     i += 1
+
+        # tprs = np.array(tprs)
+        # mean_tprs = tprs.mean(axis=0)
+        # std = tprs.std(axis=0)
+
+        # tprs_upper = np.minimum(mean_tprs + std, 1)
+        # tprs_lower = mean_tprs - std
+
+        # plt.figure(k)
+        # plt.plot(base_fpr, mean_tprs, 'b', label = "Average AUC:" + str(sum(aucs_val)/len(aucs_val)))
+        # plt.fill_between(base_fpr, tprs_lower, tprs_upper, color='grey', alpha=0.3)
+
+        # plt.plot([0, 1], [0, 1],'r--')
+        # plt.xlim((0, 1))
+        # plt.ylim(0, 1)
+        # title = 'ROC for ' + descriptor + ' Log Reg '+str(logreg_penalty)+'C'+str(C)+ " "+str(fold) + ' Fold CV'
+        # plt.title(title)
+        # plt.ylabel('True Positive Rate')
+        # plt.xlabel('False Positive Rate')
+        # plt.axes().set_aspect('equal', 'datalim')
+        # plt.legend(loc="lower right")
+        # title = 'ROC_' + descriptor + '_LogReg_'+str(logreg_penalty)+'C'+str(C) + '_'+ str(fold) + '_Fold_CV' + '.png'
+        # plt.savefig(filepath + title)
+        # plt.show()
+
+        # # write the results to a file
+        # filename_prefix = filepath + descriptor +'_LogReg_'+str(logreg_penalty)+'C'+str(C)+ '_'+ str(fold) + '_Fold_CV_Test'
+        # with open(filename_prefix+'_CV_Results.txt','w') as f:
+        #     for auc in auc_str:
+        #         f.write(auc + "\n")
+        #     f.write('Average AUC: '+ str(np.array(aucs_val).mean()))
+        #     f.write('\nAverage Accuracy:'+ str(np.array(accs).mean()))
+        #     f.write('\nAverage Precision:'+ str(np.array(prec).mean()))
+
+#----------------------Adding precision recall curve--------------------------------
         #--------------------------Set file path--------------------------------
         # this is the folder you want results to be stored
         filepath = 'regression_results/'
 
         #------------------------------Start logistic regression--------------------
         print('Running logistic regression with penalty=',str(logreg_penalty),'and C=',str(C))
-        clf = linear_model.LogisticRegression(penalty=logreg_penalty, C=C)
+        clf = linear_model.LogisticRegression(penalty=logreg_penalty, C=C, solver='liblinear')
 
-        cv = model_selection.KFold(n_splits=fold,shuffle=True)
+        # prepare for cross validation 
+        cv = model_selection.KFold(n_splits=fold, shuffle=True)
 
-        plt.figure()
+        k = figure_num
 
-        # Compute ROC curve and ROC area with averaging
+        # Compute ROC curve and ROC area with averaging using cross validation with the
+        # number of folds specified by the fold parameter
+        y_real = []
+        y_proba = []
         tprs = []
+        precisions = []
         aucs_val = []
         accs = []
         prec = []
         auc_str = []
         base_fpr = np.linspace(0, 1, 101)
+        base_recall = np.linspace(0, 1, 101)
         x = np.array(split.clean_data)
         y = np.array(split.clean_labels)
         i = 1
@@ -53,17 +135,29 @@ class LogisticRegression(object):
             model = clf.fit(x[train], y[train])
             y_score = model.predict_proba(x[test])
             y_pred = model.predict(x[test])
+
+            # roc curve
             fpr, tpr, _ = metrics.roc_curve(y[test], y_score[:, 1])
-            auc = metrics.roc_auc_score(y[test], y_score[:,1])
+            auc = metrics.roc_auc_score(y[test], y_score[:, 1])
+            plt.figure(k)
             plt.plot(fpr, tpr, 'b', alpha=0.15)
             auc_str.append("fold " + str(i) + " AUC: " + str(auc))
-            
+
             tpr = scipy.interp(base_fpr, fpr, tpr)
             tpr[0] = 0.0
             tprs.append(tpr)
+
             aucs_val.append(auc)
             accs.append(metrics.accuracy_score(y[test], y_pred))
-            prec.append(metrics.average_precision_score(y[test], y_pred))
+            prec.append(metrics.average_precision_score(y[test], y_score[:,1]))
+
+            # precision recall curve
+            precision, recall, _ = metrics.precision_recall_curve(y[test], y_score[:,1])
+            plt.figure(k+1)
+            plt.plot(precision, recall, 'r', alpha=0.15)
+
+            y_real.append(y[test])
+            y_proba.append(y_score[:, 1])
 
             i += 1
 
@@ -74,6 +168,8 @@ class LogisticRegression(object):
         tprs_upper = np.minimum(mean_tprs + std, 1)
         tprs_lower = mean_tprs - std
 
+        # generate the roc curve over the folds
+        plt.figure(k)
         plt.plot(base_fpr, mean_tprs, 'b', label = "Average AUC:" + str(sum(aucs_val)/len(aucs_val)))
         plt.fill_between(base_fpr, tprs_lower, tprs_upper, color='grey', alpha=0.3)
 
@@ -88,16 +184,38 @@ class LogisticRegression(object):
         plt.legend(loc="lower right")
         title = 'ROC_' + descriptor + '_LogReg_'+str(logreg_penalty)+'C'+str(C) + '_'+ str(fold) + '_Fold_CV' + '.png'
         plt.savefig(filepath + title)
-        plt.show()
+
+
+        # generate the precision recall curve over the folds
+        plt.figure(k+1)
+        y_real = np.concatenate(y_real)
+        y_proba = np.concatenate(y_proba)
+        precision, recall, _ = metrics.precision_recall_curve(y_real, y_proba)
+        lab = 'Average AUC=%.4f' % (metrics.auc(recall, precision))
+        plt.plot(recall, precision, 'r', label = lab)
+        #plt.fill_between(base_recall, precisions_lower, precisions_upper, color='grey', alpha=0.3)
+
+        plt.xlim((0, 1))
+        plt.ylim(0, 1)
+        title = 'Precision-Recall for ' + descriptor + ' Log Reg '+str(logreg_penalty)+'C'+str(C)+ " "+str(fold) + ' Fold CV'
+        plt.title(title)
+        plt.ylabel('Precision')
+        plt.xlabel('Recall')
+        plt.axes().set_aspect('equal', 'datalim')
+        plt.legend(loc="lower right")
+        title = 'PrecisionRecall_' + descriptor + '_LogReg_'+str(logreg_penalty)+'C'+str(C) + '_'+ str(fold) + '_Fold_CV' + '.png'
+        plt.savefig(filepath + title)
 
         # write the results to a file
         filename_prefix = filepath + descriptor +'_LogReg_'+str(logreg_penalty)+'C'+str(C)+ '_'+ str(fold) + '_Fold_CV_Test'
         with open(filename_prefix+'_CV_Results.txt','w') as f:
             for auc in auc_str:
                 f.write(auc + "\n")
-            f.write('Average AUC: '+ str(np.array(aucs_val).mean()))
             f.write('\nAverage Accuracy:'+ str(np.array(accs).mean()))
+            f.write('\nAverage AUC: '+ str(np.array(aucs_val).mean()))
             f.write('\nAverage Precision:'+ str(np.array(prec).mean()))
+
+        print("\n\n\nDone\n\n\n")
 
       #-----------------------------Rachel's original stuff--------------------------------      
         # print('Running logistic regression with penalty=',str(logreg_penalty),'and C=',str(C))
