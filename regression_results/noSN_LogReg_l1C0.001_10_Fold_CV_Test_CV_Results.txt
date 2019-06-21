@@ -9,6 +9,6 @@ fold 8 AUC: 0.5
 fold 9 AUC: 0.5
 fold 10 AUC: 0.5
 
-Average Accuracy:0.8769950637597697
+Average Accuracy:0.5498246639392168
 Average AUC: 0.5
-Average Precision:0.12300493624023037
+Average Precision:0.45017533606078314
