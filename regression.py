@@ -112,7 +112,7 @@ class LogisticRegression(object):
         clf = linear_model.LogisticRegression(penalty=logreg_penalty, C=C, solver='liblinear')
 
         # prepare for cross validation 
-        cv = model_selection.KFold(n_splits=fold, shuffle=True)
+        cv = model_selection.KFold(n_splits=fold, shuffle=False)
 
         k = figure_num
 
@@ -126,6 +126,7 @@ class LogisticRegression(object):
         accs = []
         prec = []
         auc_str = []
+        self.logreg_kfold_probability = []
         base_fpr = np.linspace(0, 1, 101)
         base_recall = np.linspace(0, 1, 101)
         x = np.array(split.clean_data)
@@ -158,6 +159,9 @@ class LogisticRegression(object):
 
             y_real.append(y[test])
             y_proba.append(y_score[:, 1])
+
+            # for calibration
+            self.logreg_kfold_probability.append(y_score[:,1])
 
             i += 1
 
@@ -238,4 +242,4 @@ class LogisticRegression(object):
         # with open(filename_prefix+'_Results.txt','w') as f:
         #     f.write('AUC: '+str(metrics.auc(fpr, tpr)))
         #     f.write('\nAccuracy:'+str(evaluate.compute_accuracy(test_true_labels, test_predictions)))
-        #     f.write('\nAverage Precision:'+str(metrics.average_precision_score(test_true_labels, test_predictions)))
+        #     f.write('\nAverage Precision:'+str(metrics.average_precision_score(test_true_labels, test_predictions)))  
