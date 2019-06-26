@@ -353,11 +353,7 @@ fold=kfold)
         c = 0.01
         pen = 'l1'
         # run logistic regression
-<<<<<<< HEAD
         lg = regression.LogisticRegression(descriptor=self.descriptor,
-=======
-        lg = regression.LogistcRegression(descriptor=self.descriptor,
->>>>>>> 9cd63900f0a0bdcfb8fd8bc10eb7bd1375db964a
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
         return lg
