@@ -1,4 +1,4 @@
-#main.py
+# main.py
 
 import copy
 import os
@@ -17,7 +17,8 @@ import mlp_model
 import regression
 
 class RunGeneModel(object):
-    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[], ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
+    def __init__(self, gene_name, descriptor, shared_args, cols_to_delete=[],
+ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.descriptor = descriptor
@@ -41,7 +42,8 @@ class RunGeneModel(object):
         ag.annotate_everything()
         self.inputx = ag.inputx #make it self.inputx so you can access from testing script
         self.mysteryAAs = ag.mysteryAAs
-        self.columns_to_ensure_here = [x for x in ag.columns_to_ensure if x not in self.cols_to_delete]
+        self.columns_to_ensure_here = [x for x in ag.columns_to_ensure if x not in
+self.cols_to_delete]
         self.split_args = {'train_percent':0.7,
                         'valid_percent':0.15,
                         'test_percent':0.15,
@@ -54,7 +56,7 @@ class RunGeneModel(object):
         data = (copy.deepcopy(inputx)).drop(columns=['Label']+self.cols_to_delete)
         labels = copy.deepcopy(inputx[['Label']])
         print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
-        all_args = {**self.shared_args, **split_args}
+        all_args = {**self.shared_args, **split_args }
         self.real_data_split = utils.Splits(data = data,
                              labels = labels,
                              **all_args)
@@ -64,7 +66,8 @@ class RunGeneModel(object):
     def _prep_mysteryAAs(self):
         #WES data, mysteryAAs (want predictions for these)
         mysteryAAs_data = (copy.deepcopy(self.mysteryAAs)).drop(columns=self.cols_to_delete)
-        mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
+        mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)),
+columns=['Label'])
         self.mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
                                      labels = mysteryAAs_labels,
                                      train_percent = 1.0,
@@ -77,7 +80,8 @@ class RunGeneModel(object):
         
         #Save pickled split:
         print('Saving pickled split')
-        pickle.dump(self.real_data_split, open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
+        pickle.dump(self.real_data_split,
+open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
     
     def _run_mlp(self):
         #Run MLP
@@ -89,6 +93,9 @@ class RunGeneModel(object):
         self.num_epochs = 1000
         self.num_ensemble = 15
         self.path = "mlp_results/ryr2/calibration"
+
+        # initialize an empty list for mlp predicted probabilities
+        self.mlp_kfold_probability = []
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -117,7 +124,8 @@ class RunGeneModel(object):
                     # initialize ensembles
                     self._init_ensemble(num_ensemble, split)
 
-                    # evaluate the accuracy of this fold using the ensemble initialized
+                    # evaluate the accuracy of this fold using the ensemble
+                    # initialized
                     accuracy, auroc, avg_prec = self._evaluate_ensemble()
 
                     fold_acc.append(accuracy)
@@ -148,19 +156,22 @@ class RunGeneModel(object):
                     df = m.eval_results_test['accuracy']
                     for label in df.index.values:
                         acc = df.loc[label,'epoch_'+str(m.num_epochs)]
-                        print("The accuracy for fold number ", str(fold_num), " is ", str(acc))
+                        print("The accuracy for fold number ", str(fold_num), " is ",
+str(acc))
                     fold_acc.append(acc)
                     # append auroc to list
                     df = m.eval_results_test['auroc']
                     for label in df.index.values:
                         auroc = df.loc[label,'epoch_'+str(m.num_epochs)]
-                        print("The auroc for fold number ", str(fold_num), " is ", str(auroc))
+                        print("The auroc for fold number ", str(fold_num), " is ",
+str(auroc))
                     fold_auroc.append(auroc)
                     #append average precision to list
                     df = m.eval_results_test['avg_precision']
                     for label in df.index.values:
                         avg_prec = df.loc[label,'epoch_'+str(m.num_epochs)]
-                        print("The average precision for fold number ", str(fold_num), " is ", str(avg_prec))
+                        print("The average precision for fold number ",
+str(fold_num), " is ", str(avg_prec))
                     fold_avg_prec.append(avg_prec)
                     
                     # update lists for calibration
@@ -192,8 +203,8 @@ class RunGeneModel(object):
             path = self.path
             filename = self.descriptor+'_' +str(self.cv_fold_mlp)+'cv_' + str(self.learningrate) + 'learnrate_' + str(self.dropout) + 'drop_'+str(self.ensemble)+'_ensemble_results.txt'
             with open(path+filename, 'w') as f:
-                f.write("\n\n The average cross validation accuracy is :"+ str(tot_acc/self.cv_fold_mlp)+ "\n\n\n")
-                f.write("\n\n The average cross validation auroc is :"+ str(tot_auroc/self.cv_fold_mlp)+ "\n\n\n")
+                f.write("\n\n The average cross validation accuracy is :" + str(tot_acc/self.cv_fold_mlp)+ "\n\n\n")
+                f.write("\n\n The average cross validation auroc is :" + str(tot_auroc/self.cv_fold_mlp)+ "\n\n\n")
                 f.write("\n\n The average cross validation average precision is :"+ str(tot_avg_prec/self.cv_fold_mlp)+ "\n\n\n")
 
             print("\n\n\nDone\n\n\n")
@@ -321,13 +332,16 @@ class RunGeneModel(object):
         classifier_penalty= ['l1', 'l2']
         classifier_C = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 
-        # set the k value for k fold cross validation (# of folds for cross validation. Set to 0 if 
+        # set the k value for k fold cross validation (# of folds for cross
+        # validation. Set to 0 if 
         # we don't want to do cross validation)
         kfold = self.cv_fold_lg
         k = 0
         for pen in classifier_penalty:
           for C in classifier_C:
-            lg = regression.LogisticRegression(descriptor=descriptor, split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C, figure_num=k, fold=kfold)
+            lg = regression.LogisticRegression(descriptor=descriptor,
+split=copy.deepcopy(self.real_data_split),logreg_penalty=pen, C=C, figure_num=k,
+fold=kfold)
             k += 2
 
     def _run_logreg(self):
@@ -335,7 +349,7 @@ class RunGeneModel(object):
         c = 0.01
         pen = 'l1'
         # run logistic regression
-        lg = regerssion.LogistcRegression(descriptor=self.descriptor,
+        lg = regression.LogisticRegression(descriptor=self.descriptor,
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
 
@@ -350,7 +364,8 @@ if __name__=='__main__':
                         'impute_these_categorical':[],
                         'impute_these_continuous':[],
                         'one_hotify':True,
-                        'one_hotify_these_categorical':['Consensus','Change','Domain'],  #cat_vars
+                        'one_hotify_these_categorical':['Consensus','Change','Domain'],
+#cat_vars
                         'normalize_data':True,
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
@@ -360,5 +375,6 @@ descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
 ensemble=False, cv_fold_lg=10, cv_fold_mlp=10).do_all()
+
 
 

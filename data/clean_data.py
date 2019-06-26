@@ -23,11 +23,11 @@ class BareGene(object):
         self.obtain_reference_sequence() #creates self.reference_df
         self.history = pd.DataFrame(np.empty((100000,5),dtype=str), columns=['Description','Consensus','Position','Change','Reason_Removed'])
         self.history_idx = 0
-        
+       
         self.healthy = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_healthy_raw.csv'),header=0)
         self.diseased = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_pathologic_raw.csv'),header=0)
         self.mysteryAAs = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_wes_raw.csv'),header=0)
-        
+       
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
         self.diseased_original = copy.deepcopy(self.diseased)
@@ -92,6 +92,7 @@ class BareGene(object):
         for choice in ['Consensus','Change']:
             for rowidx in df.index.values:
                 current_aa = df.at[rowidx,choice]
+                #print('current_aa is:', current_aa)
                 if current_aa not in AMINO_ACIDS:
                     if current_aa not in ['dup','fs']:
                         #Then it's a weird aa and must be cleaned

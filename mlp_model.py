@@ -205,6 +205,9 @@ class MLP(object):
                 entire_pred_probs = np.concatenate((entire_pred_probs,batch_pred_probs),axis = 0)
                 entire_pred_labels = np.concatenate((entire_pred_labels,batch_pred_labels),axis=0)
                 labels_true = np.concatenate((labels_true, y_labels_batch),axis=0)
+                self.entire_pred_probs = entire_pred_probs
+                self.entire_pred_labels = entire_pred_labels
+                self.labels_true = labels_true
                 if chosen_dataset == 'mysteryAAs':
                     entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
         
