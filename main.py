@@ -5,7 +5,7 @@ import os
 import pickle
 import pandas as pd
 import numpy as np
-from sklearn import model_selection, metrics
+from sklearn import model_selection, metrics, calibration
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
@@ -307,9 +307,9 @@ str(fold_num), " is ", str(avg_prec))
         mlp_kfold_probability_stacked = np.hstack(self.mlp_kfold_probability)
         kfold_true_label_stacked = np.hstack(self.kfold_true_label)
                                      
-        logreg_y, logreg_x = calibration_curve(kfold_true_label_stacked,
+        logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
         logreg_kfold_probability_stacked, n_bins=10)
-        mlp_y, mlp_x = calibration_curve(kfold_true_label_stacked,
+        mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
                                        mlp_kfold_probability_stacked, n_bins=10)
 
         # plot calibration curves
