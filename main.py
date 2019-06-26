@@ -33,7 +33,7 @@ class RunGeneModel(object):
         self._prep_mysteryAAs()
         self._run_mlp()
         self._run_logreg()
-        self._calibration_plots()
+        self._calibration_plot()
     
     def _prep_data(self):
         #Real data with healthy and diseased
@@ -54,7 +54,7 @@ class RunGeneModel(object):
         data = (copy.deepcopy(inputx)).drop(columns=['Label']+self.cols_to_delete)
         labels = copy.deepcopy(inputx[['Label']])
         print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
-        all_args = {**self.shared_args, **split_args}
+        all_args = {self.shared_args, **split_args}
         self.real_data_split = utils.Splits(data = data,
                              labels = labels,
                              **all_args)
@@ -88,7 +88,10 @@ class RunGeneModel(object):
         self.dropout = 0
         self.num_epochs = 1000
         self.num_ensemble = 15
-        self.path = "mlp_results/ryr2/calibration"
+        self.path = "mlp_results/ryr2/calibration/"
+
+        # initialize an empty list for mlp predicted probabilities
+        self.mlp_kfold_probability = []
 
         # if we are performing cross validation
         if self.cv_fold_mlp > 1:
@@ -311,7 +314,7 @@ class RunGeneModel(object):
         ax.set_xlabel('Predicted probability')
         ax.set_ylabel('True probability')
         plt.legend()
-        plt.savefig(self.descriptor + 'python-calibration-cv.png', dpi=100)  
+        plt.savefig(self.path + self.descriptor + 'python-calibration-cv.png', dpi=100)  
     
     def _run_logreg_full(self):
         # Run Logistic Regression
@@ -335,7 +338,7 @@ class RunGeneModel(object):
         c = 0.01
         pen = 'l1'
         # run logistic regression
-        lg = regerssion.LogistcRegression(descriptor=self.descriptor,
+        lg = regression.LogistcRegression(descriptor=self.descriptor,
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
 
