@@ -302,6 +302,7 @@ str(fold_num), " is ", str(avg_prec))
 
     def _calibration_plot(self):
         # make calibration plot for the two logistic regression and mlp models
+        lg = self._run_logreg()
         logreg_kfold_probability_stacked = np.hstack(lg.logreg_kfold_probability)
         mlp_kfold_probability_stacked = np.hstack(self.mlp_kfold_probability)
         kfold_true_label_stacked = np.hstack(self.kfold_true_label)
@@ -355,7 +356,7 @@ fold=kfold)
         lg = regression.LogisticRegression(descriptor=self.descriptor,
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
-
+        return lg
 
 if __name__=='__main__':
     #variations = {'noSN':['Position','Conservation'],
