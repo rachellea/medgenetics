@@ -34,7 +34,7 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         self._prep_mysteryAAs()
         self._run_mlp()
         self._run_logreg()
-        self._calibration_plots()
+        self._calibration_plot()
     
     def _prep_data(self):
         #Real data with healthy and diseased
@@ -92,7 +92,10 @@ open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
         self.dropout = 0
         self.num_epochs = 1000
         self.num_ensemble = 15
-        self.path = "mlp_results/ryr2/calibration"
+        self.path = "mlp_results/ryr2/calibration/"
+
+        # initialize an empty list for mlp predicted probabilities
+        self.mlp_kfold_probability = []
 
         # initialize an empty list for mlp predicted probabilities
         self.mlp_kfold_probability = []
@@ -322,7 +325,7 @@ str(fold_num), " is ", str(avg_prec))
         ax.set_xlabel('Predicted probability')
         ax.set_ylabel('True probability')
         plt.legend()
-        plt.savefig(self.descriptor + 'python-calibration-cv.png', dpi=100)  
+        plt.savefig(self.path + self.descriptor + 'python-calibration-cv.png', dpi=100)  
     
     def _run_logreg_full(self):
         # Run Logistic Regression
@@ -349,7 +352,11 @@ fold=kfold)
         c = 0.01
         pen = 'l1'
         # run logistic regression
+<<<<<<< HEAD
         lg = regression.LogisticRegression(descriptor=self.descriptor,
+=======
+        lg = regression.LogistcRegression(descriptor=self.descriptor,
+>>>>>>> 9cd63900f0a0bdcfb8fd8bc10eb7bd1375db964a
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
 
