@@ -9,6 +9,7 @@ from sklearn import model_selection, metrics, calibration
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
+from scipy import stats
 
 #Custom imports
 from data import utils as utils
@@ -33,8 +34,8 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         self._prep_split_data(self.inputx,self.split_args)
         self._prep_mysteryAAs()
         self._run_mlp()
-        self._run_logreg()
-        self._calibration_plot()
+        #self._run_logreg()
+        #self._calibration_plot()
     
     def _prep_data(self):
         #Real data with healthy and diseased
@@ -75,14 +76,19 @@ columns=['Label'])
                                      test_percent = 0,
                                      max_position = self.ag.max_position,
                                      columns_to_ensure = self.columns_to_ensure_here,
-                                     **self.shared_args).train
+                                     **self.shared_args)
+        # get the original dictionary for consensus, change, and position before 
+        # normalizing position and one hotifying consensus and change
+        self.ori_dict = self.mysteryAAs_split.ori_dict
+ 
+        self.mysteryAAs_split = self.mysteryAAs_split.train
         assert self.mysteryAAs_split.data.shape[0] == self.mysteryAAs.shape[0]
-        
+
         #Save pickled split:
         print('Saving pickled split')
-        pickle.dump(self.real_data_split,
-open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
+        pickle.dump(self.real_data_split, open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
     
+
     def _run_mlp(self):
         #Run MLP
         print('Running MLP')
@@ -92,10 +98,10 @@ open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
         self.dropout = 0
         self.num_epochs = 1000
         self.num_ensemble = 15
-        self.path = "mlp_results/ryr2/calibration/"
-
-        # initialize an empty list for mlp predicted probabilities
-        self.mlp_kfold_probability = []
+        self.path = "mlp_results/kcnq1/calibration/"
+        # for calibration plot
+        self.num_bins = 10
+        self.calibration_strategy = 'quantile'
 
         # initialize an empty list for mlp predicted probabilities
         self.mlp_kfold_probability = []
@@ -178,7 +184,7 @@ str(fold_num), " is ", str(avg_prec))
                     fold_avg_prec.append(avg_prec)
                     
                     # update lists for calibration
-                    self.mlp_kfold_probability.append(m.selected_pred_labels)
+                    self.mlp_kfold_probability.append(m.selected_pred_probs)
                     self.kfold_true_label.append(m.selected_labels_true)
 
                 fold_num += 1
@@ -218,7 +224,7 @@ str(fold_num), " is ", str(avg_prec))
             m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
                 split=copy.deepcopy(self.real_data_split),
                 decision_threshold = 0.5,
-                num_epochs = self.num_epochs, # set number of epochs to 300
+                num_epochs = self.num_epochs, 
                 learningrate = self.learningrate,
                 mlp_layers = copy.deepcopy([30,20]),
                 dropout=self.dropout,
@@ -228,6 +234,12 @@ str(fold_num), " is ", str(avg_prec))
                 cv_fold = self.cv_fold_mlp,
                 ensemble=self.ensemble)
             m.run_all()
+            if m.best_valid_loss_epoch == 0:
+                print("best valid loss epoch was not initialized")
+                m.best_valid_loss_epoch = self.num_epochs
+                m.clean_up()
+            self._mysteryAAs_output_cleanup(m.mysteryAAs_filename +
+str(m.best_valid_loss_epoch) + ".csv")
 
     def _init_ensemble(self, num_ensemble, split):
         """This function initializes mlps for the ensemble.
@@ -296,7 +308,7 @@ str(fold_num), " is ", str(avg_prec))
         avg_prec = metrics.average_precision_score(true_label, pred_prob_lst)
 
         # update list for calibration
-        self.mlp_kfold_probability.append(pred_label_lst)
+        self.mlp_kfold_probability.append(pred_prob_lst)
 
         return accuracy, auroc, avg_prec
 
@@ -307,29 +319,116 @@ str(fold_num), " is ", str(avg_prec))
         mlp_kfold_probability_stacked = np.hstack(self.mlp_kfold_probability)
         kfold_true_label_stacked = np.hstack(self.kfold_true_label)
                                      
-        logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
-        logreg_kfold_probability_stacked, n_bins=10)
-        mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
-                                       mlp_kfold_probability_stacked, n_bins=10)
+        if self.calibration_strategy == 'quantile':
+            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
+            logreg_kfold_probability_stacked, strategy='quantile')
+            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
+            mlp_kfold_probability_stacked, strategy='quantile')
+        elif self.calibration_strategy == 'uniform': 
+            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
+            logreg_kfold_probability_stacked, strategy='uniform', nbins=self.num_bins)
+            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
+            mlp_kfold_probability_stacked, strategy='uniform', nbins=self.num_bins)
+        else:
+            sys.exit("Must choose either 'uniform' or 'quantile' as strategy for calibration plot under variable self.calibration_strategy")
 
         # plot calibration curves
         fig, ax = plt.subplots()
-        plt.plot(logreg_x,logreg_y, marker='o', linewidth=1, label='logreg')
-        plt.plot(mlp_x, mlp_y, marker='o', linewidth=1, label='mlp')
+        plt.plot(logreg_x,logreg_y, marker='o', markersize=3, linewidth=2, label='logreg')
+        plt.plot(mlp_x, mlp_y, marker='o',  markersize=3, linewidth=2, label='mlp')
 
         # reference line, legends, and axis labels
+        #plt.xticks(np.arange(0.0, 1.1, 0.1))
+        #plt.yticks(np.arange(0.0, 1.1, 0.1))
+        
+        # for a complete plot from 0 to 1
+        #ax.set_xlim(left=0, right=1)
+        #ax.set_ylim(bottom=0, top=1)
+
+        # for a more compact plot
+        ax_lim = max(max(logreg_x), max(mlp_x), max(logreg_y), max(mlp_y))
+        ax.set_xlim(left=0, right=ax_lim + 0.05)
+        ax.set_ylim(bottom=0, top=ax_lim + 0.05)
         line = mlines.Line2D([0, 1], [0, 1], color='black')
         transform = ax.transAxes
         line.set_transform(transform)
         ax.add_line(line)
-        fig.suptitle('Calibration plot for ' + self.descriptor)
+        fig.suptitle('Calibration plot for ' + self.gene_name)
         ax.set_xlabel('Predicted probability')
         ax.set_ylabel('True probability')
         plt.legend()
-        plt.savefig(self.path + self.descriptor + 'python-calibration-cv.png', dpi=100)  
+        # save the plot
+        if self.ensemble:
+            num_ensemble = "-" + str(self.num_ensemble)+ "ensemble"
+        else:
+            num_ensemble = ""
+        if self.cv_fold_mlp > 1:
+            cv = "cv"
+        else:
+            cv = ""
+        if self.calibration_strategy == 'uniform':
+            num_bins = "-" + str(self.num_bins) + "bins"
+        elif self.calibration_strategy == 'quantile':
+            num_bins = ""
+        figure_path = self.path + self.gene_name + '-python-calibration-' + cv 
+        figure_path += num_bins + num_ensemble + ".png"
+        plt.savefig(figure_path, dpi=100)  
+
+
+        # caluclate the slopes of the best fit lines for both models
+        logreg_linregress = stats.linregress(logreg_x, logreg_y)
+        mlp_linregress = stats.linregress(mlp_x, mlp_y)
+        print("-------------------Logreg Best Fit Line------------------")
+        print(logreg_linregress)
+        print('\n\n\n')
+        print("-------------------MLP Best Fit Line---------------------")
+        print(mlp_linregress)
     
+    def _mysteryAAs_output_cleanup(self, filename):
+        # output file clean up
+        df = pd.read_csv(filename)
+        consensusAA = []
+        changeAA = []
+        position = []
+        pred_prob = df['Pred_Prob'].values
+
+        # get the consensusAA and changeAA
+        for index, row in df.iterrows():
+            for column in df.columns.values:
+                if column.startswith('Consensus_') and row[column]==1:
+                    consensus = column[-1]
+                    consensusAA.append(consensus)
+                if column.startswith('Change_') and row[column]==1:
+                    change = column[-1]
+                    changeAA.append(change)
+            # get the position
+            position.append(self.ori_dict[(consensus, change)])
+
+        # convert consensusAA and changeAA to numpy
+        consensusAA = np.array(consensusAA)
+        changeAA = np.array(changeAA)
+       
+        # ------------testing----------------------
+        #print("--------check if the same------------")
+        #print(consensusAA)
+        #print(position)
+        #print(changeAA)
+        #print("-------Done checking-------------\n\n\n")
+        
+        # stack the 4 columns
+        new_np = np.vstack((consensusAA, changeAA, position, pred_prob)).T
+
+        # sort the rows from highest predicted probability
+        index = np.argsort(new_np[:,-1])
+        new_np = new_np[index[::-1]]
+
+        # create a new dataframe
+        new_df = pd.DataFrame(new_np, columns=['ConsenseusAA', 'ChangeAA', 'Position', 'Pred_Prob'])
+
+        # create a new csv file
+        new_df.to_csv('final_' + filename, index=None, header=True)
     def _run_logreg_full(self):
-        # Run Logistic Regression
+        # Run Logistic Regression for all hyperparameters
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         print("Running Log Reg")
 
@@ -349,9 +448,11 @@ fold=kfold)
             k += 2
 
     def _run_logreg(self):
+        # Run Logistic Regression for a specified C and penalty
+
         # set hyperparameters
         c = 0.01
-        pen = 'l1'
+        pen = 'l2'
         # run logistic regression
         lg = regression.LogisticRegression(descriptor=self.descriptor,
 split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
@@ -378,7 +479,7 @@ if __name__=='__main__':
 descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
-ensemble=False, cv_fold_lg=10, cv_fold_mlp=10).do_all()
+ensemble=False, cv_fold_lg=0, cv_fold_mlp=0).do_all()
 
 
 

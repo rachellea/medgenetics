@@ -230,10 +230,11 @@ class MLP(object):
         if chosen_dataset == 'mysteryAAs':
             out = pd.DataFrame(np.concatenate((entire_x, entire_pred_probs, entire_pred_labels),axis = 1),
                                columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
-            out.to_csv(self.descriptor+'_mysteryAAs_results_epoch_'+str(self.num_epochs_done)+'.csv',
-                      header=True,index=False)
+            self.mysteryAAs_filename = self.descriptor + '_mysteryAAs_results_epoch_' 
+            out.to_csv(self.mysteryAAs_filename + str(self.num_epochs_done) + ".csv", header=True,index=False)
+ 
             return #Don't perform "evaluations" on mysteryAAs
-        
+    
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):
             current_label = self.train_set.label_meanings[label_number]
@@ -250,6 +251,7 @@ class MLP(object):
                                                      self.selected_pred_probs,
                                                      self.descriptor+'MLP_'+chosen_dataset,
                                                      self.num_epochs)
+        
 
     def update(self):
         """ Update train, test, and related variables after updating split"""

@@ -74,7 +74,9 @@ class Splits(object):
         
         self._get_split_indices() #defines self.trainidx and self.testidx
         self._shuffle_before_splitting()
-         
+        
+        self._get_dict()
+ 
         #Further data prep:
         if impute:
             self._impute()
@@ -156,6 +158,7 @@ class Splits(object):
         """Provide the features specified in self.normalize_these_continuous
         with approximately zero mean and unit variance, based on the
         training dataset only."""
+        
         train_data = (self.clean_data[self.normalize_these_continuous].values)[0:self.trainidx,:]
         #http://scikit-learn.org/stable/modules/preprocessing.html#preprocessing-scaler
         scaler = sklearn.preprocessing.StandardScaler().fit(train_data)
@@ -230,6 +233,15 @@ class Splits(object):
         print('\tTest data shape:',str(test_data.shape))
         print('\tLength of one label:',str(train_labels.shape[1]))
 
+    def _get_dict(self):
+        '''This function creates a dictionary with the key being consensus and change
+           tuple and the value is the unnormalized position'''
+        self.ori_dict = {}
+        for i in range(len(self.clean_data.values)):
+            consensus = self.clean_data.values[i][0]
+            change = self.clean_data.values[i][2]
+            position = self.clean_data.values[i][1]
+            self.ori_dict[(consensus, change)] = position
 
 class Dataset(object):
     def __init__(self,
