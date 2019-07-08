@@ -141,7 +141,8 @@ class MLP(object):
             for i in range(self.num_train_batches):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch}
+                                   self.y_labels: y_labels_batch,
+                                   self.keep_prob:1-self.dropout}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
@@ -189,7 +190,8 @@ class MLP(object):
         for i in range(num_batches):
             x_data_batch, y_labels_batch = chosen_set.next_batch()
             feed_dict = {self.x_input: x_data_batch,
-                                   self.y_labels: y_labels_batch}
+                         self.y_labels: y_labels_batch,
+                         self.keep_prob: 1.0}
             curr_loss, batch_pred_probs, batch_pred_labels = self.session.run([self.loss, self.pred_probs,self.pred_labels], feed_dict=feed_dict)
             epoch_loss+=curr_loss
             #Gather the outputs of subsequent batches together:
@@ -288,7 +290,9 @@ class MLP(object):
                            shape = [None, self.y_length],
                            name='self.y_labels')
             print("Shape of self.y_labels: "+str(self.y_labels.get_shape().as_list()))
-    
+        
+            self.keep_prob = tf.placeholder(tf.float32)
+
             #~~~ Model ~~~#
             self.pred_raw = self._create_mlp(variable_scope_name = 'mlp',
                                inputx = self.x_input,
@@ -369,8 +373,9 @@ class MLP(object):
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
         if use_relu:
-            return tf.nn.relu(layer)
-        return layer
+            layer = tf.nn.relu(layer)
+        return tf.nn.dropout(layer, self.keep_prob)
+
     
     #~~~Methods for Viewing Variables~~~#
     def view_trainable_variables(self, view_values):
