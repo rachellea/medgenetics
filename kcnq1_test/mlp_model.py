@@ -62,7 +62,7 @@ class MLP(object):
         self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
         self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
         self.num_valid_batches = math.ceil((self.valid_set.num_examples)/self.valid_set.batch_size)
-        self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
+        # self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
         self.num_epochs = num_epochs
         
         #Tracking losses and evaluation results
@@ -142,7 +142,7 @@ class MLP(object):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
                                    self.y_labels: y_labels_batch,
-                                   self.keep_prob:1-self.dropouts}
+                                   self.keep_prob:1-self.dropout}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
@@ -345,35 +345,36 @@ class MLP(object):
             
     def _create_mlp(self, variable_scope_name, inputx, num_inputs_zero, hidden_layers):
         with tf.variable_scope(variable_scope_name):
-            use_relu_flag = True
+            use_sigmoid_flag = True
             zero = self._new_fc_layer(inputx=inputx,
                                    num_inputs = num_inputs_zero,
                                    num_outputs = hidden_layers[0],
                                    name='layer_0',
-                                   use_relu = use_relu_flag)
-            print("Shape of",variable_scope_name,"layer_0:",str(zero.get_shape().as_list()),', relu=',str(use_relu_flag))
+                                   use_sigmoid = use_sigmoid_flag)
+            print("Shape of",variable_scope_name,"layer_0:",str(zero.get_shape().as_list()),', sigmoid=',str(use_sigmoid_flag))
             
             for i in range(1, len(hidden_layers)): #hidden layers
                 if i==1:
                     tmp = zero
                 if i == (len(hidden_layers)-1):
-                    use_relu_flag = False #no relu on last layer
+                    use_sigmoid_flag = False #no sigmoid on last layer
                 hi = self._new_fc_layer(inputx=tmp,
                                  num_inputs=hidden_layers[i-1],
                                  num_outputs=hidden_layers[i],
                                  name='layer_'+str(i),
-                                 use_relu=use_relu_flag)
+                                 use_sigmoid=use_sigmoid_flag)
                 tmp = hi
-                print("Shape of", variable_scope_name, "layer_"+str(i),":",str(hi.get_shape().as_list()),', relu=',str(use_relu_flag))
+                print("Shape of", variable_scope_name,
+"layer_"+str(i),":",str(hi.get_shape().as_list()),', sigmoid=',str(use_sigmoid_flag))
         return hi
     
-    def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
+    def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_sigmoid):
         """Create a new fully-connected layer."""
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
-        if use_relu:
-            layer = tf.nn.relu(layer)
+        if use_sigmoid:
+            layer = tf.nn.sigmoid(layer)
         return tf.nn.dropout(layer, self.keep_prob)
 
     

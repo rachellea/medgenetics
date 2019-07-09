@@ -1,17 +1,18 @@
 import pandas as pd
 from sklearn import metrics
+import copy
 import mlp_model
-from data import utils as utils
+import utils
 
 # path to the training dataset
-data_path = 'data/kcnq1_test/kcnq1_training_dataset.csv'
+data_path = 'kcnq1_training_dataset.csv'
 
 # prepare the data
 df = pd.read_csv(data_path)
 # the only two features are rate of evolution and PSSM
-data = df[['Rate of Evolution', 'PSSM']]
+data = df.loc[:,['Rate of Evolution', 'PSSM']]
 # get labels
-labels = df['Label']
+labels = df.loc[:,['Label']]
 
 # set hyperparameters from the paper
 learningrate = 0.05
@@ -69,7 +70,8 @@ if m.best_valid_loss_epoch == 0:
 true_labels = m.selected_labels_true
 pred_labels = m.selected_pred_labels
 pred_probs = m.selected_pred_probs
-
+print(true_labels)
+print(pred_labels)
 # calculate tp, tn, fp, fn
 TP = 0
 FP = 0
@@ -90,21 +92,32 @@ auroc = metrics.roc_auc_score(true_labels, pred_probs)
 # mcc - matthews correlation coefficient
 mcc = metrics.matthews_corrcoef(true_labels, pred_labels)
 # ppv - positive predictive value (tp/(tp+fp))
-ppv = (TP / (TP + FP))
+if TP == 0:
+   ppv = 0
+else:
+   ppv = (TP / (TP + FP))
 # npv - negative predictive value (tn/(tn+fn))
-npv = (TN / (TN + FN))
+if TN == 0:
+   npv = 0
+else:
+   npv = (TN / (TN + FN))
 # accuracy 
 accuracy = metrics.accuracy_score(true_labels, pred_labels)
-# tpr_tnr
-tpr_tnr = (TP / (TP + FN)) + (TN / (TN + FP))
 # tpr
-tpr = (TP / (TP + FN))
+if TP == 0:
+   tpr = 0
+else:
+   tpr = (TP / (TP + FN))
 # tnr
-tnr = (TN / (TN + FP))
-
+if TN == 0:
+   tnr = 0
+else:
+   tnr = (TN / (TN + FP))
+# tpr_tnr
+tpr_tnr = tpr + tnr
 # report the resutls
 print("\n\n-------------------Results---------------------")
-print("AUROC: ", auroc)
+print("AUC: ", auroc)
 print('MCC: ', mcc)
 print('PPV:', ppv)
 print('NPV: ', npv)
