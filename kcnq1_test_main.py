@@ -37,7 +37,7 @@ split_args = {'train_percent':0.7,
                 'valid_percent':0.15,
                 'test_percent':0.15,
                 'max_position':0, # this value will not be used
-                'columns_to_ensure':self.columns_to_ensure_here}
+                'columns_to_ensure':['Rate of Evolution', 'PSSM']} # list of col names you must have
 
 all_args = {**self.shared_args, **split_args }
 split = utils.Splits(data = data,
