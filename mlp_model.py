@@ -32,7 +32,7 @@ class MLP(object):
                  exclusive_classes,
                  save_model,
                  mysteryAAs,
-                 cv_fold
+                 cv_fold,
                  ensemble):
         """
         Variables
