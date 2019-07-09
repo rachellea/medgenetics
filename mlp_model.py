@@ -32,7 +32,7 @@ class MLP(object):
                  exclusive_classes,
                  save_model,
                  mysteryAAs,
-                 cv_fold,
+                 cv_fold
                  ensemble):
         """
         Variables
@@ -89,9 +89,9 @@ class MLP(object):
         self.mlp_layers.append(self.y_length) #ensure predictions will have correct dimensions
         print('Mlp_layers is',str(self.mlp_layers))
 
+        self.cv_fold = cv_fold
         self.dropout = dropout
         self.ensemble = ensemble
-        self.cv_fold = cv_fold
     
     
     def run_all(self):
@@ -142,7 +142,7 @@ class MLP(object):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
                                    self.y_labels: y_labels_batch,
-                                   self.keep_prob:1-self.dropout}
+                                   self.keep_prob:1-self.dropouts}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
@@ -153,7 +153,7 @@ class MLP(object):
             if self.cv_fold < 2:
                 self.test('Valid')
             self.test('Test')
-            self.test('mysteryAAs')
+            #self.test('mysteryAAs')
             
             # Early stopping is only for non cross validation
             #Early stopping. TODO: consider other early stopping methods
