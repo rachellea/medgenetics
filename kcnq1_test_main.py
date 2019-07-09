@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn import metrics
 import mlp_model
+from data import utils as utils
 
 # path to the training dataset
 data_path = 'data/kcnq1_test/kcnq1_training_dataset.csv'
@@ -8,9 +9,9 @@ data_path = 'data/kcnq1_test/kcnq1_training_dataset.csv'
 # prepare the data
 df = pd.read_csv(data_path)
 # the only two features are rate of evolution and PSSM
-data = df[['Rate of Evolution', 'PSSM']].values
+data = df[['Rate of Evolution', 'PSSM']]
 # get labels
-label = df['Label'].values
+labels = df['Label']
 
 # set hyperparameters from the paper
 learningrate = 0.05
