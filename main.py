@@ -93,12 +93,16 @@ columns=['Label'])
         #Run MLP
         print('Running MLP')
 
+        # for debugging
+        self.true_labels_lst = []
+
         # set hyperparameters here
-        self.learningrate = 100
-        self.dropout = 0
+        self.learningrate = 1000
+        self.dropout = 0.2
         self.num_epochs = 1000
-        self.num_ensemble = 15
-        self.path = "mlp_results/kcnq1/calibration/"
+        self.num_ensemble = 10
+        #self.path = "mlp_results/ryr2/cv_dropout_epoch1000/"
+        self.path = "mlp_results/ryr2/calibration/" # path for calibration plot
         # for calibration plot
         self.num_bins = 10
         self.calibration_strategy = 'quantile'
@@ -114,16 +118,18 @@ columns=['Label'])
             fold_acc = []
             fold_auroc = []
             fold_avg_prec = []
-            cv = model_selection.KFold(n_splits=self.cv_fold_mlp)
+            cv = model_selection.KFold(n_splits=self.cv_fold_mlp, random_state=19357)
             fold_num = 1
             data = self.real_data_split.clean_data
             label = self.real_data_split.clean_labels
+            self.test_labels = []
             for train, test in cv.split(data, label):
                 # create a copy of the real_data_split
                 split = copy.deepcopy(self.real_data_split)
                 
                 # update the splits with the train and test indices for this cv loop
                 split._make_splits_cv(train, test)
+                self.test_labels.append(split.test.labels)
 
                 # check if we're doing ensembling
                 if self.ensemble:
@@ -315,27 +321,39 @@ str(m.best_valid_loss_epoch) + ".csv")
     def _calibration_plot(self):
         # make calibration plot for the two logistic regression and mlp models
         lg = self._run_logreg()
+        # debugging statements
+        #print("CHECK IF TRUE LABELS ARE THE SAME\n\n")
+        #for i in range(len(self.kfold_true_label)):
+            #print((lg.true_test_labels_lst[i] == self.kfold_true_label[i]).all())
+        #    for j in range(len(self.kfold_true_label[i])):
+      #          print(lg.true_test_labels_lst[i][j] == self.kfold_true_label[i][j])
+            #print(np.array(self.test_labels[i]) == np.array(self.kfold_true_label[i]))
+            
+        #print("\n\n")
+        
         logreg_kfold_probability_stacked = np.hstack(lg.logreg_kfold_probability)
         mlp_kfold_probability_stacked = np.hstack(self.mlp_kfold_probability)
         kfold_true_label_stacked = np.hstack(self.kfold_true_label)
                                      
         if self.calibration_strategy == 'quantile':
+            print("\n\n\n--------------------Starting calibration plots-----------\n\n\n")
+            print("Strategy chosen: quantile")
             logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
-            logreg_kfold_probability_stacked, strategy='quantile')
+            logreg_kfold_probability_stacked, n_bins = self.num_bins, strategy='quantile')
             mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
-            mlp_kfold_probability_stacked, strategy='quantile')
+            mlp_kfold_probability_stacked, n_bins = self.num_bins, strategy='quantile')
         elif self.calibration_strategy == 'uniform': 
             logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
-            logreg_kfold_probability_stacked, strategy='uniform', nbins=self.num_bins)
+            logreg_kfold_probability_stacked, strategy='uniform', n_bins=self.num_bins)
             mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
-            mlp_kfold_probability_stacked, strategy='uniform', nbins=self.num_bins)
+            mlp_kfold_probability_stacked, strategy='uniform', n_bins=self.num_bins)
         else:
             sys.exit("Must choose either 'uniform' or 'quantile' as strategy for calibration plot under variable self.calibration_strategy")
 
         # plot calibration curves
         fig, ax = plt.subplots()
-        plt.plot(logreg_x,logreg_y, marker='o', markersize=3, linewidth=2, label='logreg')
-        plt.plot(mlp_x, mlp_y, marker='o',  markersize=3, linewidth=2, label='mlp')
+        plt.plot(logreg_x,logreg_y, marker='o', markersize=3, linewidth=1, label='logreg')
+        plt.plot(mlp_x, mlp_y, marker='o',  markersize=3, linewidth=1, label='mlp')
 
         # reference line, legends, and axis labels
         #plt.xticks(np.arange(0.0, 1.1, 0.1))
@@ -359,7 +377,7 @@ str(m.best_valid_loss_epoch) + ".csv")
         plt.legend()
         # save the plot
         if self.ensemble:
-            num_ensemble = "-" + str(self.num_ensemble)+ "ensemble"
+            num_ensemble = "-" + str(self.num_ensemble)+ "ensemble-"
         else:
             num_ensemble = ""
         if self.cv_fold_mlp > 1:
@@ -369,9 +387,10 @@ str(m.best_valid_loss_epoch) + ".csv")
         if self.calibration_strategy == 'uniform':
             num_bins = "-" + str(self.num_bins) + "bins"
         elif self.calibration_strategy == 'quantile':
-            num_bins = ""
+            #num_bins = ""
+            num_bins = "-" + str(self.num_bins) + "bins"
         figure_path = self.path + self.gene_name + '-python-calibration-' + cv 
-        figure_path += num_bins + num_ensemble + ".png"
+        figure_path += num_bins + num_ensemble + self.calibration_strategy + ".png"
         plt.savefig(figure_path, dpi=100)  
 
 
@@ -402,7 +421,7 @@ str(m.best_valid_loss_epoch) + ".csv")
                     change = column[-1]
                     changeAA.append(change)
             # get the position
-            position.append(self.ori_dict[(consensus, change)])
+            position.append(int(self.ori_dict[(consensus, change)]))
 
         # convert consensusAA and changeAA to numpy
         consensusAA = np.array(consensusAA)
@@ -452,10 +471,10 @@ fold=kfold)
 
         # set hyperparameters
         c = 0.01
-        pen = 'l2'
+        pen = 'l1'
         # run logistic regression
         lg = regression.LogisticRegression(descriptor=self.descriptor,
-split=copy.deepcopy(self.real_data_split), logreg_penalty=pen, C=c, figure_num=1,
+split=copy.deepcopy(self.real_data_split) ,logreg_penalty=pen, C=c, figure_num=1,
 fold=self.cv_fold_lg)
         return lg
 
@@ -479,7 +498,7 @@ if __name__=='__main__':
 descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
-ensemble=False, cv_fold_lg=0, cv_fold_mlp=0).do_all()
+ensemble=True, cv_fold_lg=0, cv_fold_mlp=0).do_all()
 
 
 
