@@ -1,0 +1,14 @@
+fold 1 AUC: 0.5
+fold 2 AUC: 0.5
+fold 3 AUC: 0.5
+fold 4 AUC: 0.5
+fold 5 AUC: 0.5
+fold 6 AUC: 0.5
+fold 7 AUC: 0.5
+fold 8 AUC: 0.5
+fold 9 AUC: 0.5
+fold 10 AUC: 0.5
+
+Average Accuracy:0.5512273524254822
+Average AUC: 0.5
+Average Precision:0.44877264757451785
