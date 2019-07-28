@@ -1,0 +1,15 @@
+
+
+ The average cross validation accuracy is :0.9039052627287922
+
+
+
+
+ The average cross validation auroc is :0.8645259393079006
+
+
+
+
+ The average cross validation average precision is :0.5842041881441167
+
+
