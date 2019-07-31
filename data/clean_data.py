@@ -1,4 +1,4 @@
-#Rachel Ballantyne Draelos
+#Rachel Ballantyne Draelos, Farica Zhuang
 
 import os
 import copy
@@ -43,7 +43,19 @@ class BareGene(object):
             df = self.remove_consensus_equals_change(df, key)
             df = self.remove_consensus_disagrees_with_reference(df, key)
             df = self.remove_dups(df, key, 'first', 'duplicate_within_file_removed_first')
-        
+            dfs[key] = df
+
+        # update the variables with clean data
+        self.healthy = dfs['healthy']
+        self.diseased = dfs['pathologic']
+        self.mysteryAAs = dfs['wes']
+
+        # check if we still have a clean mysteryAA
+        df = self.mysteryAAs
+        print("Checking for duplicates after initial clean up in Bare Gene")
+        col = ["Consensus",  "Change", "Position"]
+        print(len(df[df.duplicated(subset=col, keep=False)]))
+
         #Merge healthy and diseased
         merged = self.merge_healthy_and_diseased(self.healthy, self.diseased)
         print('merged shape:',merged.shape)
@@ -60,7 +72,13 @@ class BareGene(object):
         mystmerged = self.remove_dups(mystmerged, 'mystmerged', False, 'duplicate_across_mystery_and_healthysick_removed_both')
         self.mysteryAAs = (mystmerged[mystmerged['Label']==1]).drop(columns='Label')
         print('mysteryAAs shape after:',self.mysteryAAs.shape)
-        
+       
+        # check if we still have a clean mysteryAA
+        df = self.mysteryAAs
+        print("Checking for duplicates after final clean up in Bare Gene")
+        col = ["Consensus",  "Change"]
+        print(len(df[df.duplicated(subset=col, keep=False)]))
+  
         #Save history
         self.history.to_csv(self.gene_name+'_data_cleaning_history.csv')
         
@@ -120,6 +138,7 @@ class BareGene(object):
         #Perform change
         df = df.loc[df['Consensus']!=df['Change']]
         print('remove_consensus_equals_change(): Rows after:',df.shape[0])
+        
         return df
     
     def remove_consensus_disagrees_with_reference(self, df, key):
@@ -145,12 +164,15 @@ class BareGene(object):
         if keep == False then drop all occurrences """
         #Document history of upcoming change
         cols = ['Consensus','Position','Change']
+        # get a dataframe of the duplicataed rows
         temp = df[df.duplicated(subset=cols,keep=keep)]
         self.update_history_using_temp(temp, key, reason_removed)
         
         #Perform change
+        print('remove_dups():')
+        print('\tRows before:', df.shape[0])
         df = df.drop_duplicates(keep = keep)
-        print('remove_dups(): Rows after:',df.shape[0])
+        print('\tRows after:',df.shape[0])
         return df
     
     def merge_healthy_and_diseased(self, healthy, diseased):
@@ -202,6 +224,18 @@ class AnnotatedGene(object):
         
         b = BareGene(gene_name)
         self.inputx = b.merged
+       
+        # check if we have a clean data
+        print("Checking inputx in clean data annotated gene")
+        for i in range(len(self.inputx.values)):
+            consensus = self.inputx.values[i][0]
+            change = self.inputx.values[i][2]
+            position = self.inputx.values[i][1]
+            #self.ori_dict[(consensus, change)] = position
+
+            if consensus == change:
+                print(consensus, change)
+
         self.max_position = b.max_position
         self.mysteryAAs = b.mysteryAAs
     

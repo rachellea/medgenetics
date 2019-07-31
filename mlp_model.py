@@ -1,5 +1,5 @@
 #autoencoder.py
-#Rachel Draelos
+#Rachel Draelos, Farica Zhuang
 
 ##########
 #Imports #----------------------------------------------------------------------
@@ -56,7 +56,7 @@ class MLP(object):
         self.test_set = split.test
         self.valid_set = split.valid
         self.preserved_data_meanings = split.train.data_meanings
-        
+       
         #Number of batches per epoch
         assert self.train_set.batch_size == self.test_set.batch_size == self.valid_set.batch_size
         self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
@@ -142,7 +142,7 @@ class MLP(object):
                 x_data_batch, y_labels_batch = self.train_set.next_batch()
                 feed_dict_train = {self.x_input: x_data_batch,
                                    self.y_labels: y_labels_batch,
-                                   self.keep_prob:1-self.dropouts}
+                                   self.keep_prob:1-self.dropout}
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
@@ -150,10 +150,10 @@ class MLP(object):
             self.training_loss[self.num_epochs_done-1] = epoch_loss
             if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
             # only validating when not doing cross validation because this is used for early stopping
-            if self.cv_fold < 2:
-                self.test('Valid')
-            self.test('Test')
-            #self.test('mysteryAAs')
+            #if self.cv_fold < 2:
+            #    self.test('Valid')
+            #self.test('Test')
+            self.test('mysteryAAs')
             
             # Early stopping is only for non cross validation
             #Early stopping. TODO: consider other early stopping methods
@@ -189,6 +189,13 @@ class MLP(object):
         epoch_loss = 0
         for i in range(num_batches):
             x_data_batch, y_labels_batch = chosen_set.next_batch()
+            # if this is the very first batch of the first epoch, initialize the permutation index
+            if i == 0 and chosen_dataset == 'mysteryAAs':
+                if self.num_epochs_done == 1:
+                    self.perm_ind = chosen_set.perm_ind
+                # otherwise if it's not the first epoch but the first batch, permute permuation index
+                else:
+                    self.perm_ind = self.perm_ind[chosen_set.perm_ind]
             feed_dict = {self.x_input: x_data_batch,
                          self.y_labels: y_labels_batch,
                          self.keep_prob: 1.0}
@@ -236,7 +243,6 @@ class MLP(object):
             out.to_csv(self.mysteryAAs_filename + str(self.num_epochs_done) + ".csv", header=True,index=False)
  
             return #Don't perform "evaluations" on mysteryAAs
-    
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):
             current_label = self.train_set.label_meanings[label_number]

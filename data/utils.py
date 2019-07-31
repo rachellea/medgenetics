@@ -75,8 +75,6 @@ class Splits(object):
         self._get_split_indices() #defines self.trainidx and self.testidx
         self._shuffle_before_splitting()
         
-        self._get_dict()
- 
         #Further data prep:
         if impute:
             self._impute()
@@ -85,6 +83,7 @@ class Splits(object):
             self._ensure_all_columns()
         if normalize_data:
             self._normalize()
+            pass
         else:
             print('WARNING: you elected not to normalize your data. This could lead to poor performance.')
         self._make_splits() #creates self.train, self.valid, and self.test
@@ -103,6 +102,9 @@ class Splits(object):
         self.clean_data = self.clean_data.iloc[idx]
         self.clean_labels = self.clean_labels.iloc[idx]
         
+        # get position column before splitting
+        self.position = self.clean_data['Position'].values
+
     def _impute(self):
         """Impute categorical variables using the mode of the training data
         and continuous variables using the median of the training data."""
@@ -158,7 +160,6 @@ class Splits(object):
         """Provide the features specified in self.normalize_these_continuous
         with approximately zero mean and unit variance, based on the
         training dataset only."""
-        
         train_data = (self.clean_data[self.normalize_these_continuous].values)[0:self.trainidx,:]
         #http://scikit-learn.org/stable/modules/preprocessing.html#preprocessing-scaler
         scaler = sklearn.preprocessing.StandardScaler().fit(train_data)
@@ -233,15 +234,6 @@ class Splits(object):
         print('\tTest data shape:',str(test_data.shape))
         print('\tLength of one label:',str(train_labels.shape[1]))
 
-    def _get_dict(self):
-        '''This function creates a dictionary with the key being consensus and change
-           tuple and the value is the unnormalized position'''
-        self.ori_dict = {}
-        for i in range(len(self.clean_data.values)):
-            consensus = self.clean_data.values[i][0]
-            change = self.clean_data.values[i][2]
-            position = self.clean_data.values[i][1]
-            self.ori_dict[(consensus, change)] = position
 
 class Dataset(object):
     def __init__(self,
@@ -282,10 +274,13 @@ class Dataset(object):
         # Shuffle for the beginning of an epoch if indicated
         if start == 0 and self.shuffle: 
             perm0 = np.arange(self.num_examples)
+            # shuffle the indices
             np.random.shuffle(perm0)
+            # store the index permutation for when we have to retrieve unnormalized positions
+            self.perm_ind = perm0
             self.data = self.data[perm0]
             self.labels = self.labels[perm0]
-            
+ 
         #If you're in the middle of an epoch:
         if start + self.batch_size < self.num_examples:
             self.index_in_epoch += self.batch_size

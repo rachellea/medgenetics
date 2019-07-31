@@ -33,7 +33,10 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         self._prep_data()
         self._prep_split_data(self.inputx,self.split_args)
         self._prep_mysteryAAs()
-        self._run_mlp()
+        # uncomment predict mysteryAAs if we are predicting the unknowns
+        self._predict_mysteryAAs_mlp()
+        #self._run_mlp()
+        #self._run_logreg_full()
         #self._run_logreg()
         #self._calibration_plot()
     
@@ -42,15 +45,31 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         ag = clean_data.AnnotatedGene(self.gene_name)
         ag.annotate_everything()
         self.inputx = ag.inputx #make it self.inputx so you can access from testing script
+        # check if we have clean data
+        print("Checking inputx in main")
+        for i in range(len(self.inputx.values)):
+            consensus = self.inputx.values[i][0]
+            change = self.inputx.values[i][2]
+            position = self.inputx.values[i][1]
+            #self.ori_dict[(consensus, change)] = position
+            
+            if consensus == change:
+                print(consensus, change)
+
         self.mysteryAAs = ag.mysteryAAs
         self.columns_to_ensure_here = [x for x in ag.columns_to_ensure if x not in
 self.cols_to_delete]
-        self.split_args = {'train_percent':0.7,
-                        'valid_percent':0.15,
-                        'test_percent':0.15,
+        self.split_args = {'train_percent':1.0,
+                        'valid_percent':0,
+                        'test_percent':0, 
                         'max_position':ag.max_position,
                         'columns_to_ensure':self.columns_to_ensure_here}
         self.ag = ag
+    
+        # check if we still have duplicates
+        print("Checking for duplicates in main")
+        df = self.mysteryAAs
+        print(len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]))
     
     def _prep_split_data(self, inputx, split_args):
         """There are arguments to this function to facilitate unit testing"""
@@ -65,10 +84,16 @@ self.cols_to_delete]
 
     
     def _prep_mysteryAAs(self):
+        
+        # check if mysteryAAs_data is clean
+        print("Checking for duplicates in prep mysteryAAs")
+        df = self.mysteryAAs
+        col = ["Consensus", "Position", "Change"]
+        print(len(df[df.duplicated(subset=col, keep=False)]))
+
         #WES data, mysteryAAs (want predictions for these)
         mysteryAAs_data = (copy.deepcopy(self.mysteryAAs)).drop(columns=self.cols_to_delete)
-        mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)),
-columns=['Label'])
+        mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
         self.mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
                                      labels = mysteryAAs_labels,
                                      train_percent = 1.0,
@@ -77,10 +102,9 @@ columns=['Label'])
                                      max_position = self.ag.max_position,
                                      columns_to_ensure = self.columns_to_ensure_here,
                                      **self.shared_args)
-        # get the original dictionary for consensus, change, and position before 
-        # normalizing position and one hotifying consensus and change
-        self.ori_dict = self.mysteryAAs_split.ori_dict
- 
+
+        # get the position before split
+        self.ori_position = self.mysteryAAs_split.position
         self.mysteryAAs_split = self.mysteryAAs_split.train
         assert self.mysteryAAs_split.data.shape[0] == self.mysteryAAs.shape[0]
 
@@ -89,6 +113,106 @@ columns=['Label'])
         pickle.dump(self.real_data_split, open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
     
 
+    def _predict_mysteryAAs_mlp(self):
+        '''This function uses mlp to predict the mysteryAAs'''
+
+        # set hyperparameters
+        self.learningrate = 1000
+        self.dropout = 0.4
+        self.num_epochs = 1000
+        self.num_ensemble = 10 
+        
+        print("Predicting mysteryAAs using MLP...")
+        print("Learning rate:", self.learningrate)
+        print("Dropout:", self.dropout)
+        print("Number of Epochs:", self.num_epochs)
+        print("Number of MLPs in the ensemble:", self.num_ensemble)
+ 
+        # define a list to store mlps for our ensemble
+        self.ensemble_output_lst = []
+
+        # initialize ensembles and store in the list
+        for en_num in range(self.num_ensemble):
+            
+            print("Initializing ensemble number", en_num + 1, " out of", self.num_ensemble )
+
+            # initialize mlp
+            m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
+                split=copy.deepcopy(self.real_data_split),
+                decision_threshold = 0.5,
+                num_epochs = self.num_epochs,
+                learningrate = self.learningrate,
+                mlp_layers = copy.deepcopy([30,20]),
+                dropout=self.dropout,
+                exclusive_classes = True,
+                save_model = False,
+                mysteryAAs = self.mysteryAAs_split,
+                cv_fold = self.cv_fold_mlp,
+                ensemble=self.ensemble)
+
+            # set up graph and session for the model
+            m.set_up_graph_and_session()
+
+            # train as per normal
+            m.train()
+
+            # get the unnormalized positions
+            self.ori_position = self.ori_position[m.perm_ind]
+
+            if m.best_valid_loss_epoch == 0:
+                print("best valid loss epoch was not initialized")
+                m.best_valid_loss_epoch = self.num_epochs
+            m.clean_up()
+          
+            print("Cleaning up output file of ensemble number:", en_num)
+
+            # clean up the output file from training
+            self._mysteryAAs_output_cleanup(m.mysteryAAs_filename +
+str(m.best_valid_loss_epoch) + ".csv")
+      
+        # loop through the list of cleaned dataframe to get the average of predicted probas
+        ori_df = self.ensemble_output_lst[0]
+        for j in range(len(ori_df.index)):
+            tot_pred_proba = 0
+            consensus_AA = ori_df.iloc[j]['ConsensusAA']
+            change_AA = ori_df.iloc[j]['ChangeAA']
+            position = ori_df.iloc[j]['Position']
+            tot_pred_proba += float(ori_df.iloc[j]['Pred_Prob'])
+
+            for i in range(1,len(self.ensemble_output_lst)):
+                curr_df = self.ensemble_output_lst[i]
+                row = curr_df.loc[(curr_df['ConsensusAA'] == consensus_AA) & (curr_df['ChangeAA']== change_AA) & (curr_df['Position'] == position)]
+                tot_pred_proba += float(row["Pred_Prob"])
+             
+            # get the average predict proba
+            avg_pred_prob = tot_pred_proba / self.num_ensemble
+            
+            # replace the pred_proba value of ori_df with this average
+            ori_df.iloc[j]['Pred_Prob'] = avg_pred_prob
+  
+        # sort the dataframe by pred proba column of ori_df
+        ori_df.sort_values('Pred_Prob')
+
+        # save dataframe to a file
+        ori_df.to_csv('mysteryAAs_predictions_bestMLP_with_ensemble.csv', index=False)          
+
+    def _predict_mysteryAAs_lg(self):
+        '''This function predicts mysteryAAs using logistic regression'''
+        
+        # set hyperparameters
+        C = 0.1
+        pen = "L1"
+    
+        # train logistic regression
+        lg = regression.LogisticRegression(descriptor=self.descriptor,
+split=copy.deepcopy(self.real_data_split) ,logreg_penalty=pen, C=c, figure_num=1,
+fold=0)
+        
+        # use the trained model to get the predicted probabilities of mysteryAAs
+        pred_prob = lg.predict_proba(self.mysteryAAs_split)
+
+        # permute the predicted probabilities accordingly
+ 
     def _run_mlp(self):
         #Run MLP
         print('Running MLP')
@@ -98,13 +222,13 @@ columns=['Label'])
 
         # set hyperparameters here
         self.learningrate = 1000
-        self.dropout = 0.2
+        self.dropout = 0.4
         self.num_epochs = 1000
         self.num_ensemble = 10
-        #self.path = "mlp_results/ryr2/cv_dropout_epoch1000/"
-        self.path = "mlp_results/ryr2/calibration/" # path for calibration plot
+        #self.path = "mlp_results/ryr2/cv_dropout_epoch1000_ensemble15/"
+        #self.path = "mlp_results/ryr2/calibration/" # path for calibration plot
         # for calibration plot
-        self.num_bins = 10
+        self.num_bins = 20
         self.calibration_strategy = 'quantile'
 
         # initialize an empty list for mlp predicted probabilities
@@ -123,6 +247,7 @@ columns=['Label'])
             data = self.real_data_split.clean_data
             label = self.real_data_split.clean_labels
             self.test_labels = []
+            self.cv_num = 1
             for train, test in cv.split(data, label):
                 # create a copy of the real_data_split
                 split = copy.deepcopy(self.real_data_split)
@@ -137,6 +262,7 @@ columns=['Label'])
                     num_ensemble = self.num_ensemble
 
                     # initialize ensembles
+                    print("Calling init_ensemble()")
                     self._init_ensemble(num_ensemble, split)
 
                     # evaluate the accuracy of this fold using the ensemble
@@ -192,7 +318,7 @@ str(fold_num), " is ", str(avg_prec))
                     # update lists for calibration
                     self.mlp_kfold_probability.append(m.selected_pred_probs)
                     self.kfold_true_label.append(m.selected_labels_true)
-
+                self.cv_num += 1
                 fold_num += 1
 
             # print the individual accuracies and the average accuracy
@@ -256,10 +382,12 @@ str(m.best_valid_loss_epoch) + ".csv")
         self.ensemble_lst = []
 
         # initialize ensembles and store in the list
-        for _ in range(num_ensemble):
+        for i in range(num_ensemble):
+            print("In CV fold number", self.cv_num, " out of", self.cv_fold_mlp)
+            print("Initializing mlp number", i+1, " out of", num_ensemble, "for ensemble")
             # initialize mlp
             m = mlp_model.MLP(descriptor=self.gene_name+'_'+self.descriptor,
-                split=split,
+                split=copy.deepcopy(split),
                 decision_threshold = 0.5,
                 num_epochs = self.num_epochs, # fix number of epochs to 300
                 learningrate = self.learningrate,
@@ -283,7 +411,7 @@ str(m.best_valid_loss_epoch) + ".csv")
     def _evaluate_ensemble(self):
         """This function evaluates the test set for the ensemble of mlps
             output: accuracy, auroc, and average precision of the ensemble"""
-
+        print("Evaluating ensemble")
         # true label for calibration
         self.kfold_true_label.append(self.ensemble_lst[0].selected_labels_true)
 
@@ -404,26 +532,43 @@ str(m.best_valid_loss_epoch) + ".csv")
         print(mlp_linregress)
     
     def _mysteryAAs_output_cleanup(self, filename):
+        '''This function converts the csv file outputted by test() in mlp_model 
+           into a csv file with a format that we want (ConsensusAA, ChangeAA, 
+           Position, Pred_Prob)'''
+        
+        print("Cleaning up the file", filename)
+        
         # output file clean up
         df = pd.read_csv(filename)
+   
+        # debugging: checking for duplicates
+        print("Number of rows:", len(df.index))        
+        col = [col for col in df.columns.values if col.startswith("Consensus") or col.startswith("Change") or col.startswith("Position")]
+        print("Checking for duplicates in mysteryAA cleanup")
+        print("Number of duplicates:", len(df[df.duplicated(subset=col,
+keep=False)]))
+
         consensusAA = []
         changeAA = []
         position = []
         pred_prob = df['Pred_Prob'].values
 
-        # get the consensusAA and changeAA
+        # get the consensusAA and changeAA lists
+        count = 0
         for index, row in df.iterrows():
-            for column in df.columns.values:
+            # get the consensus and change of this row
+            for column in df.columns:
                 if column.startswith('Consensus_') and row[column]==1:
                     consensus = column[-1]
                     consensusAA.append(consensus)
                 if column.startswith('Change_') and row[column]==1:
                     change = column[-1]
                     changeAA.append(change)
-            # get the position
-            position.append(int(self.ori_dict[(consensus, change)]))
-
-        # convert consensusAA and changeAA to numpy
+            # get the position of this row
+            position.append(int(self.ori_position[count]))
+            #increment count
+            count += 1
+        # convert consensusAA and changeAA lists to numpy
         consensusAA = np.array(consensusAA)
         changeAA = np.array(changeAA)
        
@@ -433,26 +578,32 @@ str(m.best_valid_loss_epoch) + ".csv")
         #print(position)
         #print(changeAA)
         #print("-------Done checking-------------\n\n\n")
-        
+        print("The positions found are")
+        print(len(sorted(position))) 
         # stack the 4 columns
         new_np = np.vstack((consensusAA, changeAA, position, pred_prob)).T
 
-        # sort the rows from highest predicted probability
+        # sort the rows from highest predicted probability to the lowest
         index = np.argsort(new_np[:,-1])
         new_np = new_np[index[::-1]]
 
-        # create a new dataframe
-        new_df = pd.DataFrame(new_np, columns=['ConsenseusAA', 'ChangeAA', 'Position', 'Pred_Prob'])
+        # create a new dataframe with the 4 specified columns
+        new_df = pd.DataFrame(new_np, columns=['ConsensusAA', 'ChangeAA', 'Position', 'Pred_Prob'])
 
         # create a new csv file
         new_df.to_csv('final_' + filename, index=None, header=True)
+        
+        # add df to list of cleaned dataframes of each mlp in the ensemble to
+        # be evaluated in _predict_mysteryAAs()
+        self.ensemble_output_lst.append(new_df)
+
     def _run_logreg_full(self):
         # Run Logistic Regression for all hyperparameters
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         print("Running Log Reg")
 
         classifier_penalty= ['l1', 'l2']
-        classifier_C = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+        classifier_C = [0.0001 ,0.001, 0.01, 0.1, 1, 10, 100, 1000]
 
         # set the k value for k fold cross validation (# of folds for cross
         # validation. Set to 0 if 
@@ -498,7 +649,7 @@ if __name__=='__main__':
 descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),
-ensemble=True, cv_fold_lg=0, cv_fold_mlp=0).do_all()
+ensemble=True, cv_fold_lg=10, cv_fold_mlp=10).do_all()
 
 
 
