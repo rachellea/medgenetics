@@ -1,0 +1,1230 @@
+Fold number:60
+SigNoise	0.35550082389689047
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3616433551888864
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.39766185295810996
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3805836577846864
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.372852059089465
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3800520932146864
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.4625204235005999
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3562125578048194
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3749264325866013
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
+Fold number:60
+SigNoise	0.3640140075500199
+
+SPRY2-second	0.0
+
+Consensus_P	0.0
+
+Change_E	0.0
+
+Change_D	0.0
+
+Change_C	0.0
+
+Change_A	0.0
+
+Consensus_X	0.0
+
+Consensus_Y	0.0
+
+Consensus_W	0.0
+
+Consensus_V	0.0
+
+Consensus_T	0.0
+
+Consensus_S	0.0
+
+Consensus_R	0.0
+
+Consensus_Q	0.0
+
+Consensus_N	0.0
+
+Change_G	0.0
+
+Consensus_M	0.0
+
+Consensus_L	0.0
+
+Consensus_K	0.0
+
+Consensus_I	0.0
+
+Consensus_H	0.0
+
+Consensus_G	0.0
+
+Consensus_F	0.0
+
+Consensus_E	0.0
+
+Consensus_D	0.0
+
+Consensus_C	0.0
+
+Consensus_A	0.0
+
+Conservation	0.0
+
+Change_F	0.0
+
+Change_H	0.0
+
+NTD	0.0
+
+Change_I	0.0
+
+Handle-domain	0.0
+
+SPRY1-second	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+SPRY1-first	0.0
+
+Channel-domain	0.0
+
+P1	0.0
+
+Outside	0.0
+
+SPRY1-third	0.0
+
+SPRY3-first	0.0
+
+HD2	0.0
+
+SPRY2-first	0.0
+
+P2	0.0
+
+SPRY3-second	0.0
+
+Change_X	0.0
+
+Change_Y	0.0
+
+Change_W	0.0
+
+Change_V	0.0
+
+Change_T	0.0
+
+Change_S	0.0
+
+Change_R	0.0
+
+Change_Q	0.0
+
+Change_P	0.0
+
+Change_N	0.0
+
+Change_M	0.0
+
+Change_L	0.0
+
+Change_K	0.0
+
+Position	0.0
+
