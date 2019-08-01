@@ -1,3 +1,5 @@
+
+
 Fold number:1
 Position	0.0
 
@@ -89,39 +91,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:2
 Position	0.0
 
 Conservation	0.0
@@ -212,39 +216,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:3
 Position	0.0
 
 Conservation	0.0
@@ -335,39 +341,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:4
 Position	0.0
 
 Conservation	0.0
@@ -458,39 +466,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:5
 Position	0.0
 
 Conservation	0.0
@@ -581,39 +591,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:6
 Position	0.0
 
 Conservation	0.0
@@ -704,39 +716,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:7
 Position	0.0
 
 Conservation	0.0
@@ -827,39 +841,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:8
 Position	0.0
 
 Conservation	0.0
@@ -950,39 +966,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:9
 Position	0.0
 
 Conservation	0.0
@@ -1073,39 +1091,41 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
 
-Central-domain	0.0
-
-SPRY1-second	0.0
-
-Handle-domain	0.0
+P2	0.0
 
 NTD	0.0
 
+HD2	0.0
+
+Central-domain	0.0
+
+HD1	0.0
+
+Outside	0.0
+
+SPRY1-second	0.0
+
+SPRY1-first	0.0
+
+Handle-domain	0.0
+
+SPRY3-second	0.0
+
 SPRY2-second	0.0
 
-Fold number:61
+
+
+Fold number:10
 Position	0.0
 
 Conservation	0.0
@@ -1196,35 +1216,35 @@ Change_Y	0.0
 
 Change_X	0.0
 
-SPRY3-second	0.0
-
-P2	0.0
-
-SPRY2-first	0.0
-
-HD2	0.0
-
-SPRY3-first	0.0
-
-SPRY1-third	0.0
-
-Outside	0.0
+Channel-domain	0.0
 
 P1	0.0
 
-Channel-domain	0.0
+SPRY2-first	0.0
 
-SPRY1-first	0.0
+SPRY1-third	0.0
 
-HD1	0.0
+SPRY3-first	0.0
+
+P2	0.0
+
+NTD	0.0
+
+HD2	0.0
 
 Central-domain	0.0
 
+HD1	0.0
+
+Outside	0.0
+
 SPRY1-second	0.0
+
+SPRY1-first	0.0
 
 Handle-domain	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 SPRY2-second	0.0
 

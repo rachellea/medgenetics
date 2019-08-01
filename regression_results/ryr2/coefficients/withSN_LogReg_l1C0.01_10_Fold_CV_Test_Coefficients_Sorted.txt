@@ -1,4 +1,6 @@
-Fold number:60
+
+
+Fold number:1
 SigNoise	0.35550082389689047
 
 SPRY2-second	0.0
@@ -61,37 +63,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -121,7 +123,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:2
 SigNoise	0.3616433551888864
 
 SPRY2-second	0.0
@@ -184,37 +188,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -244,7 +248,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:3
 SigNoise	0.39766185295810996
 
 SPRY2-second	0.0
@@ -307,37 +313,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -367,7 +373,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:4
 SigNoise	0.3805836577846864
 
 SPRY2-second	0.0
@@ -430,37 +438,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -490,7 +498,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:5
 SigNoise	0.372852059089465
 
 SPRY2-second	0.0
@@ -553,37 +563,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -613,7 +623,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:6
 SigNoise	0.3800520932146864
 
 SPRY2-second	0.0
@@ -676,37 +688,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -736,7 +748,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:7
 SigNoise	0.4625204235005999
 
 SPRY2-second	0.0
@@ -799,37 +813,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -859,7 +873,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:8
 SigNoise	0.3562125578048194
 
 SPRY2-second	0.0
@@ -922,37 +938,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -982,7 +998,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:9
 SigNoise	0.3749264325866013
 
 SPRY2-second	0.0
@@ -1045,37 +1063,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
@@ -1105,7 +1123,9 @@ Change_K	0.0
 
 Position	0.0
 
-Fold number:60
+
+
+Fold number:10
 SigNoise	0.3640140075500199
 
 SPRY2-second	0.0
@@ -1168,37 +1188,37 @@ Change_F	0.0
 
 Change_H	0.0
 
-NTD	0.0
+SPRY3-second	0.0
 
 Change_I	0.0
 
 Handle-domain	0.0
 
-SPRY1-second	0.0
-
-Central-domain	0.0
-
-HD1	0.0
-
 SPRY1-first	0.0
 
-Channel-domain	0.0
-
-P1	0.0
+SPRY1-second	0.0
 
 Outside	0.0
 
-SPRY1-third	0.0
+HD1	0.0
 
-SPRY3-first	0.0
+Central-domain	0.0
 
 HD2	0.0
 
-SPRY2-first	0.0
+NTD	0.0
 
 P2	0.0
 
-SPRY3-second	0.0
+SPRY3-first	0.0
+
+SPRY1-third	0.0
+
+SPRY2-first	0.0
+
+P1	0.0
+
+Channel-domain	0.0
 
 Change_X	0.0
 
