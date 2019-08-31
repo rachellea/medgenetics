@@ -148,7 +148,7 @@ class MLP(object):
                 epoch_loss+=curr_loss
             self.num_epochs_done+=1
             self.training_loss[self.num_epochs_done-1] = epoch_loss
-            if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
+#            if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
             # only validating when not doing cross validation because this is used for early stopping
             if self.cv_fold < 2:
                 self.test('Valid')
@@ -375,7 +375,7 @@ class MLP(object):
         layer = tf.matmul(inputx, weights) + biases
         if use_sigmoid:
             layer = tf.nn.sigmoid(layer)
-        return tf.nn.dropout(layer, self.keep_prob)
+        return tf.nn.dropout(layer, rate=self.dropout)
 
     
     #~~~Methods for Viewing Variables~~~#

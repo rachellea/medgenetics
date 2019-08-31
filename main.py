@@ -34,10 +34,10 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         self._prep_split_data(self.inputx,self.split_args)
         self._prep_mysteryAAs()
         # uncomment predict mysteryAAs if we are predicting the unknowns
-        self._predict_mysteryAAs_mlp()
+        #self._predict_mysteryAAs_mlp()
         #self._run_mlp()
         #self._run_logreg_full()
-        #self._run_logreg()
+        self._run_logreg()
         #self._calibration_plot()
     
     def _prep_data(self):
@@ -59,9 +59,9 @@ ensemble=False,cv_fold_lg=10, cv_fold_mlp=10):
         self.mysteryAAs = ag.mysteryAAs
         self.columns_to_ensure_here = [x for x in ag.columns_to_ensure if x not in
 self.cols_to_delete]
-        self.split_args = {'train_percent':1.0,
-                        'valid_percent':0,
-                        'test_percent':0, 
+        self.split_args = {'train_percent':0.7,
+                        'valid_percent':0.15,
+                        'test_percent':0.15, 
                         'max_position':ag.max_position,
                         'columns_to_ensure':self.columns_to_ensure_here}
         self.ag = ag
@@ -621,7 +621,7 @@ fold=kfold)
         # Run Logistic Regression for a specified C and penalty
 
         # set hyperparameters
-        c = 0.01
+        c = 0.1
         pen = 'l1'
         # run logistic regression
         lg = regression.LogisticRegression(descriptor=self.descriptor,
@@ -645,7 +645,7 @@ if __name__=='__main__':
                         'normalize_these_continuous':cont_vars,
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-        RunGeneModel(gene_name='ryr2',
+        RunGeneModel(gene_name='kcnq1',
 descriptor=descriptor,shared_args =
 shared_args,
 cols_to_delete=list(set(['Position','Conservation','SigNoise'])-set(cont_vars)),

@@ -105,14 +105,17 @@ class LogisticRegression(object):
 #----------------------Adding precision recall curve--------------------------------
         #--------------------------Set file path--------------------------------
         # this is the folder you want results to be stored
-        filepath = 'regression_results/'
-
+        filepath = 'regression_results/kcnq1/coefficients/'
+        filename_prefix = filepath + descriptor +'_LogReg_'+str(logreg_penalty)+'C'+str(C)+ '_'+ str(fold) + '_Fold_CV_Test'
+        
+        print_coef = True
+ 
         #------------------------------Start logistic regression--------------------
         print('Running logistic regression with penalty=',str(logreg_penalty),'and C=',str(C))
         clf = linear_model.LogisticRegression(penalty=logreg_penalty, C=C, solver='liblinear')
 
         # prepare for cross validation 
-        cv = model_selection.KFold(n_splits=fold, shuffle=False)
+        cv = model_selection.KFold(n_splits=fold, shuffle=False, random_state=19375)
 
         k = figure_num
 
@@ -131,12 +134,40 @@ class LogisticRegression(object):
         base_recall = np.linspace(0, 1, 101)
         x = np.array(split.clean_data)
         y = np.array(split.clean_labels)
+        
         i = 1
+        fold_num = 1
+        
+        # for debugging
+        self.true_test_labels_lst = []
+        
         for train, test in cv.split(x,y):
-            model = clf.fit(x[train], y[train])
+            self.true_test_labels_lst.append(y[test])
+          
+            model = clf.fit(x[train], y[train].ravel())
             y_score = model.predict_proba(x[test])
             y_pred = model.predict(x[test])
+      
+            if print_coef:
+                print("Model coefficients:", model.coef_)
+                print("Sorted indices:", np.argsort(model.coef_)[0][::-1])
+                # print the coefficients to a file
+                if fold_num == 1:
+                    append_write = 'w'
+                else:
+                    append_write = 'a'
+                with open(filename_prefix +'_Coefficients.txt', append_write) as outfile:
+                    outfile.write("\n\nFold number:" + str(fold_num) + '\n')
+                    for i in range(len(split.train.data_meanings)):
+                        outfile.write(str(split.train.data_meanings[i])+'\t'+str(model.coef_[0,i])+'\n\n')
 
+                # print the coefficients to a file in a descending order
+                sorted_ind = list(np.argsort(model.coef_)[0][::-1])
+                with open(filename_prefix + '_Coefficients_Sorted.txt', append_write) as outfile:
+                    outfile.write("\n\nFold number:" + str(fold_num) + '\n')
+                    for ind in sorted_ind:
+                        outfile.write(str(split.train.data_meanings[ind])+'\t'+str(model.coef_[0,ind])+'\n\n')
+                
             # roc curve
             fpr, tpr, _ = metrics.roc_curve(y[test], y_score[:, 1])
             auc = metrics.roc_auc_score(y[test], y_score[:, 1])
@@ -164,6 +195,7 @@ class LogisticRegression(object):
             self.logreg_kfold_probability.append(y_score[:,1])
 
             i += 1
+            fold_num += 1
 
         tprs = np.array(tprs)
         mean_tprs = tprs.mean(axis=0)
@@ -211,7 +243,6 @@ class LogisticRegression(object):
         plt.savefig(filepath + title)
 
         # write the results to a file
-        filename_prefix = filepath + descriptor +'_LogReg_'+str(logreg_penalty)+'C'+str(C)+ '_'+ str(fold) + '_Fold_CV_Test'
         with open(filename_prefix+'_CV_Results.txt','w') as f:
             for auc in auc_str:
                 f.write(auc + "\n")

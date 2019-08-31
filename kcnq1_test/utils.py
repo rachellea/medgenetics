@@ -75,7 +75,7 @@ class Splits(object):
         self._get_split_indices() #defines self.trainidx and self.testidx
         self._shuffle_before_splitting()
         
-        self._get_dict()
+        #self._get_dict()
  
         #Further data prep:
         if impute:
