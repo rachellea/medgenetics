@@ -201,7 +201,9 @@ class Splits(object):
 
     def _make_splits_cv(self, train_indices, test_indices):
         """Split up self.clean_data and self.clean_labels
-        into train, test, and valid data."""
+        into train, test, and valid data. Perfrom normalization on the training data.
+        Use the same normalization on the testing data"""
+
         assert self.clean_data.index.values.tolist()==self.clean_labels.index.values.tolist()
         extra_args = {'data_meanings':self.clean_data.columns.values.tolist(),
             'label_meanings': self.clean_labels.columns.values.tolist(),
@@ -211,9 +213,19 @@ class Splits(object):
         train_data = self.clean_data.iloc[train_indices]
         train_labels = self.clean_labels.iloc[train_indices]
 
+        # normalize the training data
+        train_cols_to_norm = train_data[self.normalize_these_continuous].values
+        self.scaler = sklearn.preprocessing.StandardScaler()
+        self.scaler.fit(train_cols_to_norm)
+        train_data[self.normalize_these_continuous] = self.scaler.transform(train_cols_to_norm)
+
         # get test data
         test_data = self.clean_data.iloc[test_indices]
         test_labels = self.clean_labels.iloc[test_indices]
+
+        # normalize the test data
+        test_cols_to_norm = test_data[self.normalize_these_continuous].values
+        test_data[self.normalize_these_continuous] = self.scaler.transform(test_cols_to_norm)
 
         # convert everything to array
         train_data = train_data.values

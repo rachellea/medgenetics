@@ -33,7 +33,8 @@ class MLP(object):
                  save_model,
                  mysteryAAs,
                  cv_fold,
-                 ensemble):
+                 ensemble,
+                 save_test_out):
         """
         Variables
         <descriptor>: string that will be attached to the beginning of all
@@ -92,7 +93,7 @@ class MLP(object):
         self.cv_fold = cv_fold
         self.dropout = dropout
         self.ensemble = ensemble
-    
+        self.save_test_out = save_test_out
     
     def run_all(self):
         """Run all key methods"""
@@ -134,6 +135,10 @@ class MLP(object):
     
     #~~~Methods~~~#
     def train(self):
+        # initialize a dictionary for the predicted prob and true labels of each epoch
+        self.pred_label_dict = {}
+        self.true_label_dict = {}
+        self.pred_prob_dict = {}
         #TODO redo all of this using queues so you don't need a feed dict at all
         """For cross validation, we are doing all 300 epochs so no early stopping"""
         for j in range(self.num_epochs):
@@ -148,12 +153,12 @@ class MLP(object):
                 epoch_loss+=curr_loss
             self.num_epochs_done+=1
             self.training_loss[self.num_epochs_done-1] = epoch_loss
-            if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
+            #if self.num_epochs_done % (int(self.num_epochs/3)) == 0: print('Finished Epoch',str(self.num_epochs_done)+'.\n\tTraining loss=',str(epoch_loss))
             # only validating when not doing cross validation because this is used for early stopping
-            #if self.cv_fold < 2:
-            #    self.test('Valid')
-            #self.test('Test')
-            self.test('mysteryAAs')
+            if self.cv_fold < 2:
+                self.test('Valid')
+            self.test('Test')
+            #self.test('mysteryAAs')
             
             # Early stopping is only for non cross validation
             #Early stopping. TODO: consider other early stopping methods
@@ -198,28 +203,26 @@ class MLP(object):
                     self.perm_ind = self.perm_ind[chosen_set.perm_ind]
             feed_dict = {self.x_input: x_data_batch,
                          self.y_labels: y_labels_batch,
-                         self.keep_prob: 1.0}
+                         self.keep_prob: 1}
             curr_loss, batch_pred_probs, batch_pred_labels = self.session.run([self.loss, self.pred_probs,self.pred_labels], feed_dict=feed_dict)
             epoch_loss+=curr_loss
             #Gather the outputs of subsequent batches together:
             #TODO: make this more efficient e.g. use streaming_auc
             if i == 0:
-                entire_pred_probs = batch_pred_probs
-                entire_pred_labels = batch_pred_labels
-                labels_true = y_labels_batch
-                if chosen_dataset == 'mysteryAAs':
-                    entire_x = x_data_batch
+                self.entire_pred_probs = batch_pred_probs
+                self.entire_pred_labels = batch_pred_labels
+                self.labels_true = y_labels_batch
+                entire_x = x_data_batch
             else:
                 #concatenate results on assuming that the zeroth dimension is the training example dimension
-                entire_pred_probs = np.concatenate((entire_pred_probs,batch_pred_probs),axis = 0)
-                entire_pred_labels = np.concatenate((entire_pred_labels,batch_pred_labels),axis=0)
-                labels_true = np.concatenate((labels_true, y_labels_batch),axis=0)
-                self.entire_pred_probs = entire_pred_probs
-                self.entire_pred_labels = entire_pred_labels
-                self.labels_true = labels_true
-                if chosen_dataset == 'mysteryAAs':
-                    entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
-        
+                self.entire_pred_probs = np.concatenate((self.entire_pred_probs,batch_pred_probs),axis = 0)
+                self.entire_pred_labels = np.concatenate((self.entire_pred_labels,batch_pred_labels),axis=0)
+                self.labels_true = np.concatenate((self.labels_true, y_labels_batch),axis=0)
+                #$self.labels_true = labels_true
+                entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
+        self.pred_label_dict[self.num_epochs_done] = self.entire_pred_labels
+        self.true_label_dict[self.num_epochs_done] = self.labels_true
+        self.pred_prob_dict[self.num_epochs_done] = self.entire_pred_probs
         #~~~Track validation loss and control early stopping~~~#
         if chosen_dataset == 'Valid':
             self.valid_loss[self.num_epochs_done-1] = epoch_loss
@@ -234,6 +237,11 @@ class MLP(object):
                 #without ever getting better in order for all the patience
                 #to run out.
                 self.patience_remaining -= 1
+
+        # if we are saving the output for test
+        if self.save_test_out:
+            self.test_out = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels),axis = 1),
+                               columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
         
         #~~~Save outputs for mysteryAAs~~~#
         if chosen_dataset == 'mysteryAAs':
@@ -246,9 +254,9 @@ class MLP(object):
         #~~~ Run Evaluations on Valid or Test Results ~~~#
         for label_number in range(self.y_length):
             current_label = self.train_set.label_meanings[label_number]
-            self.selected_labels_true = labels_true[:,label_number]
-            self.selected_pred_labels = entire_pred_labels[:,label_number]
-            self.selected_pred_probs = entire_pred_probs[:,label_number]
+            self.selected_labels_true = self.labels_true[:,label_number]
+            self.selected_pred_labels = self.entire_pred_labels[:,label_number]
+            self.selected_pred_probs = self.entire_pred_probs[:,label_number]
             
             #Update results dictionary of dataframes
             all_eval_results = evaluate.evaluate_all(all_eval_results,
