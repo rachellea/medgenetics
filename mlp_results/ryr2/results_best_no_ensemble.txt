@@ -1,9 +1,9 @@
 ---------Hyperparameters for the best model--------
 MLP Layer:[120, 60, 40]
-Learning Rate:0.0001
-Dropout Rate:0.1
+Learning Rate:100.0
+Dropout Rate:0.6
 Ensemble Size:0
-Best Epoch:580
-Accuracy:0.9066
-AUROC:0.7705
-Avg Precision:0.4242
+Best Epoch:670
+Accuracy:0.9007
+AUROC:0.8688
+Avg Precision:0.6122
