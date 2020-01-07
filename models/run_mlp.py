@@ -13,10 +13,9 @@ from sklearn import neural_network
 from sklearn import model_selection, metrics, calibration
 
 #Custom imports
-from data import utils
-from data import clean_data
-from models import mlp
-from models import regression
+import mlp
+import mlp_loops
+import reformat_output
 
 class SimpleMLP(object):
     def __init__(self, real_data_split, hidden_layer_sizes=(30,20),
@@ -69,42 +68,31 @@ class GridSearchMLP(object):
             best_epoch = 0
             epoch_max_avg_prec = 0
             # set the hyperparameters
-            self.learningrate = comb[0]
-            self.dropout = comb[1]
             self.num_ensemble = comb[2]
-            self.layer = comb[3]
             self.get_best_epoch = True
-            self._run_mlp()
-            # save the results for the best average precision
-            for epoch in range(1, self.max_epochs+1):
-                self.epoch_res[epoch][0] /= self.cv_fold_mlp
-                self.epoch_res[epoch][1] /= self.cv_fold_mlp
-                self.epoch_res[epoch][2] /= self.cv_fold_mlp
-                avg_prec_res = self.epoch_res[epoch][2]
-                if avg_prec_res > epoch_max_avg_prec:
-                    best_epoch = epoch
-                    curr_acc, curr_auroc, epoch_max_avg_prec = self.epoch_res[epoch][0], self.epoch_res[epoch][1], self.epoch_res[epoch][2]
-            # save current results to dataframe
-            lst = [self.layer, self.learningrate, self.dropout, self.num_ensemble, best_epoch,round(curr_acc,4), round(curr_auroc,4), round(epoch_max_avg_prec,4)]
-            # append to output list
-            output.append(lst)
-
-            # save output to csv
-            cols = ["MLP Layer", "Learning Rate", "Dropout Rate", "Ensemble Size", "Best Epoch", "Accuracy", "AUROC", "Avg Precision"]
-            output_df = pd.DataFrame.from_records(output,columns=cols)
-            output_df.to_csv(os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'), index=False)
+            
+            mlp_args_specific = {'descriptor':self.gene_name,
+                'decision_threshold':0.5,
+                'num_epochs':self.max_epochs, # fix number of epochs to 300
+                'learningrate':comb[0],
+                'mlp_layers': copy.deepcopy(comb[3]),
+                'dropout':comb[1],
+                'exclusive_classes':True,
+                'save_model':False,
+                'mysteryAAs':self.mysteryAAs_split,
+                'cv_fold':self.cv_fold_mlp,
+                'ensemble':self.num_ensemble,
+                'save_test_out':self.save_test_out}
+            
+            self._run_mlp(mlp_args)
     
-    def _run_mlp(self):
+    def _run_mlp(self, mlp_args_specific):
         print('Running MLP')
         #Initializations
         self.mlp_kfold_probability = [] #empty list for mlp predicted probabilities
         self.kfold_true_label = [] #empty list to store true labels for each fold
-        self.fold_acc = [] #empty list to store test accuracy for each fold
-        self.fold_auroc = []
-        self.fold_avg_prec = []
-        self.test_labels = []
+        test_labels = []
         self.mlp_kfold_val_data = []
-        self.epoch_res = {}
         self.fold_num = 1
         self.cv_num = 1
         
@@ -112,6 +100,10 @@ class GridSearchMLP(object):
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels
         
+        self.fold_perf_df = pd.DataFrame(np.zeros(), columns = ['fold_acc','fold_auroc','fold_avg_prec'],
+                                         index = [x for x in range(1,self.cv_fold_mlp+1)])
+        
+
         for train, test in cv.split(data, label):
             # create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
@@ -119,13 +111,21 @@ class GridSearchMLP(object):
             # update the splits with the train and test indices for this cv loop and
             # normalize training data
             split._make_splits_cv(train, test)
-            self.test_labels.append(split.test.labels)
+            test_labels.append(split.test.labels)
+            
+            #Gather MLP args
+            mlp_args = {**mlp_args_specific, **{'split':copy.deepcopy(split)}}
             
             #Train and evaluate the model
             if self.num_ensemble > 0: #do ensembling
-                self._train_and_eval_ensemble()
+                accuracy, auroc, avg_precision = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
             else: #no ensembling (only one MLP)
-                self._train_and_eval_one_mlp()
+                epoch_perf = mlp_loops.train_and_eval_one_mlp(mlp_args)
+            
+            #Update the fold_perf_df
+            self.fold_perf_df.at[self.fold_num, 'fold_acc']=accuracy
+            self.fold_perf_df.at[self.fold_num, 'fold_auroc']=auroc
+            self.fold_perf_df.at[self.fold_num, 'fold_avg_prec']=avg_precision
             
             # save the dataframe of all the validation sets          
             if self.save_test_out:
@@ -138,7 +138,33 @@ class GridSearchMLP(object):
                     
             self.cv_num += 1
             self.fold_num += 1
+        
+        
+        
         self._print_performance_across_folds()
+     
+        # save the results for the best average precision
+        for epoch in range(1, self.max_epochs+1):
+            self.epoch_perf[epoch][0] /= self.cv_fold_mlp
+            self.epoch_perf[epoch][1] /= self.cv_fold_mlp
+            self.epoch_perf[epoch][2] /= self.cv_fold_mlp
+            avg_prec_res = self.epoch_perf[epoch][2]
+            if avg_prec_res > epoch_max_avg_prec:
+                best_epoch = epoch
+                curr_acc, curr_auroc, epoch_max_avg_prec = self.epoch_perf[epoch][0], self.epoch_perf[epoch][1], self.epoch_perf[epoch][2]
+        # save current results to dataframe
+        lst = [self.layer, self.learningrate, self.dropout, self.num_ensemble, best_epoch,round(curr_acc,4), round(curr_auroc,4), round(epoch_max_avg_prec,4)]
+        # append to output list
+        output.append(lst)
+
+        # save output to csv
+        cols = ["MLP Layer", "Learning Rate", "Dropout Rate", "Ensemble Size", "Best Epoch", "Accuracy", "AUROC", "Avg Precision"]
+        output_df = pd.DataFrame.from_records(output,columns=cols)
+        output_df.to_csv(os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'), index=False)
+     
+     
+     
+     
      
     def _save_test_preds_of_best_MLP(self):
         """Save the test predictions of the best MLP model"""
@@ -166,346 +192,6 @@ class GridSearchMLP(object):
         self._run_mlp()
         self.final_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
     
-    def _train_and_eval_ensemble(self):
-        # initialize ensembles
-        print("Calling init_ensemble()")
-        self._train_ensemble(self.num_ensemble, split)
-
-        # evaluate the accuracy of this fold using the ensemble
-        # initialized
-        accuracy, auroc, avg_prec = self._evaluate_ensemble()
-        self.fold_acc.append(accuracy)
-        self.fold_auroc.append(auroc)
-        self.fold_avg_prec.append(avg_prec)
-    
-    def _print_performance_across_folds(self):
-        """Print the accuracy, AUROC, and average precision for the cross
-        validation folds."""
-        # print the individual accuracies and the average accuracy
-        print("\n\n The accuracies of the cross validation folds are:\n")
-        tot_acc = 0
-        for k in range(len(self.fold_acc)):
-            print("Fold ",str(k+1), ": ", str(self.fold_acc[k]))
-            tot_acc += self.fold_acc[k]
-        # print the individual accuracies and the average accuracy
-        print("\n\n The auroc of the cross validation folds are:\n")
-        tot_auroc = 0
-        for k in range(len(self.fold_auroc)):
-            print("Fold ",str(k+1), ": ", str(self.fold_auroc[k]))
-            tot_auroc += self.fold_auroc[k]
-        # print the individual accuracies and the average accuracy
-        print("\n\n The average precision of the cross validation folds are:\n")
-        tot_avg_prec = 0
-        for k in range(len(self.fold_avg_prec)):
-            print("Fold ",str(k+1), ": ", str(self.fold_avg_prec[k]))
-            tot_avg_prec += self.fold_avg_prec[k]
-        
-        # get the overall metrics
-        print('The overall mean accuracy is', tot_acc/self.cv_fold_mlp)
-        print('The overall mean AUROC is',tot_auroc/self.cv_fold_mlp)
-        print('The overall mean Average Precision is',tot_avg_prec/self.cv_fold_mlp)
-        print('Done')
-        
-    def _train_and_eval_one_mlp(self):
-        #redefine mlp object with the new split
-        m = mlp.MLP(descriptor=self.gene_name,
-            split=split,
-            decision_threshold = 0.5,
-            num_epochs = self.max_epochs,
-            learningrate = self.learningrate,
-            mlp_layers = copy.deepcopy(self.layer),
-            dropout=self.dropout,
-            exclusive_classes = True,
-            save_model = False,
-            mysteryAAs = self.mysteryAAs_split,
-            cv_fold = self.cv_fold_mlp,
-            ensemble=self.num_ensemble,
-            save_test_out = self.save_test_out)
-
-        # set up graph and session for the model
-        m.set_up_graph_and_session()
-        # train as per normal if we are not doing ensembling
-        m.train()
-        
-        # if we are finding best mlp, then we have a dictionary of all the epochs to evaluate
-        if self.find_best_mlp:
-            for epoch in range(1, self.max_epochs+1):
-                pred_prob = m.pred_prob_dict[epoch]
-                true_label = m.true_label_dict[epoch]
-                pred_label = m.pred_label_dict[epoch]
-                acc = metrics.accuracy_score(true_label, pred_label)
-                auc = metrics.roc_auc_score(true_label, pred_label)
-                avg_prec = metrics.average_precision_score(true_label, pred_label)
-                if epoch not in self.epoch_res:
-                    self.epoch_res[epoch] = [acc, auc, avg_prec]
-                else: 
-                    self.epoch_res[epoch][0] = self.epoch_res[epoch][0]+acc
-                    self.epoch_res[epoch][1] = self.epoch_res[epoch][1]+auc
-                    self.epoch_res[epoch][2] = self.epoch_res[epoch][2]+avg_prec
-                
-        # append test accuracy to list
-        df = m.eval_results_test['accuracy']
-        for label in df.index.values:
-            acc = df.loc[label,'epoch_'+str(m.num_epochs)]
-            print("The accuracy for fold number ", str(self.fold_num), " is ",str(acc))
-        self.fold_acc.append(acc)
-        # append auroc to list
-        df = m.eval_results_test['auroc']
-        for label in df.index.values:
-            auroc = df.loc[label,'epoch_'+str(m.num_epochs)]
-            print("The auroc for fold number ", str(self.fold_num), " is ",str(auroc))
-        self.fold_auroc.append(auroc)
-        #append average precision to list
-        df = m.eval_results_test['avg_precision']
-        for label in df.index.values:
-            avg_prec = df.loc[label,'epoch_'+str(m.num_epochs)]
-            print("The average precision for fold number ",str(self.fold_num), " is ", str(avg_prec))
-        self.fold_avg_prec.append(avg_prec)
-        
-        # update lists for calibration
-        self.mlp_kfold_probability.append(m.selected_pred_probs)
-        self.kfold_true_label.append(m.selected_labels_true)
-    
-        # get the resulting dataframe for this fold
-        if self.save_test_out:
-            self.fold_df = self.make_output_human_readable(m.test_out, split.scaler)
-    
-    def _train_ensemble(self, num_ensemble, split):
-        """This function initializes mlps for the ensemble.
-           Inputs: num_ensemble, the number of mlps in the ensemble
-                   split, the split object to specify training and testing data
-        """
-        # define a list to store mlps for our ensemble
-        self.ensemble_lst = []
-
-        # initialize ensembles and store in the list
-        for i in range(num_ensemble):
-            print("In CV fold number", self.cv_num, " out of", self.cv_fold_mlp)
-            print("Initializing mlp number", i+1, " out of", num_ensemble, "for ensemble")
-            # initialize mlp
-            m = mlp.MLP(descriptor=self.gene_name,
-                split=copy.deepcopy(split),
-                decision_threshold = 0.5,
-                num_epochs = self.max_epochs, # fix number of epochs to 300
-                learningrate = self.learningrate,
-                mlp_layers = copy.deepcopy(self.layer),
-                dropout=self.dropout,
-                exclusive_classes = True,
-                save_model = False,
-                mysteryAAs = self.mysteryAAs_split,
-                cv_fold = self.cv_fold_mlp,
-                ensemble=self.num_ensemble,
-                save_test_out = self.save_test_out)
-
-            # set up graph and session for the model
-            m.set_up_graph_and_session()
-
-            # train as per normal
-            m.train()
-
-            # store to list
-            self.ensemble_lst.append(m)
-
-    def _evaluate_ensemble(self):
-        """This function evaluates the test set for the ensemble of mlps
-            output: accuracy, auroc, and average precision of the ensemble"""
-        print("Evaluating ensemble")
-        # true label for calibration
-        self.kfold_true_label.append(self.ensemble_lst[0].selected_labels_true)
-
-        # get the true label
-        true_label = self.ensemble_lst[0].selected_labels_true
-        pred_label_lst = []
-        pred_prob_lst = []
-        for i in range(len(true_label)):
-            pred_label = []
-            pred_prob = 0
-            # for each mlp, get the predicted label and predicted proba
-            for j in range(len(self.ensemble_lst)):
-                m = self.ensemble_lst[j]
-                pred_label.append(m.selected_pred_labels[i])
-                #print("Adding the predicted probability: ", m.selected_pred_probs.shape)
-                pred_prob += m.selected_pred_probs[i]
-            # for predicted labels, get the most frequent predicted label
-            if pred_label.count(0) > pred_label.count(1):
-                pred_label_lst.append(0)
-            else:
-                pred_label_lst.append(1)
-            # for predicted probability, get the average predicted probability
-            pred_prob_lst.append(pred_prob/len(self.ensemble_lst))
-
-        # calculate accuracy, auroc, and average precision
-        accuracy = metrics.accuracy_score(true_label, pred_label_lst)
-        auroc = metrics.roc_auc_score(true_label, pred_prob_lst)
-        avg_prec = metrics.average_precision_score(true_label, pred_prob_lst)
-
-        # update list for calibration
-        self.mlp_kfold_probability.append(pred_prob_lst)
-
-        # if we are saving test output
-        if self.save_test_out:
-            # get the list of cleanedup df
-            clean_df = []
-            for model in self.ensemble_lst:
-                clean_df.append(self.make_output_human_readable(model.test_out, model.split.scaler))
-            # merge the dataframes
-            curr_df = ""
-            for df in clean_df:
-                if len(curr_df) == 0:
-                    curr_df = df
-                else:
-                    curr_df = pd.merge(curr_df, df, on=['Consensus', 'Position', 'Change'])
-                    curr_df['Pred_Prob'] = curr_df['Pred_Prob_x'] + curr_df['Pred_Prob_y']
-                    curr_df = curr_df.drop(['Pred_Prob_x', 'Pred_Prob_y'], axis=1)
-            # divide pred prob by number of mlps in this ensemble
-            curr_df['Pred_Prob'] = curr_df['Pred_Prob'].div(len(self.ensemble_lst)).round(3)
-            # for debugging purposes only
-            print("The resulting df has", curr_df.isnull().sum(), " null values")
-  
-            self.fold_df = curr_df          
-        return accuracy, auroc, avg_prec
-
-    def make_output_human_readable(self, df, scaler):
-        '''This function takes a dataframe returned by a trained model,
-           and reverses one hot encoding and normalization'''
-
-        # debugging: checking for duplicates
-        print("Number of rows:", len(df.index))
-        col = [col for col in df.columns.values if col.startswith("Consensus") or col.startswith("Change") or col.startswith("Position")]
-        print("Checking for duplicates in mysteryAA cleanup")
-        print("Number of duplicates:", len(df[df.duplicated(subset=col,keep=False)]))
-
-        consensusAA = []
-        changeAA = []
-        position = []
-        pred_prob = df['Pred_Prob'].values
-        # get the consensusAA and changeAA lists by reversing one hot encoding
-        count = 0
-        col_no_change = 0
-        for index, row in df.iterrows():
-            found = False
-            # get the consensus and change of this row
-            for column in df.columns:
-                if column.startswith('Consensus_') and row[column]==1:
-                    consensus = column[-1]
-                    consensusAA.append(consensus)
-                if column.startswith('Change_') and row[column]==1:
-                    found = True
-                    change = column[-1]
-                    changeAA.append(change)
-            if not found:
-                print("Found one with no change", index)
-            #increment count
-            count += 1
-        # convert consensusAA and changeAA lists to numpy
-        consensusAA = np.array(consensusAA)
-        changeAA = np.array(changeAA)
-
-        # get the original positions by performing inverse transform
-        res = scaler.inverse_transform(df[['Position', 'Conservation', 'SigNoise']].values)
-        position = [int(row[0]) for row in res]
-        
-        # stack the 4 columns
-        new_np = np.vstack((consensusAA, changeAA, position, pred_prob)).T
-
-        # sort the rows from highest predicted probability to the lowest
-        index = np.argsort(new_np[:,-1])
-        new_np = new_np[index[::-1]]
-
-
-        # create a new dataframe with the 4 specified columns
-        new_df = pd.DataFrame(new_np, columns=['Consensus', 'Change', 'Position', 'Pred_Prob'])
-
-        new_df['Position'] = new_df['Position'].astype(int)
-        new_df['Consensus'] = new_df['Consensus'].astype(str)
-        new_df['Change'] = new_df['Change'].astype(str)
-        new_df['Pred_Prob'] = new_df['Pred_Prob'].astype(float)
-
-        return new_df
-
-    def _mysteryAAs_make_output_human_readable(self, filename):
-        '''This function converts the csv file outputted by test() in mlp 
-           into a csv file with a format that we want (ConsensusAA, ChangeAA, 
-           Position, Pred_Prob)'''
-        print("Cleaning up the file", filename)
-        # output file clean up
-        df = pd.read_csv(filename)
-        
-        # for debugging purposes
-        #pred_prob = sorted(df['Pred_Prob'].values, reverse=True)
-        #print(pred_prob)
-         
-        # debugging: checking for duplicates
-        print("Number of rows:", len(df.index))        
-        col = [col for col in df.columns.values if col.startswith("Consensus") or col.startswith("Change") or col.startswith("Position")]
-        print("Checking for duplicates in mysteryAA cleanup")
-        print("Number of duplicates:", len(df[df.duplicated(subset=col,keep=False)]))
-
-        consensusAA = []
-        changeAA = []
-        position = []
-        pred_prob = df['Pred_Prob'].values
-
-        # get the consensusAA and changeAA lists
-        count = 0
-        for index, row in df.iterrows():
-            # get the consensus and change of this row
-            for column in df.columns:
-                if column.startswith('Consensus_') and row[column]==1:
-                    consensus = column[-1]
-                    consensusAA.append(consensus)
-                if column.startswith('Change_') and row[column]==1:
-                    change = column[-1]
-                    changeAA.append(change)
-            # get the position of this row
-            position.append(int(self.ori_position[count]))
-            #increment count
-            count += 1
-        # convert consensusAA and changeAA lists to numpy
-        consensusAA = np.array(consensusAA)
-        changeAA = np.array(changeAA)
-       
-        # stack the 4 columns
-        new_np = np.vstack((consensusAA, changeAA, position, pred_prob)).T
-
-        # sort the rows from highest predicted probability to the lowest
-        index = np.argsort(new_np[:,-1])
-        new_np = new_np[index[::-1]]
-
-        
-        # create a new dataframe with the 4 specified columns
-        new_df = pd.DataFrame(new_np, columns=['ConsensusAA', 'ChangeAA', 'Position', 'Pred_Prob'])
-        
-        # add df to list of cleaned dataframes of each mlp in the ensemble to
-        # be evaluated in _predict_mysteryAAs()
-        
-        new_df['Position'] = new_df['Position'].astype(int)
-        new_df['ConsensusAA'] = new_df['ConsensusAA'].astype(str)
-        new_df['ChangeAA'] = new_df['ChangeAA'].astype(str)
-  
-        #if self.ensemble == False or 
-        # separate mysteryAAs into two files: wes or clinvar
-        clinvar_raw = pd.read_csv(os.path.join('data/'+self.gene_name,self.gene_name+'_variants_clinvar_raw.csv'),header= 0)
-        clinvar_raw.columns = ['ConsensusAA','Position','ChangeAA']
-        clinvar_raw['Position'] = clinvar_raw['Position'].astype(int)
-        clinvar_raw['ConsensusAA'] = clinvar_raw['ConsensusAA'].astype(str)
-        clinvar_raw['ChangeAA'] = clinvar_raw['ChangeAA'].astype(str)
- 
-        wes_raw = pd.read_csv(os.path.join('data/'+self.gene_name,self.gene_name+'_variants_wes_raw.csv'),header = 0)
-        wes_raw.columns = ['ConsensusAA','Position', 'ChangeAA']
-        wes_raw['Position'] = wes_raw['Position'].astype(int)
-        wes_raw['ConsensusAA'] = wes_raw['ConsensusAA'].astype(str)
-        wes_raw['ChangeAA'] = wes_raw['ChangeAA'].astype(str)
-        print(len(new_df))        
-        # merge the raw and the resulting mysteryAAs to separate the output into two files
-        clinvar_df = pd.merge(new_df, clinvar_raw, how='inner', on=['ConsensusAA','ChangeAA', 'Position'])
-        wes_df = pd.merge(new_df, wes_raw, how='inner', on=['ConsensusAA', 'ChangeAA', 'Position'])
-
-        print(len(new_df))
-        # create a new csv file
-        clinvar_df.to_csv('final_clinvar_' + filename, index=None, header=True)
-        wes_df.to_csv('final_wes_' +filename, index=None, header=True)
-        
 
 class PredictMysteryAAs_MLP(object):
     def __init__(self, gene_name, real_data_split, mysteryAAs_split):
@@ -567,7 +253,8 @@ class PredictMysteryAAs_MLP(object):
             print("Cleaning up output file of ensemble number:", en_num)
 
             # clean up the output file from training
-            self._mysteryAAs_make_output_human_readable(m.mysteryAAs_filename +str(m.best_valid_loss_epoch) + ".csv")
+            reformat_output.mysteryAAs_make_output_human_readable(m.mysteryAAs_filename +str(m.best_valid_loss_epoch)+'.csv',
+                                                                  self.gene_name, self.ori_position)
       
         # loop through the list of cleaned dataframe to get the average of predicted probas
         ori_df = self.ensemble_output_lst[0]
