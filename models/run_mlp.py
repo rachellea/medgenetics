@@ -119,8 +119,26 @@ class GridSearchMLP(object):
             if self.num_ensemble > 0: #do ensembling
                 fold_eval_dfs_dict, fold_test_data_and_preds = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
             else: #no ensembling (only one MLP)
-                fold_eval_dfs_dict = mlp_loops.train_and_eval_one_mlp(mlp_args)
-                
+                fold_eval_dfs_dict, fold_test_data_and_preds = mlp_loops.train_and_eval_one_mlp(mlp_args)
+            
+            
+            
+            
+            
+            
+            #we want two things:
+            #one thing is the performance of each fold. this will help us
+            #see if there is a lot of variability in performance between folds.
+            #Technically if we're using average precision we also would need to
+            #account for the number of positives in each fold to do a proper weighting.
+            #the second thing is the general performance where we concatenate the
+            #actual predictions from each fold and then calculate the performance
+            #metrics on all the data at the same time. This implicitly does all
+            #of the weighting correctly based on number of true positives, number
+            #of false positives, and so on. 
+            
+            
+            
             #Sum the fold_eval_dfs_dict across all the folds
             #For ensemble, the eval_dfs_dict will contain only the final epoch
             #For a single MLP, the eval_dfs_dict will contain all of the epochs
