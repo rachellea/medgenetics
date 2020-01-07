@@ -319,9 +319,10 @@ class AnnotatedGene(object):
 
 
 class PrepareData(object):
-    def __init__(self, gene_name, descriptor, shared_args):
+    def __init__(self, gene_name, shared_args):
+        """This class produces self.real_data_split and self.mysteryAAs_split
+        which are needed for all the modeling."""
         self.gene_name = gene_name
-        self.descriptor = descriptor
         self.shared_args = shared_args
         
         #Load real data consisting of benign and pathologic mutations
@@ -331,8 +332,7 @@ class PrepareData(object):
         
         self._prep_train_val_data() #creates self.real_data_split
         self._prep_mysteryAAs() #creates self.mysteryAAs_split and self.ori_position
-        return self.real_data_split, self.mysteryAAs_split, self.ori_position
-    
+            
     def _prep_train_val_data(self):
         inputx = self.ag.inputx
         self._run_sanity_check(inputx)
@@ -352,7 +352,7 @@ class PrepareData(object):
                              **all_args)    
         #Save pickled split:
         print('Saving pickled split')
-        pickle.dump(self.real_data_split, open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
+        pickle.dump(self.real_data_split, open(self.gene_name+'.pickle', 'wb'),-1)
     
     def _prep_mysteryAAs(self):
         #mysteryAAs are from WES and ClinVar data. Will get predictions for these
@@ -389,76 +389,64 @@ class PrepareData(object):
         if len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]) > 0:
             assert False, 'Data is not clean: duplicates remain'
 
-#################################
-# Deprecated: everyAA functions #-----------------------------------------------
-#################################
-#TODO make this into a class so you canuse it as mysteryAAs if you want.
-
 class PrepareEveryAA(object):
-    """everyAA is an alternative to mysteryAAs. mysteryAAs consists of mutations
-    from WES and """
-    def __init__(self):
-        pass
-
-def get_geneseq(gene_name):
-    geneseq = ''
-    with open(os.path.join('data/'+gene_name,gene_name+'_reference_sequence.txt'), 'r') as f:
-        for line in f:
-            geneseq = geneseq + line.rstrip()
-    if gene_name == 'ryr2':
-        assert len(geneseq) == 4967
-    elif gene_name == 'scn5a':
-        pass #TODO (for scn5a and all other genes)
-    return geneseq.upper()
-
-def prepare_everyAA(real_data, gene_name):
-    """Create a pandas dataframe containing every possible amino acid change
-    at every position, except for anything present in the real data."""
-    global AMINO_ACIDS
-    print('Creating everyAA')
-    geneseq = get_geneseq(gene_name)
-    #List of all possible AAs:
-    max_length = len(geneseq)*(len(AMINO_ACIDS)-1) #don't count C-->C (not a change)
-    print('everyAA max length is',max_length)
+    """everyAA is an alternative to mysteryAAs. everyAA contains every possible
+    amino acid mutation for a given gene"""
+    def __init__(self, gene_name, size):
+        """<size> is either 'full' for every possible AA mutation for the
+        specified gene, or 'small' for a small version intended for testing"""
+        self.gene_name = gene_name
+        self.initialize_geneseq()
+        
+        if size == 'full':
+            self.everyAA = self.prepare_everyAA()
+        elif size == 'small':
+            self.everyAA = self.make_small_everyAA_for_testing()
     
-    #Fill dataframe
-    everyAA = pd.DataFrame(np.empty((max_length,3), dtype='str'), columns = ['Position','Consensus','Change'])
-    dfindex = 0
-    for position in range(len(geneseq)):
-        consensus = geneseq[position]
-        for aa in AMINO_ACIDS:
-            if aa != consensus: 
-                everyAA.at[dfindex, 'Position'] = str(position+1) #one-based
-                everyAA.at[dfindex, 'Consensus'] = consensus
-                everyAA.at[dfindex, 'Change'] = aa
-                dfindex+=1
-        if position % 500 == 0: print('Done with',position)
-    assert max_length == dfindex
-    #Transform position to int
-    everyAA['Position'] = pd.to_numeric(everyAA['Position'], downcast='integer')
+    def initialize_geneseq(self):
+        geneseq = ''
+        with open(os.path.join('data/'+self.gene_name,self.gene_name+'_reference_sequence.txt'), 'r') as f:
+            for line in f:
+                geneseq = geneseq + line.rstrip()
+        if gene_name == 'ryr2':
+            assert len(geneseq) == 4967
+        self.geneseq = geneseq.upper()
     
-    #Remove anything that's already present in the real data
-    #Fast way: I already know the duplicates have been removed, so I will
-    #create "false duplicates" by concatenating. Then I will remove all dups
-    print('Shape of everyAA:',everyAA.shape)
-    print('After removing real data, rows should be',everyAA.shape[0] - real_data.shape[0])
-    #make it int16
+    def prepare_everyAA(self):
+        """Create a pandas dataframe containing every possible amino acid change
+        at every position, except for anything present in the real data."""
+        global AMINO_ACIDS
+        print('Creating everyAA')
+        #List of all possible AAs:
+        max_length = len(self.geneseq)*(len(AMINO_ACIDS)-1) #don't count C-->C (not a change)
+        print('everyAA max length is',max_length)
+        
+        #Fill dataframe
+        everyAA = pd.DataFrame(np.empty((max_length,3), dtype='str'), columns = ['Position','Consensus','Change'])
+        dfindex = 0
+        for position in range(len(self.geneseq)):
+            consensus = self.geneseq[position]
+            for aa in AMINO_ACIDS:
+                if aa != consensus: 
+                    everyAA.at[dfindex, 'Position'] = str(position+1) #one-based
+                    everyAA.at[dfindex, 'Consensus'] = consensus
+                    everyAA.at[dfindex, 'Change'] = aa
+                    dfindex+=1
+            if position % 500 == 0: print('Done with',position)
+        assert max_length == dfindex
+        #Transform position to int
+        everyAA['Position'] = pd.to_numeric(everyAA['Position'], downcast='integer')
+        everyAA['Label']=0 #dummy, never used
+        
+        #Reindex
+        everyAA = everyAA.reset_index(drop=True)#Reindex
+        return everyAA
     
-    real_data['Position'] = pd.to_numeric(real_data['Position'], downcast='integer')
-    everyAA = pd.concat([everyAA, real_data[['Position','Consensus','Change']]],axis=0)
-    everyAA = everyAA.drop_duplicates(keep=False) #drop all dups
-    print('After removing real data, rows are',everyAA.shape[0])
-    everyAA['Label']=0 #dummy, never used
-    
-    #Reindex
-    everyAA = everyAA.reset_index(drop=True)#Reindex
-    return everyAA
-
-def make_small_everyAA_for_testing():
-    """Dummy version of everyAA to be able to run the MLP code quickly"""
-    global AMINO_ACIDS
-    everyAA = pd.DataFrame(np.transpose(np.array([AMINO_ACIDS, AMINO_ACIDS])),
-                        columns=['Consensus','Change'])
-    everyAA['Label'] = 0
-    everyAA['Position'] = [x for x in range(1,1+len(AMINO_ACIDS))]
-    return everyAA
+    def make_small_everyAA_for_testing():
+        """Dummy version of everyAA to be able to run the MLP code quickly"""
+        global AMINO_ACIDS
+        everyAA = pd.DataFrame(np.transpose(np.array([AMINO_ACIDS, AMINO_ACIDS])),
+                            columns=['Consensus','Change'])
+        everyAA['Label'] = 0
+        everyAA['Position'] = [x for x in range(1,1+len(AMINO_ACIDS))]
+        return everyAA

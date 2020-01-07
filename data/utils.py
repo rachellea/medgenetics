@@ -13,9 +13,6 @@ class Splits(object):
     def __init__(self,
              data,
              labels,
-             impute, #if True, impute
-             impute_these_categorical, #columns to impute with mode
-             impute_these_continuous, #columns to impute with median
              one_hotify, #if True, one-hotify specified categorical variables
              one_hotify_these_categorical, #columns to one hotify
              normalize_these_continuous, #columns to normalize
@@ -37,31 +34,21 @@ class Splits(object):
         assert data.index.values.tolist()==labels.index.values.tolist()
         self.clean_data = data
         self.clean_labels = labels
-        self.impute_these_categorical = impute_these_categorical
-        self.impute_these_continuous = impute_these_continuous
         self.one_hotify_these_categorical = one_hotify_these_categorical
         self.normalize_these_continuous = normalize_these_continuous
         self.max_position = max_position
         self.columns_to_ensure = columns_to_ensure
-        
+        self.batch_size = batch_size
         if seed is not None:
             self.seed = seed
         else:
             self.seed = np.random.randint(0,10e6)
-        self.batch_size = batch_size
         
-        self._get_split_indices() #defines self.trainidx and self.testidx
+        #Shuffle and one-hotify:
         self._shuffle_before_splitting()
-        
-        #Further data prep:
-        if impute:
-            self._impute()
         if one_hotify:
             self._one_hotify()
             self._ensure_all_columns()
-        else:
-            print('WARNING: you elected not to normalize your data. This could lead to poor performance.')
-        self._make_splits() #creates self.train, self.valid, and self.test
 
     def _shuffle_before_splitting(self):
         idx = np.arange(0, self.clean_data.shape[0])
@@ -73,23 +60,7 @@ class Splits(object):
         
         # get position column before splitting
         self.position = self.clean_data['Position'].values
-
-    def _impute(self):
-        """Impute categorical variables using the mode of the training data
-        and continuous variables using the median of the training data."""
-        #impute missing categorical values with the training data mode https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.mode.html
-        print('Imputing categorical variables with mode:\n',str(self.impute_these_categorical))
-        training_data = self.clean_data.iloc[0:self.trainidx,:]
-        imputed_with_modes = (self.clean_data[self.impute_these_categorical]).fillna((training_data[self.impute_these_categorical]).mode().iloc[0])
-        self.clean_data[self.impute_these_categorical] = imputed_with_modes  
-        
-        #impute missing continuous values with the training data median
-        print('Imputing continuous variables with median:\n',str(self.impute_these_continuous))
-        imputed_with_medians = (self.clean_data[self.impute_these_continuous]).fillna((training_data[self.impute_these_continuous]).median())
-        self.clean_data[self.impute_these_continuous] = imputed_with_medians
-        
-        print('Done imputing')
-
+    
     def _one_hotify(self):
         """Modify self.clean_data so that each categorical column is turned
         into many columns that together form a one-hot vector for that variable.
