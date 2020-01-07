@@ -55,4 +55,4 @@ if __name__=='__main__':
                         'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
                         'seed':10393, #make it 12345 for original split
                         'batch_size':300}
-    Run('scn5a',shared_args,what_to_run=[],what_model=[])
+    Run('scn5a',shared_args,what_to_run=[''],what_model=[])

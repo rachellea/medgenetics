@@ -16,30 +16,30 @@ import matplotlib.transforms as mtransforms
         lg = self._run_logreg()
         # debugging statements
         #print("CHECK IF TRUE LABELS ARE THE SAME\n\n")
-        #for i in range(len(self.kfold_true_label)):
-            #print((lg.true_test_labels_lst[i] == self.kfold_true_label[i]).all())
-        #    for j in range(len(self.kfold_true_label[i])):
-      #          print(lg.true_test_labels_lst[i][j] == self.kfold_true_label[i][j])
-            #print(np.array(self.test_labels[i]) == np.array(self.kfold_true_label[i]))
+        #for i in range(len(self.kfold_true)):
+            #print((lg.true_test_labels_lst[i] == self.kfold_true[i]).all())
+        #    for j in range(len(self.kfold_true[i])):
+      #          print(lg.true_test_labels_lst[i][j] == self.kfold_true[i][j])
+            #print(np.array(self.test_labels[i]) == np.array(self.kfold_true[i]))
             
         #print("\n\n")
         
         logreg_kfold_probability_stacked = np.hstack(lg.logreg_kfold_probability)
-        mlp_kfold_probability_stacked = np.hstack(self.mlp_kfold_probability)
-        kfold_true_label_stacked = np.hstack(self.kfold_true_label)
+        kfold_prob_stacked = np.hstack(self.kfold_prob)
+        kfold_true_stacked = np.hstack(self.kfold_true)
                                      
         if self.calibration_strategy == 'quantile':
             print("\n\n\n--------------------Starting calibration plots-----------\n\n\n")
             print("Strategy chosen: quantile")
-            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
+            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_stacked,
             logreg_kfold_probability_stacked, n_bins = self.num_bins, strategy='quantile')
-            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
-            mlp_kfold_probability_stacked, n_bins = self.num_bins, strategy='quantile')
+            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_stacked,
+            kfold_prob_stacked, n_bins = self.num_bins, strategy='quantile')
         elif self.calibration_strategy == 'uniform': 
-            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_label_stacked,
+            logreg_y, logreg_x = calibration.calibration_curve(kfold_true_stacked,
             logreg_kfold_probability_stacked, strategy='uniform', n_bins=self.num_bins)
-            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_label_stacked,
-            mlp_kfold_probability_stacked, strategy='uniform', n_bins=self.num_bins)
+            mlp_y, mlp_x = calibration.calibration_curve(kfold_true_stacked,
+            kfold_prob_stacked, strategy='uniform', n_bins=self.num_bins)
         else:
             sys.exit("Must choose either 'uniform' or 'quantile' as strategy for calibration plot under variable self.calibration_strategy")
 

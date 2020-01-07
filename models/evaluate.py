@@ -58,7 +58,6 @@ def evaluate_all(eval_dfs_dict, epoch, which_label,
         pass
         #plot_precision_recall_curve(true_labels, pred_probs, epoch, filename_prefix, which_label)
         #plot_roc_curve(fpr, tpr, epoch, filename_prefix, which_label)
-    
     return eval_dfs_dict
 
 #######################

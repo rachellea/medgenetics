@@ -1,4 +1,4 @@
-#ensembling.py
+#mlp_loops.py
 #Functions to train and evaluate ensembles
 
 import numpy as np
@@ -17,9 +17,9 @@ def train_and_eval_ensemble(mlp_args, num_ensemble):
 
 def train_ensemble(mlp_args, num_ensemble):
      """This function initializes mlps for the ensemble.
-        Inputs:
-            split, the split object to specify training and testing data
-            num_ensemble, the number of mlps in the ensemble"""
+        Variables:
+            <split>: the split object to specify training and testing data
+            <num_ensemble>: the number of mlps in the ensemble"""
      # define a list to store mlps for our ensemble
      ensemble_lst = []
 
@@ -47,7 +47,7 @@ def evaluate_ensemble(ensemble_lst, num_epochs):
         'avg_precision':copy.deepcopy(result_df)}
     
     # true label for calibration
-    self.kfold_true_label.append(ensemble_lst[0].selected_labels_true)
+    self.kfold_true.append(ensemble_lst[0].selected_labels_true)
 
     # get the true label
     true_label = ensemble_lst[0].selected_labels_true
@@ -76,7 +76,7 @@ def evaluate_ensemble(ensemble_lst, num_epochs):
     eval_results_test['avg_precision'].at['Label','epoch_'+str(num_epochs)] = metrics.average_precision_score(true_label, pred_prob_lst)
     
     # update list for calibration
-    self.mlp_kfold_probability.append(pred_prob_lst)
+    self.kfold_prob.append(pred_prob_lst)
 
     # if we are saving test output
     if self.save_test_out:
@@ -104,19 +104,19 @@ def evaluate_ensemble(ensemble_lst, num_epochs):
 ##############
 # Single MLP #------------------------------------------------------------------
 ##############
-def train_and_eval_one_mlp(mlp_args):
+def train_and_eval_one_mlp(mlp_args, kfold_prob, kfold_true):
     #redefine mlp object with the new split and train it
     m = mlp.MLP(**mlp_args)
     m.set_up_graph_and_session()
     m.train()
     
     # update lists for calibration
-    self.mlp_kfold_probability.append(m.selected_pred_probs)
-    self.kfold_true_label.append(m.selected_labels_true)
+    kfold_prob.append(m.selected_pred_probs)
+    kfold_true.append(m.selected_labels_true)
     
     # get the resulting dataframe for this fold
     if self.save_test_out:
         self.fold_df = reformat_output.make_output_human_readable(m.test_out, split.scaler)
     
     #return the eval_dfs_dict for the test set:
-    return m.eval_results_test
+    return m.eval_results_test, kfold_prob, kfold_true

@@ -94,8 +94,8 @@ class GridSearchMLP(object):
     def _run_mlp(self, mlp_args_specific):
         print('Running MLP')
         #Initializations
-        self.mlp_kfold_probability = [] #empty list for mlp predicted probabilities
-        self.kfold_true_label = [] #empty list to store true labels for each fold
+        self.kfold_prob = [] #empty list for mlp predicted probabilities
+        self.kfold_true = [] #empty list to store true labels for each fold
         test_labels = []
         self.mlp_kfold_val_data = []
         self.fold_num = 1
