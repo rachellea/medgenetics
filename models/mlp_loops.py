@@ -11,9 +11,12 @@ import reformat_output
 # Ensembles #-------------------------------------------------------------------
 #############
 def train_and_eval_ensemble(mlp_args, num_ensemble):
+    #Train
     ensemble_lst = train_ensemble(mlp_args, num_ensemble)
-    fold_eval_dfs_dict, fold_test_data_and_preds = evaluate_ensemble(ensemble_lst, mlp_args['num_epochs'], mlp_args['decision_threshold'])
-    return fold_eval_dfs_dict, fold_test_data_and_preds
+    #Evaluate
+    fold_test_out = create_fold_test_out(ensemble_lst, mlp_args['num_epochs'], mlp_args['decision_threshold'])
+    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out, mlp_args['num_epochs'])
+    return fold_test_out, fold_eval_dfs_dict
 
 def train_ensemble(mlp_args, num_ensemble):
      """This function initializes mlps for the ensemble.
@@ -35,75 +38,72 @@ def train_ensemble(mlp_args, num_ensemble):
          ensemble_lst.append(m)
      return ensemble_lst
 
-def evaluate_ensemble(ensemble_lst, num_epochs, decision_threshold):
-    """This function evaluates the test set for the ensemble of mlps
-        output: accuracy, auroc, and average precision of the ensemble"""
-    print("Evaluating ensemble")
-    fold_test_data_and_preds = create_fold_test_data_and_preds(ensemble_lst, decision_threshold)
-    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_data_and_preds, num_epochs)
-    return fold_eval_dfs_dict, fold_test_data_and_preds
-    
-#Helper for evaluate_ensemble()
-def create_fold_test_data_and_preds(ensemble_lst, decision_threshold)
-    """For ensemble models in <ensemble_lst>, aggregate their predictions
-    into a table along with the data itself, and represent the data in
-    human-readable form.
-    Returns a dataframe with columns ['Consensus','Change','Position',
-    'Conservation','SigNoise','Pred_Prob','Pred_Label','True_Label']"""
-    # get the list of fold_test_data_and_preds dfs, one for each model in the
-    #ensemble.
-    clean_df_list = []
+#Part of evaluating the ensemble
+def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold)
+    """For ensemble models in <ensemble_lst>, aggregate their predictions.
+    Returns a dictionary of dataframes.
+    The dictionary keys are 'epoch_1', 'epoch_2',... and so on.
+    The values are dataframes with columns ['Consensus_etc','Change_etc','Position',
+    'Conservation','SigNoise','Pred_Prob','Pred_Label','True_Label']
+    The data has NOT been put in human-readable format yet, so for example the
+    Consensus is many columns (one-hot encoding) and the Position is
+    normalized (not integer positions.)"""
+    # test_out is a dictionary of dataframes. Gather all of the test_outs for
+    #all the models in the ensemble.
+    test_out_collection = []
     for model in ensemble_lst:
-        clean_df_list.append(reformat_output.make_output_human_readable(model.test_out, model.split.scaler))
+        test_out_collection.append(model.test_out)
     
-    #Columns Consensus, Change, Position, Conservation, SigNoise, and True_Label
-    #should be identical across all models in the ensemble. They are sorted
-    #by position
-    #The Pred_Prob column should be summed.
-    for idx in range(len(clean_df_list)):
-        df = clean_df_list[idx]
+    #Columns Consensus_etc, Change_etc, Position, Conservation, SigNoise, and True_Label
+    #should be identical across all models in the ensemble.
+    #Rows are sorted by position. The Pred_Prob column should be summed.
+    for idx in range(len(test_out_collection)):
+        test_out = test_out_collection[idx]
         if idx == 0:
-            fold_test_data_and_preds = df
+            fold_test_out = test_out
         else:
-            #First check that the different members of the ensemble were
-            #applied to the exact same data:
-            samecols = ['Consensus','Change','Position','True_Label']
-            assert np.equal(df[samecols].values, fold_test_data_and_preds[samecols].values).all()
-            closecols = ['Conservation','SigNoise']
-            assert np.isclose(df[closecols].values, fold_test_data_and_preds[closecols].values, rtol=1e-4).all()
-            #Now sum up the Pred_Prob column:
-            fold_test_data_and_preds['Pred_Prob'] += df['Pred_Prob']
+            for epoch in range(1,num_epochs+1):
+                df = test_out['epoch_'+str(epoch)] #this df
+                fold_df = fold_test_out['epoch_'+str(epoch)] #the aggregated df
+                #First check that the different members of the ensemble were
+                #applied to the exact same data:
+                all_cols = df.columns.values.tolist()
+                samecols = [x for x in all_cols if 'Consensus' in x]+[x for x in all_cols if 'Change' in x]+['True_Label']
+                assert np.equal(df[samecols].values, fold_df[samecols].values).all()
+                closecols = ['Position','Conservation','SigNoise']
+                assert np.isclose(df[closecols].values, fold_df[closecols].values, rtol=1e-4).all()
+                #Now sum up the Pred_Prob column:
+                fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'] += df['Pred_Prob']
     
     #Since we want to store the average Pred_Prob across all members of
     #the ensemble, divide the summed Pred_Prob by the number of models
-    #in the ensemble:
-    fold_test_data_and_preds['Pred_Prob'].div(len(self.ensemble_lst))
-    
-    #Now, based on the average Pred_Prob, determine the Pred_Label:
-    fold_test_data_and_preds['Pred_Label'] = (fold_test_data_and_preds['Pred_Prob'].values > decision_threshold).astype('int')
-    return fold_test_data_and_preds
+    #in the ensemble, and then determine the Pred_Label:
+    for epoch in range(1,num_epochs+1):
+        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].div(len(self.ensemble_lst))
+        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Label'] = (fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].values > decision_threshold).astype('int')
+    return fold_test_out
 
-#Helper for evaluate_ensemble()
-def create_fold_eval_dfs_dict(fold_test_data_and_preds, num_epochs):
-    """Return the performance of the ensemble models based on the predictions
-    and ground truth in <fold_test_data_and_preds>. Note that this is implicitly
-    for the max number of epochs only (i.e. the number of epochs specified by
-    <num_epochs>)."""
+#Part of evaluating the ensemble
+def create_fold_eval_dfs_dict(fold_test_out, num_epochs):
+    """Return the performance of the ensemble models for all epochs
+    based on the predictions and ground truth in <fold_test_out>."""
     #Initialize empty fold_eval_dfs_dict
-    result_df = pd.DataFrame(data=np.zeros((1, 1)),
-                        index = ['Label'], columns = ['epoch_'+str(num_epochs)])
+    result_df = pd.DataFrame(data=np.zeros((1, num_epochs)),
+                            index = ['Label'],
+                            columns = ['epoch_'+str(n) for n in range(1,num_epochs+1)])
     fold_eval_dfs_dict = {'accuracy':copy.deepcopy(result_df),
         'auroc':copy.deepcopy(result_df),
         'avg_precision':copy.deepcopy(result_df)}
     
     #Calculate performance
-    true_label = fold_test_data_and_preds['True_Label'].values
-    pred_label = fold_test_data_and_preds['Pred_Label'].values
-    pred_prob = fold_test_data_and_preds['Pred_Prob'].values
-    fold_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(num_epochs)] = metrics.accuracy_score(true_label, pred_label)
-    fold_eval_dfs_dict['auroc'].at['Label','epoch_'+str(num_epochs)] = metrics.roc_auc_score(true_label, pred_prob)
-    fold_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(num_epochs)] = metrics.average_precision_score(true_label, pred_prob)
-    return fold_eval_dfs_dict #for only the max number of epochs
+    for epoch in range(1,num_epochs+1):
+        true_label = fold_test_out['epoch_'+str(epoch)]['True_Label'].values
+        pred_label = fold_test_out['epoch_'+str(epoch)]['Pred_Label'].values
+        pred_prob = fold_test_out['epoch_'+str(epoch)]['Pred_Prob'].values
+        fold_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)] = metrics.accuracy_score(true_label, pred_label)
+        fold_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)] = metrics.roc_auc_score(true_label, pred_prob)
+        fold_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)] = metrics.average_precision_score(true_label, pred_prob)
+    return fold_eval_dfs_dict
 
 ##############
 # Single MLP #------------------------------------------------------------------
@@ -113,6 +113,4 @@ def train_and_eval_one_mlp(mlp_args):
     m = mlp.MLP(**mlp_args)
     m.set_up_graph_and_session()
     m.train()
-    fold_test_data_and_preds = reformat_output.make_output_human_readable(m.test_out, split.scaler)
-    fold_eval_dfs_dict = m.fold_eval_dfs_dict #for all epochs!
-    return fold_eval_dfs_dict, fold_test_data_and_preds
+    return m.test_out, m.fold_eval_dfs_dict

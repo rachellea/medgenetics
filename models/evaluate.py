@@ -121,12 +121,13 @@ def report_best_results(eval_dfs_dict_valid, eval_dfs_dict_test,
             f.write('\t'+key+'='+str(metric))
         f.write('\n')
 
+
+###################################
+# First Way: Averaged Performance #---------------------------------------------
+###################################
+#These functions enable averaging the performance metrics for each fold of cross-validation
 def sum_eval_dfs_dicts(new_eval_dfs_dict, old_eval_dfs_dict):
-    """Return <new_eval_dfs_dict> + <old_eval_dfs_dict>
-    If <old_eval_dfs_dict> is None then return <new_eval_dfs_dict> unchanged"""
-    if old_eval_dfs_dict is None: #for first cross-validation fold
-        return new_eval_dfs_dict
-    
+    """Return <new_eval_dfs_dict> + <old_eval_dfs_dict>"""
     #Check that columns and index are equivalent
     for key in ['accuracy','auroc','avg_precision']:
         assert old_eval_dfs_dict[key].columns.values.tolist()==new_eval_dfs_dict[key].columns.values.tolist()
@@ -139,32 +140,26 @@ def sum_eval_dfs_dicts(new_eval_dfs_dict, old_eval_dfs_dict):
     combined_dfs_dict['avg_precision'] = old_eval_dfs_dict['avg_precision'].values + new_eval_dfs_dict['avg_precision'].values
     return combined_dfs_dict
 
-def update_and_save_cv_perf_df(eval_dfs_dict, cv_fold_mlp, num_ensemble,
-                               mlp_args_specific, big_final_output_df, save_path):
+def update_and_save_cv_avg_perf_df(perf_all_models_avg, all_eval_dfs_dict, cv_fold_mlp,
+                               mlp_args_specific, save_path):
     """Used in cross-validation. Save the performance across all folds."""
     num_epochs = mlp_args_specific['num_epochs']
     
     #Divide by the number of folds to get the average performance across all folds
     for key in ['accuracy','auroc','avg_precision']:
-        eval_dfs_dict[key].loc[:,:] = eval_dfs_dict[key].values / cv_fold_mlp
+        all_eval_dfs_dict[key].loc[:,:] = all_eval_dfs_dict[key].values / cv_fold_mlp
     
     #Save performance
-    if self.num_ensemble > 0: #ensembling was done; only max epoch is saved
-        best_epoch = num_epochs
-        best_acc = eval_dfs_dict['accuracy'].at['Label','epoch_'+str(num_epochs)]
-        best_auroc = eval_dfs_dict['auroc'].at['Label','epoch_'+str(num_epochs)]
-        best_avg_prec =  eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(num_epochs)]
-    else: #no ensembling; all epochs were saved and must pick best one
-        best_epoch = None; best_acc = 0; best_auroc = 0; best_avg_prec = 0
-        for epoch in range(1, num_epochs+1):
-            avg_prec_epoch = eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)]
-            if avg_prec_epoch > best_avg_prec:
-                best_epoch = epoch
-                best_acc = eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)]
-                best_auroc = eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)]
-                best_avg_prec = avg_prec_epoch
+    best_epoch = None; best_acc = 0; best_auroc = 0; best_avg_prec = 0
+    for epoch in range(1, num_epochs+1):
+        avg_prec_epoch = all_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)]
+        if avg_prec_epoch > best_avg_prec:
+            best_epoch = epoch
+            best_acc = all_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)]
+            best_auroc = all_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)]
+            best_avg_prec = avg_prec_epoch
     
-    #Save to the big_final_output_df:
+    #Save to the perf_all_models_avg:
     model_summary = {'MLP_Layer':mlp_args_specific['mlp_layers'],
                      'Learning_Rate':mlp_args_specific['learningrate'],
                      'Dropout_Rate':mlp_args_specific['dropout'],
@@ -173,7 +168,7 @@ def update_and_save_cv_perf_df(eval_dfs_dict, cv_fold_mlp, num_ensemble,
                      'Accuracy':round(best_acc,4),
                      'AUROC':round(best_auroc,4),
                      'Avg_Precision':round(best_avg_prec,4)}
-    big_final_output_df.append(model_summary)
+    perf_all_models_avg.append(model_summary)
     
     #Print
     print('The mean accuracy is', round(best_acc,4))
@@ -181,8 +176,20 @@ def update_and_save_cv_perf_df(eval_dfs_dict, cv_fold_mlp, num_ensemble,
     print('The mean Average Precision is',round(best_avg_prec))
     
     # save output to csv
-    big_final_output_df.to_csv(save_path, index=False)
-    return big_final_output_df
+    perf_all_models_avg.to_csv(save_path, index=False)
+    return perf_all_models_avg
+
+###################################
+# Second Way: General Performance #---------------------------------------------
+###################################
+#These functions enable calculating the performance metrics based on the
+#aggregated predictions for all examples across all the folds of cross-validation
+def sum_test_outs(fold_test_out, all_test_out):
+    pass
+
+def update_and_save_cv_gen_perf_df(perf_all_models_avg, all_test_out, cv_fold_mlp,
+                               mlp_args_specific, save_path):
+    pass
 
 #########################
 # Calculation Functions #-------------------------------------------------------

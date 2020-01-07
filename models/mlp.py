@@ -94,6 +94,7 @@ class MLP(object):
         self.dropout = dropout
         self.ensemble = ensemble
         self.save_test_out = save_test_out
+        self.test_out = {} #this will be a dictionary of data and predictions for every epoch
     
     def run_all(self):
         """Run all key methods"""
@@ -240,8 +241,10 @@ class MLP(object):
 
         # if we are saving the output for test
         if self.save_test_out:
-            self.test_out = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
+            test_out = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
                                columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
+            test_out = test_out.sort_values(by='Position')
+            self.test_out['epoch_'+str(self.num_epochs_done)] = test_out
         
         #~~~Save outputs for mysteryAAs~~~#
         if chosen_dataset == 'mysteryAAs':

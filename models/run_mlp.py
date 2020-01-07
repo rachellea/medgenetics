@@ -43,7 +43,7 @@ class GridSearchMLP(object):
         self.cv_fold_mlp = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = os.path.join(os.path.join('results',gene_name),datetime.datetime.today().strftime('%Y-%m-%d'))
-        self.big_test_data_and_predsput_df = pd.DataFrame(
+        self.perf_all_models_avg = pd.DataFrame(
             
             
             
@@ -117,51 +117,46 @@ class GridSearchMLP(object):
             
             #Train and evaluate the model
             if self.num_ensemble > 0: #do ensembling
-                fold_eval_dfs_dict, fold_test_data_and_preds = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
+                fold_test_out, fold_eval_dfs_dict = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
             else: #no ensembling (only one MLP)
-                fold_eval_dfs_dict, fold_test_data_and_preds = mlp_loops.train_and_eval_one_mlp(mlp_args)
+                fold_test_out, fold_eval_dfs_dict = mlp_loops.train_and_eval_one_mlp(mlp_args)
             
-            
-            
-            
-            
-            
-            #we want two things:
-            #one thing is the performance of each fold. this will help us
-            #see if there is a lot of variability in performance between folds.
-            #Technically if we're using average precision we also would need to
-            #account for the number of positives in each fold to do a proper weighting.
-            #the second thing is the general performance where we concatenate the
-            #actual predictions from each fold and then calculate the performance
-            #metrics on all the data at the same time. This implicitly does all
-            #of the weighting correctly based on number of true positives, number
-            #of false positives, and so on. 
-            
-            
-            
-            #Sum the fold_eval_dfs_dict across all the folds
-            #For ensemble, the eval_dfs_dict will contain only the final epoch
-            #For a single MLP, the eval_dfs_dict will contain all of the epochs
+            #Aggregate the fold_eval_dfs_dict (performance metrics) for FIRST WAY:
             if fold_num == 1:
-                eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, None)
+                all_eval_dfs_dict = fold_eval_dfs_dict
             else:
-                eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, eval_dfs_dict)
+                all_eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
             
-            # save the dataframe of all the validation sets          
-            if self.save_test_out:
-                # if this is the first fold, initialize the dataframe
-                if fold_num == 1:
-                    self.test_data_and_preds = self.fold_test_data_and_preds
-                    # otherwise, concatenate with existing dataframe
-                else:
-                    self.test_data_and_preds = pd.concat([self.test_data_and_preds, self.fold_test_data_and_preds], ignore_index=True)
-                    
+            #Aggregate the fold_test_out (data and predictions) for SECOND WAY:
+            if fold_num == 1:
+                all_test_out = fold_test_out
+            else:
+                all_test_out = evaluate.sum_test_outs(fold_test_out, all_test_out)
+            
             fold_num += 1
+            
+        # Calculating Performance in Two Ways #---------------------------------
+        #Now we are done with the folds of cross-validation.
+        #We need to calculate performance. We will do this in two ways:
+        #FIRST WAY: 'Averaged Perf':averaging the performance of each fold. this will help us
+        #see if there is a lot of variability in performance between folds.
+        #Technically if we're using average precision we also would need to
+        #account for the number of positives in each fold to do a proper weighting.
+        #But due to computational cost we are not going to do that.
+        self.perf_all_models_avg = evaluate.update_and_save_cv_avg_perf_df(
+            self.perf_all_models_avg, all_eval_dfs_dict, self.cv_fold_mlp, mlp_args_specific, 
+            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models_avg.csv'))
         
-        # save the results for the best average precision
-        self.big_test_data_and_predsput_df = evaluate.update_and_save_cv_perf_df(eval_dfs_dict,
-                    self.cv_fold_mlp, self.num_ensemble, mlp_args_specific,self.big_test_data_and_predsput_df,
-                    save_path = os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'))
+        #SECOND WAY: 'Generalized Perf': we concatenate the actual predictions
+        #for each example in the test set of each fold so that we get a
+        #predicted probability for every example in the data set. Then we
+        #calculate the performance metrics on all this data at the same time.
+        #This implicitly does all of the weighting correctly based on number of
+        #true positives, number of false positives, and so on. But it hides
+        #any 'variability between folds' that may exist with this model setup.
+        self.perf_all_models_gen = evaluate.update_and_save_cv_gen_perf_df(
+            self.perf_all_models_gen, all_test_out, self.cv_fold_mlp, mlp_args_specific, 
+            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models_gen.csv'))
     
     def _save_test_preds_of_best_MLP(self):
         """Save the test predictions of the best MLP model"""
@@ -187,7 +182,7 @@ class GridSearchMLP(object):
         # run the best model again to obtain true label and predicted probabilities
         self.save_test_out = True
         self._run_mlp()
-        self.test_data_and_preds.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
+        self.all_folds_test_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
     
 class PredictMysteryAAs_MLP(object):
     def __init__(self, gene_name, real_data_split, mysteryAAs_split):
