@@ -43,6 +43,13 @@ class GridSearchMLP(object):
         self.cv_fold_mlp = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = os.path.join(os.path.join('results',gene_name),datetime.datetime.today().strftime('%Y-%m-%d'))
+        self.big_final_output_df = pd.DataFrame(
+            
+            
+            
+            columns = ['MLP_Layer','Learning_Rate','Dropout_Rate','Ensemble_Size','Best_Epoch','Accuracy','AUROC','Avg_Precision']
+            
+        )
         
         #Run
         self._initialize_search_params()
@@ -60,8 +67,6 @@ class GridSearchMLP(object):
     
     def _get_best_mlp(self):
         self.save_test_out = False
-        # initalize output list to populate filename_csv
-        output = []
 
         # for each combination of hyperparameters, get set the epoch and run mlp
         for comb in tqdm(self.combinations):
@@ -94,17 +99,14 @@ class GridSearchMLP(object):
         test_labels = []
         self.mlp_kfold_val_data = []
         self.fold_num = 1
-        self.cv_num = 1
         
         cv = model_selection.StratifiedKFold(n_splits=self.cv_fold_mlp, random_state=19357)
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels
         
-        self.fold_perf_df = pd.DataFrame(np.zeros(), columns = ['fold_acc','fold_auroc','fold_avg_prec'],
-                                         index = [x for x in range(1,self.cv_fold_mlp+1)])
-        
-
         for train, test in cv.split(data, label):
+            print("In CV fold number", self.fold_num, " out of", self.cv_fold_mlp)
+            
             # create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
             
@@ -118,14 +120,17 @@ class GridSearchMLP(object):
             
             #Train and evaluate the model
             if self.num_ensemble > 0: #do ensembling
-                accuracy, auroc, avg_precision = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
+                fold_eval_dfs_dict = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
             else: #no ensembling (only one MLP)
-                epoch_perf = mlp_loops.train_and_eval_one_mlp(mlp_args)
-            
-            #Update the fold_perf_df
-            self.fold_perf_df.at[self.fold_num, 'fold_acc']=accuracy
-            self.fold_perf_df.at[self.fold_num, 'fold_auroc']=auroc
-            self.fold_perf_df.at[self.fold_num, 'fold_avg_prec']=avg_precision
+                fold_eval_dfs_dict = mlp_loops.train_and_eval_one_mlp(mlp_args)
+                
+            #Sum the fold_eval_dfs_dict across all the folds
+            #For ensemble, the eval_dfs_dict will contain only the final epoch
+            #For a single MLP, the eval_dfs_dict will contain all of the epochs
+            if self.fold_num == 1:
+                eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, None)
+            else:
+                eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, eval_dfs_dict)
             
             # save the dataframe of all the validation sets          
             if self.save_test_out:
@@ -136,36 +141,13 @@ class GridSearchMLP(object):
                 else:
                     self.final_out = pd.concat([self.final_out, self.fold_df], ignore_index=True)
                     
-            self.cv_num += 1
             self.fold_num += 1
         
-        
-        
-        self._print_performance_across_folds()
-     
         # save the results for the best average precision
-        for epoch in range(1, self.max_epochs+1):
-            self.epoch_perf[epoch][0] /= self.cv_fold_mlp
-            self.epoch_perf[epoch][1] /= self.cv_fold_mlp
-            self.epoch_perf[epoch][2] /= self.cv_fold_mlp
-            avg_prec_res = self.epoch_perf[epoch][2]
-            if avg_prec_res > epoch_max_avg_prec:
-                best_epoch = epoch
-                curr_acc, curr_auroc, epoch_max_avg_prec = self.epoch_perf[epoch][0], self.epoch_perf[epoch][1], self.epoch_perf[epoch][2]
-        # save current results to dataframe
-        lst = [self.layer, self.learningrate, self.dropout, self.num_ensemble, best_epoch,round(curr_acc,4), round(curr_auroc,4), round(epoch_max_avg_prec,4)]
-        # append to output list
-        output.append(lst)
-
-        # save output to csv
-        cols = ["MLP Layer", "Learning Rate", "Dropout Rate", "Ensemble Size", "Best Epoch", "Accuracy", "AUROC", "Avg Precision"]
-        output_df = pd.DataFrame.from_records(output,columns=cols)
-        output_df.to_csv(os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'), index=False)
-     
-     
-     
-     
-     
+        self.big_final_output_df = evaluate.update_and_save_cv_perf_df(eval_dfs_dict,
+                    self.cv_fold_mlp, self.num_ensemble, mlp_args_specific,self.big_final_output_df,
+                    save_path = os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'))
+    
     def _save_test_preds_of_best_MLP(self):
         """Save the test predictions of the best MLP model"""
           # get the best model
@@ -192,7 +174,6 @@ class GridSearchMLP(object):
         self._run_mlp()
         self.final_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
     
-
 class PredictMysteryAAs_MLP(object):
     def __init__(self, gene_name, real_data_split, mysteryAAs_split):
         '''This function uses mlp to predict the mysteryAAs'''

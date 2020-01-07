@@ -12,7 +12,7 @@ import reformat_output
 #############
 def train_and_eval_ensemble(mlp_args, num_ensemble):
     ensemble_lst = train_ensemble(mlp_args, num_ensemble)
-    accuracy, auroc, avg_precision = evaluate_ensemble(ensemble_lst) #TODO fill in the arguments!!!
+    accuracy, auroc, avg_precision = evaluate_ensemble(ensemble_lst, mlp_args['num_epochs']) #TODO fill in the arguments!!!
     return accuracy, auroc, avg_precision
 
 def train_ensemble(mlp_args, num_ensemble):
@@ -25,7 +25,6 @@ def train_ensemble(mlp_args, num_ensemble):
 
      # initialize ensembles and store in the list
      for i in range(num_ensemble):
-         print("In CV fold number", self.cv_num, " out of", self.cv_fold_mlp)
          print("Initializing mlp number", i+1, " out of", num_ensemble, "for ensemble")
          # initialize mlp
          m = mlp.MLP(**mlp_args)
@@ -36,10 +35,17 @@ def train_ensemble(mlp_args, num_ensemble):
          ensemble_lst.append(m)
      return ensemble_lst
 
-def evaluate_ensemble(ensemble_lst):
+def evaluate_ensemble(ensemble_lst, num_epochs):
     """This function evaluates the test set for the ensemble of mlps
         output: accuracy, auroc, and average precision of the ensemble"""
     print("Evaluating ensemble")
+    #Initialize eval_results_test
+    result_df = pd.DataFrame(data=np.zeros((1, 1)),
+                        index = ['Label'], columns = ['epoch_'+str(num_epochs)])
+    eval_results_test = {'accuracy':copy.deepcopy(result_df),
+        'auroc':copy.deepcopy(result_df),
+        'avg_precision':copy.deepcopy(result_df)}
+    
     # true label for calibration
     self.kfold_true_label.append(ensemble_lst[0].selected_labels_true)
 
@@ -64,11 +70,11 @@ def evaluate_ensemble(ensemble_lst):
         # for predicted probability, get the average predicted probability
         pred_prob_lst.append(pred_prob/len(ensemble_lst))
 
-    # calculate accuracy, auroc, and average precision
-    accuracy = metrics.accuracy_score(true_label, pred_label_lst)
-    auroc = metrics.roc_auc_score(true_label, pred_prob_lst)
-    avg_prec = metrics.average_precision_score(true_label, pred_prob_lst)
-
+    # store accuracy, auroc, and average precision
+    eval_results_test['accuracy'].at['Label','epoch_'+str(num_epochs)] = metrics.accuracy_score(true_label, pred_label_lst)
+    eval_results_test['auroc'].at['Label','epoch_'+str(num_epochs)] = metrics.roc_auc_score(true_label, pred_prob_lst)
+    eval_results_test['avg_precision'].at['Label','epoch_'+str(num_epochs)] = metrics.average_precision_score(true_label, pred_prob_lst)
+    
     # update list for calibration
     self.mlp_kfold_probability.append(pred_prob_lst)
 
@@ -93,42 +99,24 @@ def evaluate_ensemble(ensemble_lst):
         print("The resulting df has", curr_df.isnull().sum(), " null values")
 
         self.fold_df = curr_df         
-    return accuracy, auroc, avg_prec
+    return eval_results_test
 
 ##############
 # Single MLP #------------------------------------------------------------------
 ##############
 def train_and_eval_one_mlp(mlp_args):
-     #Initialize dictionary to store epoch
-     epoch_perf = {}
-     
     #redefine mlp object with the new split and train it
     m = mlp.MLP(**mlp_args)
     m.set_up_graph_and_session()
     m.train()
     
-    # if we are finding best mlp, then we have a dictionary of all the epochs to evaluate
-    if self.find_best_mlp:
-        for epoch in range(1, self.max_epochs+1):
-            pred_prob = m.pred_prob_dict[epoch]
-            true_label = m.true_label_dict[epoch]
-            pred_label = m.pred_label_dict[epoch]
-            acc = metrics.accuracy_score(true_label, pred_label)
-            auc = metrics.roc_auc_score(true_label, pred_label)
-            avg_prec = metrics.average_precision_score(true_label, pred_label)
-            if epoch not in epoch_perf:
-                epoch_perf[epoch] = [acc, auc, avg_prec]
-            else: 
-                epoch_perf[epoch][0] = epoch_perf[epoch][0]+acc
-                epoch_perf[epoch][1] = epoch_perf[epoch][1]+auc
-                epoch_perf[epoch][2] = epoch_perf[epoch][2]+avg_prec
-     
     # update lists for calibration
     self.mlp_kfold_probability.append(m.selected_pred_probs)
     self.kfold_true_label.append(m.selected_labels_true)
-
+    
     # get the resulting dataframe for this fold
     if self.save_test_out:
         self.fold_df = reformat_output.make_output_human_readable(m.test_out, split.scaler)
     
-    return epoch_perf
+    #return the eval_dfs_dict for the test set:
+    return m.eval_results_test
