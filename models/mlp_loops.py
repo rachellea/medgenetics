@@ -12,7 +12,7 @@ import reformat_output
 #############
 def train_and_eval_ensemble(mlp_args, num_ensemble):
     ensemble_lst = train_ensemble(mlp_args, num_ensemble)
-    accuracy, auroc, avg_precision = evaluate_ensemble(ensemble_lst, mlp_args['num_epochs']) #TODO fill in the arguments!!!
+    accuracy, auroc, avg_precision = evaluate_ensemble(ensemble_lst, mlp_args['num_epochs'])
     return accuracy, auroc, avg_precision
 
 def train_ensemble(mlp_args, num_ensemble):
@@ -98,7 +98,7 @@ def evaluate_ensemble(ensemble_lst, num_epochs):
         # for debugging purposes only
         print("The resulting df has", curr_df.isnull().sum(), " null values")
 
-        self.fold_df = curr_df         
+        self.fold_df = curr_df
     return eval_results_test
 
 ##############
