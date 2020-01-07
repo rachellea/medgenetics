@@ -1,8 +1,12 @@
 #reformat_output.py
 
 def make_output_human_readable(df, scaler):
-    '''This function takes a dataframe returned by a trained model,
-       and reverses one hot encoding and normalization'''
+    """This function takes a dataframe returned by a trained model,
+       and reverses one hot encoding and normalization
+       
+       <df> is model.test_out with columns data meanings (i.e. various columns
+           of the data like 'Conservation' and 'Position'), Pred_Prob,
+           Pred_Label, and True_Label"""
 
     # debugging: checking for duplicates
     print("Number of rows:", len(df.index))
@@ -13,7 +17,6 @@ def make_output_human_readable(df, scaler):
     consensusAA = []
     changeAA = []
     position = []
-    pred_prob = df['Pred_Prob'].values
     # get the consensusAA and changeAA lists by reversing one hot encoding
     count = 0
     col_no_change = 0
@@ -29,33 +32,32 @@ def make_output_human_readable(df, scaler):
                 change = column[-1]
                 changeAA.append(change)
         if not found:
-            print("Found one with no change", index)
+            assert False, 'Found example with no change '+str(index)
         #increment count
         count += 1
     # convert consensusAA and changeAA lists to numpy
     consensusAA = np.array(consensusAA)
     changeAA = np.array(changeAA)
 
-    # get the original positions by performing inverse transform
-    res = scaler.inverse_transform(df[['Position', 'Conservation', 'SigNoise']].values)
-    position = [int(row[0]) for row in res]
+    # get the original continuous variables by performing inverse transform
+    inverted_cont_vars = scaler.inverse_transform(df[['Position', 'Conservation', 'SigNoise']].values)
+        
+    # create a new dataframe with the necessary columns
+    new_df = pd.DataFrame(np.vstack((consensusAA, changeAA, inverted_cont_vars).T,
+                          columns=['Consensus', 'Change', 'Position','Conservation','SigNoise'])
+    for colname in ['Pred_Prob','True_Label']:
+        new_df[colname] = df[colname].values
     
-    # stack the 4 columns
-    new_np = np.vstack((consensusAA, changeAA, position, pred_prob)).T
-
-    # sort the rows from highest predicted probability to the lowest
-    index = np.argsort(new_np[:,-1])
-    new_np = new_np[index[::-1]]
-
-
-    # create a new dataframe with the 4 specified columns
-    new_df = pd.DataFrame(new_np, columns=['Consensus', 'Change', 'Position', 'Pred_Prob'])
-
-    new_df['Position'] = new_df['Position'].astype(int)
+    #change data types of columns
     new_df['Consensus'] = new_df['Consensus'].astype(str)
     new_df['Change'] = new_df['Change'].astype(str)
+    new_df['Position'] = new_df['Position'].astype(int)
     new_df['Pred_Prob'] = new_df['Pred_Prob'].astype(float)
-
+    new_df['True_Label'] = new_df['True_Label'].astype(int)
+    
+    #sort so that different members of an ensemble will all have the AAs in
+    #the same order:
+    new_df = new_df.sort_values(by='Position')
     return new_df
 
 def mysteryAAs_make_output_human_readable(filename, gene_name, ori_position): #TODO replace "filename"

@@ -240,8 +240,8 @@ class MLP(object):
 
         # if we are saving the output for test
         if self.save_test_out:
-            self.test_out = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels),axis = 1),
-                               columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
+            self.test_out = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
+                               columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
         
         #~~~Save outputs for mysteryAAs~~~#
         if chosen_dataset == 'mysteryAAs':

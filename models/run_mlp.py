@@ -43,7 +43,7 @@ class GridSearchMLP(object):
         self.cv_fold_mlp = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = os.path.join(os.path.join('results',gene_name),datetime.datetime.today().strftime('%Y-%m-%d'))
-        self.big_final_output_df = pd.DataFrame(
+        self.big_test_data_and_predsput_df = pd.DataFrame(
             
             
             
@@ -94,18 +94,15 @@ class GridSearchMLP(object):
     def _run_mlp(self, mlp_args_specific):
         print('Running MLP')
         #Initializations
-        self.kfold_prob = [] #empty list for mlp predicted probabilities
-        self.kfold_true = [] #empty list to store true labels for each fold
-        test_labels = []
-        self.mlp_kfold_val_data = []
-        self.fold_num = 1
+        test_labels = [] #TODO delete this if it turns out you don't need it
+        fold_num = 1
         
         cv = model_selection.StratifiedKFold(n_splits=self.cv_fold_mlp, random_state=19357)
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels
         
         for train, test in cv.split(data, label):
-            print("In CV fold number", self.fold_num, " out of", self.cv_fold_mlp)
+            print("In CV fold number", fold_num, " out of", self.cv_fold_mlp)
             
             # create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
@@ -120,14 +117,14 @@ class GridSearchMLP(object):
             
             #Train and evaluate the model
             if self.num_ensemble > 0: #do ensembling
-                fold_eval_dfs_dict = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
+                fold_eval_dfs_dict, fold_test_data_and_preds = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
             else: #no ensembling (only one MLP)
                 fold_eval_dfs_dict = mlp_loops.train_and_eval_one_mlp(mlp_args)
                 
             #Sum the fold_eval_dfs_dict across all the folds
             #For ensemble, the eval_dfs_dict will contain only the final epoch
             #For a single MLP, the eval_dfs_dict will contain all of the epochs
-            if self.fold_num == 1:
+            if fold_num == 1:
                 eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, None)
             else:
                 eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, eval_dfs_dict)
@@ -135,17 +132,17 @@ class GridSearchMLP(object):
             # save the dataframe of all the validation sets          
             if self.save_test_out:
                 # if this is the first fold, initialize the dataframe
-                if self.fold_num == 1:
-                    self.final_out = self.fold_df
+                if fold_num == 1:
+                    self.test_data_and_preds = self.fold_test_data_and_preds
                     # otherwise, concatenate with existing dataframe
                 else:
-                    self.final_out = pd.concat([self.final_out, self.fold_df], ignore_index=True)
+                    self.test_data_and_preds = pd.concat([self.test_data_and_preds, self.fold_test_data_and_preds], ignore_index=True)
                     
-            self.fold_num += 1
+            fold_num += 1
         
         # save the results for the best average precision
-        self.big_final_output_df = evaluate.update_and_save_cv_perf_df(eval_dfs_dict,
-                    self.cv_fold_mlp, self.num_ensemble, mlp_args_specific,self.big_final_output_df,
+        self.big_test_data_and_predsput_df = evaluate.update_and_save_cv_perf_df(eval_dfs_dict,
+                    self.cv_fold_mlp, self.num_ensemble, mlp_args_specific,self.big_test_data_and_predsput_df,
                     save_path = os.path.join(self.results_dir,self.gene_name+'_all_mlp_results.csv'))
     
     def _save_test_preds_of_best_MLP(self):
@@ -172,7 +169,7 @@ class GridSearchMLP(object):
         # run the best model again to obtain true label and predicted probabilities
         self.save_test_out = True
         self._run_mlp()
-        self.final_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
+        self.test_data_and_preds.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
     
 class PredictMysteryAAs_MLP(object):
     def __init__(self, gene_name, real_data_split, mysteryAAs_split):
