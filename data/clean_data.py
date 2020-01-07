@@ -1,9 +1,11 @@
-#Rachel Ballantyne Draelos, Farica Zhuang
+#clean_data.py
 
 import os
 import copy
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+import utils
 
 AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
                     'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
@@ -314,10 +316,90 @@ class AnnotatedGene(object):
                                header = None,
                                names = ['Position','SigNoise'])
         return df.merge(signoise, how = 'inner', on = 'Position')
-            
+
+
+class PrepareData(object):
+    def __init__(self, gene_name, descriptor, shared_args):
+        self.gene_name = gene_name
+        self.descriptor = descriptor
+        self.shared_args = shared_args
+        
+        #Load real data consisting of benign and pathologic mutations
+        ag = clean_data.AnnotatedGene(self.gene_name)
+        ag.annotate_everything()
+        self.ag = ag
+        
+        self._prep_train_val_data() #creates self.real_data_split
+        self._prep_mysteryAAs() #creates self.mysteryAAs_split and self.ori_position
+        return self.real_data_split, self.mysteryAAs_split, self.ori_position
+    
+    def _prep_train_val_data(self):
+        inputx = self.ag.inputx
+        self._run_sanity_check(inputx)
+        
+        #Prepare split data
+        split_args = {'train_percent':1.0,
+                        'valid_percent':0,
+                        'test_percent':0, 
+                        'max_position':self.ag.max_position,
+                        'columns_to_ensure':self.ag.columns_to_ensure}
+        all_args = {**self.shared_args, **split_args }
+        data = (copy.deepcopy(inputx)).drop(columns=['Label'])
+        labels = copy.deepcopy(inputx[['Label']])
+        print('Fraction of diseased:',str( np.sum(labels)/len(labels) ) )
+        self.real_data_split = utils.Splits(data = data,
+                             labels = labels,
+                             **all_args)    
+        #Save pickled split:
+        print('Saving pickled split')
+        pickle.dump(self.real_data_split, open(self.gene_name+'_'+self.descriptor+'.pickle', 'wb'),-1)
+    
+    def _prep_mysteryAAs(self):
+        #mysteryAAs are from WES and ClinVar data. Will get predictions for these
+        mysteryAAs_raw = self.ag.mysteryAAs
+        self._run_sanity_check(mysteryAAs_raw)
+        
+        mysteryAAs_data = (copy.deepcopy(mysteryAAs_raw)).drop(columns=['Label'])
+        mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
+        self.mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
+                                     labels = mysteryAAs_labels,
+                                     train_percent = 1.0,
+                                     valid_percent = 0,
+                                     test_percent = 0,
+                                     max_position = self.ag.max_position,
+                                     columns_to_ensure = self.ag.columns_to_ensure,
+                                     **self.shared_args)
+
+        # get the position before split
+        self.ori_position = self.mysteryAAs_split.position
+        self.mysteryAAs_split = self.mysteryAAs_split.train
+        assert self.mysteryAAs_split.data.shape[0] == mysteryAAs_raw.shape[0]
+    
+    def _run_sanity_check(self, df):
+        """A quick santiy check to ensure consensus!=change and to ensure no
+        duplicates"""
+        #Ensure consensus!=change
+        for i in range(len(df.values)):
+            consensus = df.values[i][0]
+            change = df.values[i][2]
+            position = df.values[i][1]        
+            if consensus == change:
+                assert False, 'Data is not clean: consensus==change at'+str(position)
+        #Ensure no duplicates
+        if len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]) > 0:
+            assert False, 'Data is not clean: duplicates remain'
+
 #################################
 # Deprecated: everyAA functions #-----------------------------------------------
 #################################
+#TODO make this into a class so you canuse it as mysteryAAs if you want.
+
+class PrepareEveryAA(object):
+    """everyAA is an alternative to mysteryAAs. mysteryAAs consists of mutations
+    from WES and """
+    def __init__(self):
+        pass
+
 def get_geneseq(gene_name):
     geneseq = ''
     with open(os.path.join('data/'+gene_name,gene_name+'_reference_sequence.txt'), 'r') as f:

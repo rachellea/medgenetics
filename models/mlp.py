@@ -267,18 +267,7 @@ class MLP(object):
                                                      self.selected_pred_probs,
                                                      self.descriptor+'MLP_'+chosen_dataset,
                                                      self.num_epochs)
-        
-
-    def update(self):
-        """ Update train, test, and related variables after updating split"""
-        self.train_set = split.train
-        self.test_set = split.test
-        self.preserved_data_meanings = split.train.data_meanings
-
-        #Number of batches per epoch
-        self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
-        self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
-            
+    
     def save(self):
         self.saver.save(self.session, os.path.join(os.getcwd(),'model_MLP'))
     
