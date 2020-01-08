@@ -43,7 +43,7 @@ def make_output_human_readable(df, scaler):
     inverted_cont_vars = scaler.inverse_transform(df[['Position', 'Conservation', 'SigNoise']].values)
         
     # create a new dataframe with the necessary columns
-    new_df = pd.DataFrame(np.vstack((consensusAA, changeAA, inverted_cont_vars).T,
+    new_df = pd.DataFrame(np.vstack(consensusAA, changeAA, inverted_cont_vars).T,
                           columns=['Consensus', 'Change', 'Position','Conservation','SigNoise'])
     for colname in ['Pred_Prob','True_Label']:
         new_df[colname] = df[colname].values

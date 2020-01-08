@@ -4,8 +4,8 @@
 import numpy as np
 import pandas as pd
 
-import mlp
-import reformat_output
+from . import mlp
+from . import reformat_output
 
 #############
 # Ensembles #-------------------------------------------------------------------
@@ -39,7 +39,7 @@ def train_ensemble(mlp_args, num_ensemble):
      return ensemble_lst
 
 #Part of evaluating the ensemble
-def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold)
+def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
     """For ensemble models in <ensemble_lst>, aggregate their predictions.
     Returns a dictionary of dataframes.
     The dictionary keys are 'epoch_1', 'epoch_2',... and so on.

@@ -5,14 +5,14 @@ import copy
 import numpy as np
 import pandas as pd
 
-import utils
+from . import utils
 
 AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
                     'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 #X is not really an amino acid; it's a stop codon
 
 class BareGene(object):
-    def __init__(self, gene_name):
+    def __init__(self, gene_name, results_dir):
         """Return one dataframe with the cleaned genetic data and the labels.
         Performs these tasks:
             > Remove non-allowed symbols
@@ -39,7 +39,7 @@ class BareGene(object):
                 'wes':self.mysteryAAs}
         for key in dfs.keys():
             df = dfs[key]
-            print('Working on',key)
+            print('\n***Working on',key,'***')
             df = self.remove_missing_values(df, key)
             df = self.clean_up_symbols(df, key)
             df = self.remove_consensus_equals_change(df, key)
@@ -51,13 +51,7 @@ class BareGene(object):
         self.healthy = dfs['healthy']
         self.diseased = dfs['pathologic']
         self.mysteryAAs = dfs['wes']
-
-        # check if we still have a clean mysteryAA
-        df = self.mysteryAAs
-        print("Checking for duplicates after initial clean up in Bare Gene")
-        col = ["Consensus",  "Change", "Position"]
-        print(len(df[df.duplicated(subset=col, keep=False)]))
-
+        
         #Merge healthy and diseased
         merged = self.merge_healthy_and_diseased(self.healthy, self.diseased)
         print('merged shape:',merged.shape)
@@ -74,15 +68,9 @@ class BareGene(object):
         mystmerged = self.remove_dups(mystmerged, 'mystmerged', False, 'duplicate_across_mystery_and_healthysick_removed_both')
         self.mysteryAAs = (mystmerged[mystmerged['Label']==1]).drop(columns='Label')
         print('mysteryAAs shape after:',self.mysteryAAs.shape)
-       
-        # check if we still have a clean mysteryAA
-        df = self.mysteryAAs
-        print("Checking for duplicates after final clean up in Bare Gene")
-        col = ["Consensus",  "Change"]
-        print(len(df[df.duplicated(subset=col, keep=False)]))
-  
+        
         #Save history
-        self.history.to_csv(self.gene_name+'_data_cleaning_history.csv')
+        self.history.to_csv(os.path.join(results_dir, self.gene_name+'_data_cleaning_history.csv'))
         
         #TODO write function that checks that everything listed in self.history
         #is present in the original files and is absent from the current version
@@ -173,8 +161,11 @@ class BareGene(object):
         #Perform change
         print('remove_dups():')
         print('\tRows before:', df.shape[0])
-        df = df.drop_duplicates(keep = keep)
+        df = df.drop_duplicates(subset=cols, keep=keep)
         print('\tRows after:',df.shape[0])
+        
+        #Sanity check - make sure duplicates are gone
+        assert df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)].shape[0] == 0
         return df
     
     def merge_healthy_and_diseased(self, healthy, diseased):
@@ -218,13 +209,13 @@ class BareGene(object):
             self.history_idx += 1
 
 class AnnotatedGene(object):
-    def __init__(self, gene_name):
+    def __init__(self, gene_name, results_dir):
         """Add domain, conservation, and signal to noise information to the
         bare gene and to mysteryAAs; produce gene and mysteryAAs dataframes"""
         global AMINO_ACIDS
         self.gene_name = gene_name
         
-        b = BareGene(gene_name)
+        b = BareGene(gene_name, results_dir)
         self.inputx = b.merged
        
         # check if we have a clean data
@@ -319,14 +310,14 @@ class AnnotatedGene(object):
 
 
 class PrepareData(object):
-    def __init__(self, gene_name, shared_args):
+    def __init__(self, gene_name, shared_args, results_dir):
         """This class produces self.real_data_split and self.mysteryAAs_split
         which are needed for all the modeling."""
         self.gene_name = gene_name
         self.shared_args = shared_args
         
         #Load real data consisting of benign and pathologic mutations
-        ag = clean_data.AnnotatedGene(self.gene_name)
+        ag = AnnotatedGene(self.gene_name, results_dir)
         ag.annotate_everything()
         self.ag = ag
         
@@ -379,12 +370,7 @@ class PrepareData(object):
         """A quick santiy check to ensure consensus!=change and to ensure no
         duplicates"""
         #Ensure consensus!=change
-        for i in range(len(df.values)):
-            consensus = df.values[i][0]
-            change = df.values[i][2]
-            position = df.values[i][1]        
-            if consensus == change:
-                assert False, 'Data is not clean: consensus==change at'+str(position)
+        assert (df.loc[:,'Consensus'].values == df.loc[:,'Change'].values).sum() == 0, 'Data is not clean: consensus==change at'+str(position)
         #Ensure no duplicates
         if len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]) > 0:
             assert False, 'Data is not clean: duplicates remain'
@@ -396,21 +382,12 @@ class PrepareEveryAA(object):
         """<size> is either 'full' for every possible AA mutation for the
         specified gene, or 'small' for a small version intended for testing"""
         self.gene_name = gene_name
-        self.initialize_geneseq()
+        self.geneseq = get_geneseq(gene_name)
         
         if size == 'full':
             self.everyAA = self.prepare_everyAA()
         elif size == 'small':
             self.everyAA = self.make_small_everyAA_for_testing()
-    
-    def initialize_geneseq(self):
-        geneseq = ''
-        with open(os.path.join('data/'+self.gene_name,self.gene_name+'_reference_sequence.txt'), 'r') as f:
-            for line in f:
-                geneseq = geneseq + line.rstrip()
-        if gene_name == 'ryr2':
-            assert len(geneseq) == 4967
-        self.geneseq = geneseq.upper()
     
     def prepare_everyAA(self):
         """Create a pandas dataframe containing every possible amino acid change
@@ -450,3 +427,12 @@ class PrepareEveryAA(object):
         everyAA['Label'] = 0
         everyAA['Position'] = [x for x in range(1,1+len(AMINO_ACIDS))]
         return everyAA
+
+def get_geneseq(gene_name):
+    geneseq = ''
+    with open(os.path.join('data/'+gene_name, gene_name+'_reference_sequence.txt'), 'r') as f:
+        for line in f:
+            geneseq = geneseq + line.rstrip()
+    if gene_name == 'ryr2':
+        assert len(geneseq) == 4967
+    return geneseq.upper()

@@ -3,7 +3,6 @@
 import os
 import copy
 import pickle
-import datetime
 import itertools
 import numpy as np
 import pandas as pd
@@ -13,9 +12,9 @@ from sklearn import neural_network
 from sklearn import model_selection, metrics, calibration
 
 #Custom imports
-import mlp
-import mlp_loops
-import reformat_output
+from . import mlp
+from . import mlp_loops
+from . import reformat_output
 
 class SimpleMLP(object):
     def __init__(self, real_data_split, hidden_layer_sizes=(30,20),
@@ -35,26 +34,40 @@ class SimpleMLP(object):
 class GridSearchMLP(object):
     """Perform a grid search across predefined architectures and hyperparameters
     for a given gene <gene_name> to determine the best MLP model setup."""
-    def __init__(self, gene_name, real_data_split, mysteryAAs_split):
+    def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split, testing=False):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.real_data_split = real_data_split
         self.mysteryAAs_split = mysteryAAs_split
         self.cv_fold_mlp = 10 #ten fold cross validation
         self.max_epochs = 1000
-        self.results_dir = os.path.join(os.path.join('results',gene_name),datetime.datetime.today().strftime('%Y-%m-%d'))
-        self.perf_all_models_avg = pd.DataFrame(
-            
-            
-            
-            columns = ['MLP_Layer','Learning_Rate','Dropout_Rate','Ensemble_Size','Best_Epoch','Accuracy','AUROC','Avg_Precision']
-            
-        )
+        self.results_dir = os.path.join(results_dir, gene_name)
+        
+        #Initialize dataframe that will store the performance for all of the
+        #different models:
+        self.perf_all_models = pd.DataFrame(np.zeros(1,12),
+                columns = ['MLP_Layer','Learning_Rate','Dropout_Rate',
+                           'Ensemble_Size','Mean_Best_Epoch','Mean_Accuracy',
+                           'Mean_AUROC','Mean_Avg_Precision','Gen_Best_Epoch',
+                           'Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision'])
+        self.perf_all_models['MLP_Layer'] = self.perf_all_models['MLP_Layer'].astype('str')
         
         #Run
-        self._initialize_search_params()
+        if testing:
+            self._initialize_testing_search_params()
+        else:
+            self._initialize_search_params()
         self._get_best_mlp()
         self._save_test_preds_of_best_mlp()
+    
+    def _initialize_testing_search_params(self):
+        #Initialize lists of hyperparameters and architectures to try
+        learn_rate = [1e-2,100]
+        dropout = [0.3]
+        ensemble = [0]
+        layers = [[20],[120,60,20]]
+        comb_lst = [learn_rate, dropout, ensemble, layers]
+        self.combinations = list(itertools.product(*comb_lst))
     
     def _initialize_search_params(self):
         #Initialize lists of hyperparameters and architectures to try
@@ -131,22 +144,19 @@ class GridSearchMLP(object):
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
-                all_test_out = evaluate.sum_test_outs(fold_test_out, all_test_out)
+                all_test_out = evaluate.concat_test_outs(fold_test_out, all_test_out, num_epochs = mlp_args['num_epochs'])
             
             fold_num += 1
             
         # Calculating Performance in Two Ways #---------------------------------
         #Now we are done with the folds of cross-validation.
         #We need to calculate performance. We will do this in two ways:
-        #FIRST WAY: 'Averaged Perf':averaging the performance of each fold. this will help us
-        #see if there is a lot of variability in performance between folds.
-        #Technically if we're using average precision we also would need to
-        #account for the number of positives in each fold to do a proper weighting.
-        #But due to computational cost we are not going to do that.
-        self.perf_all_models_avg = evaluate.update_and_save_cv_avg_perf_df(
-            self.perf_all_models_avg, all_eval_dfs_dict, self.cv_fold_mlp, mlp_args_specific, 
-            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models_avg.csv'))
-        
+        #FIRST WAY: 'Averaged Perf':averaging the performance of each fold.
+        #This will help us see if there is a lot of variability in performance
+        #between folds. Technically if we're using average precision we also
+        #would need to account for the number of positives in each fold to do
+        #a proper weighting. But due to computational cost we are not going to
+        #do that.
         #SECOND WAY: 'Generalized Perf': we concatenate the actual predictions
         #for each example in the test set of each fold so that we get a
         #predicted probability for every example in the data set. Then we
@@ -154,9 +164,9 @@ class GridSearchMLP(object):
         #This implicitly does all of the weighting correctly based on number of
         #true positives, number of false positives, and so on. But it hides
         #any 'variability between folds' that may exist with this model setup.
-        self.perf_all_models_gen = evaluate.update_and_save_cv_gen_perf_df(
-            self.perf_all_models_gen, all_test_out, self.cv_fold_mlp, mlp_args_specific, 
-            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models_gen.csv'))
+        self.perf_all_models = evaluate.update_and_save_cv_perf_df(
+            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.cv_fold_mlp, mlp_args_specific, 
+            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models.csv'))
     
     def _save_test_preds_of_best_MLP(self):
         """Save the test predictions of the best MLP model"""
@@ -185,7 +195,7 @@ class GridSearchMLP(object):
         self.all_folds_test_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
     
 class PredictMysteryAAs_MLP(object):
-    def __init__(self, gene_name, real_data_split, mysteryAAs_split):
+    def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split):
         '''This function uses mlp to predict the mysteryAAs'''
         self.gene_name = gene_name
         self.real_data_split = real_data_split

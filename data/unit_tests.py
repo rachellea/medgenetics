@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 import main
-from data import utils
-from data import clean_data
+from . import utils
+from . import clean_data
 
 #############
 # Functions #-------------------------------------------------------------------

@@ -14,7 +14,7 @@ import math
 import random
 
 #Custom
-import evaluate
+from . import evaluate
 
 ##############
 # Multisense #------------------------------------------------------------------
