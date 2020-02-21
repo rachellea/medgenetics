@@ -45,7 +45,7 @@ class GridSearchMLP(object):
         
         #Initialize dataframe that will store the performance for all of the
         #different models:
-        self.perf_all_models = pd.DataFrame(np.zeros(1,12),
+        self.perf_all_models = pd.DataFrame(np.zeros((1,12)),
                 columns = ['MLP_Layer','Learning_Rate','Dropout_Rate',
                            'Ensemble_Size','Mean_Best_Epoch','Mean_Accuracy',
                            'Mean_AUROC','Mean_Avg_Precision','Gen_Best_Epoch',
@@ -102,7 +102,7 @@ class GridSearchMLP(object):
                 'ensemble':self.num_ensemble,
                 'save_test_out':self.save_test_out}
             
-            self._run_mlp(mlp_args)
+            self._run_mlp(mlp_args_specific)
     
     def _run_mlp(self, mlp_args_specific):
         print('Running MLP')

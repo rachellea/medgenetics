@@ -2,10 +2,17 @@
 
 import os
 import copy
+import pickle
 import numpy as np
 import pandas as pd
 
-from . import utils
+import sys
+sys.path.append('./data')
+
+try:
+    from . import utils
+except:
+    import utils
 
 AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
                     'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
@@ -25,10 +32,10 @@ class BareGene(object):
         self.obtain_reference_sequence() #creates self.reference_df
         self.history = pd.DataFrame(np.empty((100000,5),dtype=str), columns=['Description','Consensus','Position','Change','Reason_Removed'])
         self.history_idx = 0
-       
-        self.healthy = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_healthy_raw.csv'),header=0)
-        self.diseased = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_pathologic_raw.csv'),header=0)
-        self.mysteryAAs = pd.read_csv(os.path.join('data/'+gene_name,gene_name+'_variants_wes_raw.csv'),header=0)
+        
+        self.healthy = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_healthy_raw.csv')),header=0)
+        self.diseased = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_pathologic_raw.csv')),header=0)
+        self.mysteryAAs = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header=0)
        
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
@@ -243,7 +250,8 @@ class AnnotatedGene(object):
         self.domains_not_used = list(set(self.domains.keys()) - set(self.domains_used))
         if 'Outside' in self.domains_used:
             assert len(self.domains_used)+len(self.domains_not_used) == len(self.domains.keys())+1 #+1 for Outside
-        self.mysteryAAs = self.mysteryAAs.replace(to_replace = self.domains_not_used, value = 'Outside')
+        if len(self.domains_not_used) > 0:
+            self.mysteryAAs = self.mysteryAAs.replace(to_replace = self.domains_not_used, value = 'Outside')
         print('Domains used:',self.domains_used)
         print('Domains not used:', self.domains_not_used)
         
@@ -285,7 +293,7 @@ class AnnotatedGene(object):
     
     def create_domain_dictionary(self):
         self.domains = {}
-        domain_df = pd.read_csv(os.path.join('data/'+self.gene_name,self.gene_name+'_domains.csv'),
+        domain_df = pd.read_csv(os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_domains.csv')),
                                 header=0)
         for rowidx in domain_df.index.values:
             start = domain_df.at[rowidx,'Start']
@@ -294,7 +302,7 @@ class AnnotatedGene(object):
     
     def add_conservation_info(self, df):
         print('Adding conservation info')
-        con_file = os.path.join('data/'+self.gene_name,self.gene_name+'_conservation.csv')
+        con_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_conservation.csv'))
         conservation = pd.read_csv(con_file,
                                    header = None,
                                    names=['Position','Conservation'])
@@ -302,7 +310,7 @@ class AnnotatedGene(object):
     
     def add_signoise_info(self, df):
         print('Adding signoise info')
-        signoise_file = os.path.join('data/'+self.gene_name,self.gene_name+'_signal_to_noise.csv') #Columns Position, SigNoise
+        signoise_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_signal_to_noise.csv')) #Columns Position, SigNoise
         signoise = pd.read_csv(signoise_file,
                                header = None,
                                names = ['Position','SigNoise'])
@@ -329,10 +337,7 @@ class PrepareData(object):
         self._run_sanity_check(inputx)
         
         #Prepare split data
-        split_args = {'train_percent':1.0,
-                        'valid_percent':0,
-                        'test_percent':0, 
-                        'max_position':self.ag.max_position,
+        split_args = {'max_position':self.ag.max_position,
                         'columns_to_ensure':self.ag.columns_to_ensure}
         all_args = {**self.shared_args, **split_args }
         data = (copy.deepcopy(inputx)).drop(columns=['Label'])
@@ -350,21 +355,26 @@ class PrepareData(object):
         mysteryAAs_raw = self.ag.mysteryAAs
         self._run_sanity_check(mysteryAAs_raw)
         
-        mysteryAAs_data = (copy.deepcopy(mysteryAAs_raw)).drop(columns=['Label'])
+        mysteryAAs_data = (copy.deepcopy(mysteryAAs_raw))
         mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
-        self.mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
+        mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
                                      labels = mysteryAAs_labels,
-                                     train_percent = 1.0,
-                                     valid_percent = 0,
-                                     test_percent = 0,
                                      max_position = self.ag.max_position,
                                      columns_to_ensure = self.ag.columns_to_ensure,
                                      **self.shared_args)
 
-        # get the position before split
-        self.ori_position = self.mysteryAAs_split.position
-        self.mysteryAAs_split = self.mysteryAAs_split.train
-        assert self.mysteryAAs_split.data.shape[0] == mysteryAAs_raw.shape[0]
+        #Normalize mysteryAAs based on the statistics of the entire train/val
+        #set (because the final predictive model is trained based on all
+        #available healthy/diseased AAs)
+        _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(self.real_data_split.clean_data, mysteryAAs_split.clean_data)
+        assert mysteryAAs_final_clean_data.shape[0] == mysteryAAs_raw.shape[0]
+        #self.mysteryAAs_Dataset instead of self.mysteryAAs_split
+        self.mysteryAAs_Dataset = utils.Dataset(data = mysteryAAs_final_clean_data.values,
+                                                labels = mysteryAAs_split.clean_labels.values,
+                                                shuffle = False,
+                                                data_meanings = mysteryAAs_final_clean_data.columns.values.tolist(),
+                                                label_meanings = mysteryAAs_split.clean_labels.columns.values.tolist(),
+                                                batch_size = 256)
     
     def _run_sanity_check(self, df):
         """A quick santiy check to ensure consensus!=change and to ensure no
@@ -430,7 +440,7 @@ class PrepareEveryAA(object):
 
 def get_geneseq(gene_name):
     geneseq = ''
-    with open(os.path.join('data/'+gene_name, gene_name+'_reference_sequence.txt'), 'r') as f:
+    with open(os.path.join('data',os.path.join(gene_name, gene_name+'_reference_sequence.txt')), 'r') as f:
         for line in f:
             geneseq = geneseq + line.rstrip()
     if gene_name == 'ryr2':

@@ -13,7 +13,6 @@ class Splits(object):
     def __init__(self,
              data,
              labels,
-             one_hotify, #if True, one-hotify specified categorical variables
              one_hotify_these_categorical, #columns to one hotify
              normalize_these_continuous, #columns to normalize
              seed, #seed to determine shuffling order before making splits; used for testing
@@ -46,9 +45,8 @@ class Splits(object):
         
         #Shuffle and one-hotify:
         self._shuffle_before_splitting()
-        if one_hotify:
-            self._one_hotify()
-            self._ensure_all_columns()
+        self._one_hotify()
+        self._ensure_all_columns()
 
     def _shuffle_before_splitting(self):
         idx = np.arange(0, self.clean_data.shape[0])
@@ -117,8 +115,7 @@ class Splits(object):
         
     def _make_splits_cv(self, train_indices, test_indices):
         """Split up self.clean_data and self.clean_labels
-        into train and valid data. Perfrom normalization based on the training data."""
-
+        into train and test data. Perfrom normalization based on the training data."""
         assert self.clean_data.index.values.tolist()==self.clean_labels.index.values.tolist()
         extra_args = {'data_meanings':self.clean_data.columns.values.tolist(),
             'label_meanings': self.clean_labels.columns.values.tolist(),
@@ -147,7 +144,10 @@ class Splits(object):
         #sets because those are just evaluated on a fixed model.
         self.train = Dataset(train_data, train_labels, shuffle = True, **extra_args)
         self.test = Dataset(test_data, test_labels, shuffle = False, **extra_args)
-
+        self.valid = None #not used. Only need train/test for cross validation
+        #Note that we could have called it 'train/val' for cross-validation, but
+        #we are calling it train/test.
+        
         print('Finished making cross validation splits')
         print('\tTrain data shape:',str(train_data.shape))
         print('\tTest data shape:',str(test_data.shape))

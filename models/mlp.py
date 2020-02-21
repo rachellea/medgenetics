@@ -56,13 +56,15 @@ class MLP(object):
         self.train_set = split.train
         self.test_set = split.test
         self.valid_set = split.valid
+        assert self.valid_set is None #we are not using a validation set in this project
         self.preserved_data_meanings = split.train.data_meanings
        
         #Number of batches per epoch
-        assert self.train_set.batch_size == self.test_set.batch_size == self.valid_set.batch_size
+        assert self.train_set.batch_size == self.test_set.batch_size
+        if self.valid_set is not None: assert self.valid_set.batch_size == self.test_set.batch_size
         self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
         self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
-        self.num_valid_batches = math.ceil((self.valid_set.num_examples)/self.valid_set.batch_size)
+        if self.valid_set is not None: self.num_valid_batches = math.ceil((self.valid_set.num_examples)/self.valid_set.batch_size)
         self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
         self.num_epochs = num_epochs
         

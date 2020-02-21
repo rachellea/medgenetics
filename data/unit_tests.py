@@ -1,11 +1,10 @@
-#ryr2_code_testing.py
+#unit_tests.py
 
 import numpy as np
 import pandas as pd
 
-import main
-from . import utils
-from . import clean_data
+import clean_data
+import utils
 
 #############
 # Functions #-------------------------------------------------------------------
@@ -13,9 +12,12 @@ from . import clean_data
 def testing_ryr2_prep_data():
     """Test that domain information and conservation information were
     added correctly to Healthy and Pathologic examples"""
-    genemodel = main.RunGeneModel('ryr2','',{})
-    genemodel._prep_data()
-    x = genemodel.inputx
+    shared_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
+                    'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
+                    'seed':10393, #make it 12345 for original split
+                    'batch_size':300}
+    genemodel = clean_data.PrepareData('ryr2',shared_args,results_dir='')
+    x = genemodel.ag.inputx
     assert ((x['Position'] ==24) & (x['Consensus']=='C')
         & (x['Change'] == 'R') & (x['Label']==0)
         & (x['Domain']=='NTD')
@@ -38,18 +40,11 @@ def testing_utils():
                         columns=['Position','Consensus','Change','Label'])
     fake['Position'] = pd.to_numeric(fake['Position'], downcast = 'integer')
     fake['Label'] = pd.to_numeric(fake['Label'], downcast = 'integer')
-    shared_args = {'impute':False,
-                        'impute_these_categorical':[],
-                        'impute_these_continuous':[],
-                        'one_hotify':True,
-                        'one_hotify_these_categorical':['Consensus','Change','Domain'],
-                        'normalize_data':True,
+    shared_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
                         'normalize_these_continuous':['Position','Conservation','SigNoise'],
                         'seed':5, #must be 5 for this test (order stays the same)
                         'batch_size':300}
-    split_args = {'train_percent':1.0,
-                'valid_percent':0,
-                'test_percent':0,
+    split_args = {
                 'max_position':4487,
                 'columns_to_ensure':['Position','Consensus_P','Change_C',
             'Conservation','Domain_SPRY2-first','Consensus_C','Change_D',
