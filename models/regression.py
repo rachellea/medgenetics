@@ -5,7 +5,7 @@ from sklearn import linear_model, metrics, model_selection
 
 class LogisticRegression(object):
     #http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
-    """Variables:
+    """Parameters:
     <descriptor>: string describing the model
     <logreg_penalty>: can be 'l1' or 'l2'
     <C>: float, default: 1.0. Inverse of regularization strength; must be a

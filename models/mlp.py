@@ -18,29 +18,24 @@ class MLP(object):
                  num_epochs,
                  learningrate, #e.g. 1e-4
                  mlp_layers,
-                 dropout,
-                 mysteryAAs):
+                 dropout):
         """Variables
         <descriptor>: string describing the model
         <split>: created by Splits class in utils.py
         <mlp_layers>: list of ints e.g. [50, 30, 25] means the first layer of the
             MLP has size 50 and is followed by two hidden layers, of sizes
-            30 and 25 respectively.
-        <mysteryAAs>: contains all unknown mutations ('predict set' on which we
-            must make predictions)"""
+            30 and 25 respectively."""
         print('\tMLP',descriptor)
         self.descriptor = descriptor
         
         #Data sets
         self.train_set = split.train
         self.test_set = split.test
-        self.mysteryAAs = mysteryAAs 
-               
+        
         #Tracking
         assert self.train_set.batch_size == self.test_set.batch_size
         self.num_train_batches = math.ceil((self.train_set.num_examples)/self.train_set.batch_size)
         self.num_test_batches = math.ceil((self.test_set.num_examples)/self.test_set.batch_size)
-        if self.mysteryAAs is not None: self.num_mysteryAAs_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
         self.num_epochs = num_epochs
         self.training_loss = np.zeros((self.num_epochs))
         self.num_batches_done = 0
@@ -94,6 +89,7 @@ class MLP(object):
             chosen_set = self.test_set
             num_batches = self.num_test_batches
         elif chosen_dataset == 'mysteryAAs':
+            #TODO IMPLEMENT HANDLING OF MYSTERYAAS
             chosen_set = self.mysteryAAs
             num_batches = self.num_mysteryAAs_batches
         else:

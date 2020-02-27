@@ -1,4 +1,4 @@
-#run_mlp.py
+#run_models.py
 
 import os
 import copy
@@ -37,13 +37,12 @@ class GridSearch(object):
     for a given gene <gene_name> to determine the best MLP model setup.
     To run without ensembling, i.e. to run each architecture/hyperparameter
     grouping on only one instantiation of the model, set ensemble=[1]"""
-    def __init__(self, gene_name, modeling_approach, results_dir, real_data_split,
-                 testing):
+    def __init__(self, gene_name, modeling_approach, results_dir,
+                 real_data_split, testing):
         self.gene_name = gene_name
         self.modeling_approach = modeling_approach
         assert self.modeling_approach in ['MLP','LR']
         self.real_data_split = real_data_split
-        self.mysteryAAs_split = mysteryAAs_split
         self.cv_fold_mlp = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = os.path.join(results_dir, gene_name)
@@ -99,8 +98,7 @@ class GridSearch(object):
                 'num_epochs':self.max_epochs, # fix number of epochs to 300
                 'learningrate':comb[0],
                 'mlp_layers': copy.deepcopy(comb[3]),
-                'dropout':comb[1],
-                'mysteryAAs':self.mysteryAAs_split}
+                'dropout':comb[1]}
             self._run_one_model_setup(mlp_args_specific, num_ensemble = comb[2])
     
     # LR Methods #--------------------------------------------------------------
@@ -141,7 +139,7 @@ class GridSearch(object):
             
             #Train and evaluate the model
             model_args = {**model_args_specific, **{'split':copy.deepcopy(split)}}
-            fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(modeling_approach, model_args, num_ensemble)
+            fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(self.modeling_approach, model_args, num_ensemble)
             
             #Aggregate the fold_eval_dfs_dict (performance metrics) for FIRST WAY:
             if fold_num == 1:
@@ -153,7 +151,7 @@ class GridSearch(object):
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
-                all_test_out = cv_agg.concat_test_outs(fold_test_out, all_test_out, num_epochs = mlp_args['num_epochs'])
+                all_test_out = cv_agg.concat_test_outs(fold_test_out, all_test_out, num_epochs = model_args['num_epochs'])
             fold_num += 1
             
         # Calculating Performance in Two Ways (see cv_agg.py for documentation)

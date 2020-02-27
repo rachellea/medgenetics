@@ -15,16 +15,14 @@ import itertools
 from tqdm import tqdm
 
 #Custom imports
-from models import run_mlp
-from models import run_regression
+from models import run_models
 from data import clean_data
 
 def run(gene_name, what_to_run, modeling_approach):
     """Parameters:
     <gene_name> a string, either 'ryr2', 'kcnh2', 'kcnq1', or 'scn5a'
     <what_to_run> a string, either
-        'perform_grid_search': this will do a grid search over different
-            model setups
+        'grid_search': this will do a grid search over different model setups
         or
         'get_mysteryAA_preds': this will get the predictions on the
             mysteryAAs for the best model
@@ -40,13 +38,12 @@ def run(gene_name, what_to_run, modeling_approach):
     real_data_split = d.real_data_split
     mysteryAAs_Dataset = d.mysteryAAs_Dataset
     
-    if what_to_run == 'perform_grid_search':
-        run_mlp.GridSearch(gene_name, modeling_approach, results_dir, real_data_split, None, testing=True)
+    if what_to_run == 'grid_search':
+        run_models.GridSearch(gene_name, modeling_approach, results_dir, real_data_split, testing=True)
     if what_to_run == 'get_mysteryAA_preds':
-        run_mlp.PredictMysteryAAs(gene_name, modeling_approach, results_dir, real_data_split, mysteryAAs_Dataset)
+        run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, real_data_split, mysteryAAs_Dataset)
         
 
 if __name__=='__main__':
-    Run('ryr2',
-        what_to_run='perform_grid_search',
-        what_models='MLP')
+    #run('ryr2',what_to_run='grid_search',modeling_approach='MLP')
+    run('ryr2',what_to_run='grid_search',modeling_approach='LR')

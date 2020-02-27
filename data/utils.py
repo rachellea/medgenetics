@@ -75,11 +75,11 @@ class Splits(object):
         self.scaler = sklearn.preprocessing.StandardScaler()
         self.scaler.fit(train_selected)
         assert len(self.normalize_these_continuous)==self.scaler.mean_.shape[0]==self.scaler.scale_.shape[0]
-        train_data[self.normalize_these_continuous] = self.scaler.transform(train_selected)
+        train_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(train_selected)
         
         # normalize the test data
         test_selected = test_data[self.normalize_these_continuous].values
-        test_data[self.normalize_these_continuous] = self.scaler.transform(test_selected)
+        test_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(test_selected)
         #print('Normalized data:\n\tscaler.mean_',str(scaler.mean_), '\n\tscaler.scale_',str(scaler.scale_))
         return train_data, test_data
         

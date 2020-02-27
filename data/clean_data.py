@@ -323,6 +323,7 @@ class PrepareData(object):
         which are needed for all the modeling."""
         self.gene_name = gene_name
         self.shared_args = shared_args
+        self.results_dir = results_dir
         
         #Load real data consisting of benign and pathologic mutations
         ag = AnnotatedGene(self.gene_name, results_dir)
@@ -348,7 +349,7 @@ class PrepareData(object):
                              **all_args)    
         #Save pickled split:
         print('Saving pickled split')
-        pickle.dump(self.real_data_split, open(self.gene_name+'.pickle', 'wb'),-1)
+        pickle.dump(self.real_data_split, open(os.path.join(self.results_dir, self.gene_name+'.pickle'), 'wb'),-1)
     
     def _prep_mysteryAAs(self):
         #mysteryAAs are from WES and ClinVar data. Will get predictions for these
