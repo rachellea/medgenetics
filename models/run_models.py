@@ -12,7 +12,6 @@ from sklearn import neural_network
 from sklearn import model_selection, metrics, calibration
 
 #Custom imports
-from . import mlp
 from . import cv_agg
 from . import ensemble_agg
 from . import reformat_output
@@ -43,19 +42,12 @@ class GridSearch(object):
         self.modeling_approach = modeling_approach
         assert self.modeling_approach in ['MLP','LR']
         self.real_data_split = real_data_split
-        self.cv_fold_mlp = 10 #ten fold cross validation
+        self.number_of_cv_folds = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = os.path.join(results_dir, gene_name)
         if not os.path.exists(self.results_dir):
             os.mkdir(self.results_dir)
-        
-        #Initialize dataframe that will store the performance for all of the
-        #different models:
-        self.perf_all_models = pd.DataFrame(columns = ['MLP_Layer','Learning_Rate',
-                    'Dropout_Rate','Ensemble_Size','Mean_Best_Epoch','Mean_Accuracy',
-                    'Mean_AUROC','Mean_Avg_Precision','Gen_Best_Epoch',
-                    'Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision'])
-        self.perf_all_models['MLP_Layer'] = self.perf_all_models['MLP_Layer'].astype('str')
+        self._initialize_perf_df()
         
         #Run
         if self.modeling_approach == 'MLP':
@@ -68,6 +60,20 @@ class GridSearch(object):
         elif self.modeling_approach == 'LR':
             self._initialize_search_params_lr()
             self._run_all_lr_setups()
+    
+    def _initialize_perf_df(self):
+        """Initialize dataframe that will store the performance for all of the
+        different model variants"""
+        if self.modeling_approach == 'MLP':
+            model_colnames = ['MLP_Layer','Learning_Rate','Dropout_Rate']
+        elif self.modeling_approach == 'LR':
+            model_colnames = ['Penalty','C']
+        self.perf_all_models = pd.DataFrame(columns = model_colnames+['Ensemble_Size',
+                    'Mean_Best_Epoch','Mean_Accuracy','Mean_AUROC','Mean_Avg_Precision',
+                    'Gen_Best_Epoch','Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision'])
+        for colname in ['MLP_Layer','Penalty']:
+            if colname in self.perf_all_models.columns.values.tolist():
+                self.perf_all_models[colname] = self.perf_all_models[colname].astype('str')
     
     # MLP Methods #-------------------------------------------------------------
     def _initialize_search_params_mlp_testing(self):
@@ -117,19 +123,20 @@ class GridSearch(object):
             lr_args_specific = {'descriptor':self.gene_name,
                                 'logreg_penalty':comb[0],
                                 'C':comb[1],
-                                'decision_threshold':0.5}
+                                'decision_threshold':0.5,
+                                'num_epochs':1}
             self._run_one_model_setup(lr_args_specific, num_ensemble = comb[2])
     
     # Generic Method to Run a Model Setup #-------------------------------------
     def _run_one_model_setup(self, model_args_specific, num_ensemble):
         print('Running one model setup')
         fold_num = 1
-        cv = model_selection.StratifiedKFold(n_splits=self.cv_fold_mlp, random_state=19357)
+        cv = model_selection.StratifiedKFold(n_splits=self.number_of_cv_folds, random_state=19357)
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels
         
         for train_indices, test_indices in cv.split(data, label):
-            print('\n******In CV fold number',fold_num,'out of',self.cv_fold_mlp,'******')
+            print('\n******In CV fold number',fold_num,'out of',self.number_of_cv_folds,'******')
             #Create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
             
@@ -155,8 +162,8 @@ class GridSearch(object):
             fold_num += 1
             
         # Calculating Performance in Two Ways (see cv_agg.py for documentation)
-        self.perf_all_models = cv_agg.update_and_save_cv_perf_df(
-            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.cv_fold_mlp, model_args_specific, 
+        self.perf_all_models = cv_agg.update_and_save_cv_perf_df(self.modeling_approach,
+            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds, model_args_specific, 
             save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models.csv'))
     
 class PredictMysteryAAs(object):
@@ -173,7 +180,7 @@ class PredictMysteryAAs(object):
         self.max_epochs = 1000
         self.num_ensemble = 10 
         self.layer = [30,20]
-        self.cv_fold_mlp = 10
+        self.number_of_cv_folds = 10
 
         print("Predicting mysteryAAs using MLP...")
         print("Learning rate:", self.learningrate)
@@ -200,7 +207,7 @@ class PredictMysteryAAs(object):
                 exclusive_classes = True,
                 save_model = False,
                 mysteryAAs = self.mysteryAAs_split,
-                cv_fold = self.cv_fold_mlp,
+                cv_fold = self.number_of_cv_folds,
                 ensemble=self.num_ensemble)
 
             # set up graph and session for the model

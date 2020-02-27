@@ -9,6 +9,7 @@ import pandas as pd
 import sklearn.metrics
 
 from . import mlp
+from . import regression
 from . import reformat_output
 
 def train_and_eval_ensemble(modeling_approach, model_args, num_ensemble):
@@ -63,7 +64,7 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
         if idx == 0:
             fold_test_out = test_out
         else:
-            for epoch in range(1,num_epochs+1):
+            for epoch in range(num_epochs):
                 df = test_out['epoch_'+str(epoch)] #this df
                 fold_df = fold_test_out['epoch_'+str(epoch)] #the aggregated df
                 
@@ -83,7 +84,7 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
     #Since we want to store the average Pred_Prob across all members of
     #the ensemble, divide the summed Pred_Prob by the number of models
     #in the ensemble, and then determine the Pred_Label:
-    for epoch in range(1,num_epochs+1):
+    for epoch in range(num_epochs):
         fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].div(len(ensemble_lst))
         fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Label'] = (fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].values > decision_threshold).astype('int')
     return fold_test_out
@@ -95,13 +96,13 @@ def create_fold_eval_dfs_dict(fold_test_out, num_epochs):
     #Initialize empty fold_eval_dfs_dict
     result_df = pd.DataFrame(data=np.zeros((1, num_epochs)),
                             index = ['Label'],
-                            columns = ['epoch_'+str(n) for n in range(1,num_epochs+1)])
+                            columns = ['epoch_'+str(n) for n in range(num_epochs)])
     fold_eval_dfs_dict = {'accuracy':copy.deepcopy(result_df),
         'auroc':copy.deepcopy(result_df),
         'avg_precision':copy.deepcopy(result_df)}
     
     #Calculate performance
-    for epoch in range(1,num_epochs+1):
+    for epoch in range(num_epochs):
         true_label = fold_test_out['epoch_'+str(epoch)]['True_Label'].values
         pred_label = fold_test_out['epoch_'+str(epoch)]['Pred_Label'].values
         pred_prob = fold_test_out['epoch_'+str(epoch)]['Pred_Prob'].values
