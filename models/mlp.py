@@ -1,7 +1,10 @@
 #mlp.py
 
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #suppress all excessive printed text
+
 import math
+import copy
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -18,15 +21,14 @@ class MLP(object):
                  dropout,
                  mysteryAAs):
         """Variables
-        <descriptor>: string that will be attached to the beginning of all
-            model output files.
+        <descriptor>: string describing the model
         <split>: created by Splits class in utils.py
         <mlp_layers>: list of ints e.g. [50, 30, 25] means the first layer of the
             MLP has size 50 and is followed by two hidden layers, of sizes
             30 and 25 respectively.
         <mysteryAAs>: contains all unknown mutations ('predict set' on which we
             must make predictions)"""
-        print('\n\n\n\n**********',descriptor,'**********')
+        print('\tMLP',descriptor)
         self.descriptor = descriptor
         
         #Data sets
@@ -49,14 +51,14 @@ class MLP(object):
         self.x_length = self.train_set.data.shape[1] #length of a single example
         self.y_length = self.train_set.labels.shape[1] #length of one example's label vector
         self.learningrate = learningrate
-        self.mlp_layers = mlp_layers
+        self.mlp_layers = copy.deepcopy(mlp_layers)
         self.mlp_layers.append(self.y_length) #ensure predictions will have correct dimensions
-        print('Mlp_layers is',str(self.mlp_layers))
+        print('\tMLP_layers is',str(self.mlp_layers))
         self.dropout = dropout
         self.test_out = {} #this will be a dictionary of data and predictions for every epoch
     
     def run_all(self):
-        """Run all key methods"""
+        """Set up model, train model, test model, and close session"""
         self.set_up_graph_and_session()
         self.train_and_test()
         self.session.close()
@@ -91,7 +93,6 @@ class MLP(object):
         if chosen_dataset == 'Test':
             chosen_set = self.test_set
             num_batches = self.num_test_batches
-            all_eval_results = self.eval_results_test
         elif chosen_dataset == 'mysteryAAs':
             chosen_set = self.mysteryAAs
             num_batches = self.num_mysteryAAs_batches
@@ -148,12 +149,12 @@ class MLP(object):
             self.x_input = tf.placeholder(tf.float32,
                            shape = [None, self.x_length],
                            name='self.x_input')
-            print("Shape of self.x_input: "+str(self.x_input.get_shape().as_list()))
+            print('\tShape of self.x_input:',str(self.x_input.get_shape().as_list()))
             
             self.y_labels = tf.placeholder(tf.float32,
                            shape = [None, self.y_length],
                            name='self.y_labels')
-            print("Shape of self.y_labels: "+str(self.y_labels.get_shape().as_list()))
+            print('\tShape of self.y_labels:',str(self.y_labels.get_shape().as_list()))
         
             self.keep_prob = tf.placeholder(tf.float32)
 
@@ -167,7 +168,7 @@ class MLP(object):
         with self.graph.as_default():
             with tf.variable_scope('self.loss'):
                 if self.y_length == 1: #binary classification
-                    print('Binary classifier: using sigmoid cross entropy')
+                    print('\tBinary classifier: using sigmoid cross entropy')
                     self.loss = tf.reduce_mean( tf.nn.sigmoid_cross_entropy_with_logits(logits=self.pred_raw, labels=self.y_labels) )
     
     def _define_optimizer_and_performance(self):
@@ -179,8 +180,8 @@ class MLP(object):
                 if self.y_length == 1: #binary classification
                     self.pred_probs = tf.nn.sigmoid(self.pred_raw)
                     self.pred_labels = tf.cast((self.pred_probs >= self.decision_threshold), tf.int32)
-                print('Shape of self.pred_probs',str(self.pred_probs.get_shape().as_list()))
-                print('Shape of self.pred_labels:',str(self.pred_labels.get_shape().as_list()))
+                print('\tShape of self.pred_probs',str(self.pred_probs.get_shape().as_list()))
+                print('\tShape of self.pred_labels:',str(self.pred_labels.get_shape().as_list()))
             self.initialize = tf.global_variables_initializer()
             self.saver = tf.train.Saver()
             
@@ -192,7 +193,7 @@ class MLP(object):
                                    num_outputs = hidden_layers[0],
                                    name='layer_0',
                                    use_relu = use_relu_flag)
-            print("Shape of",variable_scope_name,"layer_0:",str(zero.get_shape().as_list()),', relu=',str(use_relu_flag))
+            print('\tShape of',variable_scope_name,'layer_0:',str(zero.get_shape().as_list()),', relu=',str(use_relu_flag))
             
             for i in range(1, len(hidden_layers)): #hidden layers
                 if i==1:
@@ -205,7 +206,7 @@ class MLP(object):
                                  name='layer_'+str(i),
                                  use_relu=use_relu_flag)
                 tmp = hi
-                print("Shape of", variable_scope_name, "layer_"+str(i),":",str(hi.get_shape().as_list()),', relu=',str(use_relu_flag))
+                print('\tShape of', variable_scope_name, 'layer_'+str(i),':',str(hi.get_shape().as_list()),', relu=',str(use_relu_flag))
         return hi
     
     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):

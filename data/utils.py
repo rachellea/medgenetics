@@ -15,7 +15,6 @@ class Splits(object):
              labels,
              one_hotify_these_categorical, #columns to one hotify
              normalize_these_continuous, #columns to normalize
-             seed, #seed to determine shuffling order before making splits; used for testing
              max_position, #int for the last position of the gene
              columns_to_ensure, #list of column names you must have
              batch_size):
@@ -38,26 +37,10 @@ class Splits(object):
         self.max_position = max_position
         self.columns_to_ensure = columns_to_ensure
         self.batch_size = batch_size
-        if seed is not None:
-            self.seed = seed
-        else:
-            self.seed = np.random.randint(0,10e6)
         
-        #Shuffle and one-hotify:
-        self._shuffle_before_splitting()
+        #One-hotify:
         self._one_hotify()
         self._ensure_all_columns()
-
-    def _shuffle_before_splitting(self):
-        idx = np.arange(0, self.clean_data.shape[0])
-        np.random.seed(self.seed)
-        print('Creating splits based on seed',str(self.seed))
-        np.random.shuffle(idx)
-        self.clean_data = self.clean_data.iloc[idx]
-        self.clean_labels = self.clean_labels.iloc[idx]
-        
-        # get position column before splitting
-        self.position = self.clean_data['Position'].values
     
     def _one_hotify(self):
         """Modify self.clean_data so that each categorical column is turned
@@ -69,18 +52,6 @@ class Splits(object):
         print('\tData shape before one-hotifying:',str(self.clean_data.shape))
         #one hotify the categorical variables
         self.clean_data = pd.get_dummies(data = self.clean_data, columns = self.one_hotify_these_categorical, dummy_na = False)
-    
-        #now that you've replaced all the original categorical columns with
-        #multiple binary columns, find the indices of the new columns
-        one_hot_indices = []
-        for catvar in self.one_hotify_these_categorical:
-            indices = []
-            for colname in self.clean_data.columns.values:
-                if (str(catvar)+'_') in colname:
-                    indices.append(self.clean_data.columns.get_loc(colname))
-            if len(indices) > 0: #TODO: figure out why it's 0 sometimes
-                one_hot_indices.append(indices)
-        self.one_hot_indices = one_hot_indices
         print('\tData shape after one-hotifying:',str(self.clean_data.shape))
     
     def _ensure_all_columns(self):
@@ -145,8 +116,6 @@ class Splits(object):
         #just used for evaluation.
         self.train = Dataset(train_data, train_labels, shuffle = True, **extra_args)
         self.test = Dataset(test_data, test_labels, shuffle = False, **extra_args)
-        
-        print('Finished making cross validation splits')
         print('\tTrain data shape:',str(train_data.shape))
         print('\tTest data shape:',str(test_data.shape))
         print('\tLength of one label:',str(train_labels.shape[1]))
@@ -219,27 +188,3 @@ class Dataset(object):
             self.index_in_epoch = 0
             self.epochs_completed += 1
             return data_rest_part, labels_rest_part
-
-
-#Used for testing
-def arrays_are_close_enough(array1, array2, tol =  1e-6):
-    """Because the following stuff doesn't work at all:
-    numpy.testing.assert_almost_equal 
-    np.all
-    np.array_equal
-    np.isclose"""
-    assert array1.shape == array2.shape
-    if len(array1.shape)==1: #one-dimensional
-        for index in range(len(array1)):
-            if np.isnan(array1[index]) and np.isnan(array2[index]):
-                pass
-            else:
-                assert array1[index] - array2[index] < tol, 'Error at index '+str(index)
-    else: #two-dimensional
-        for row in range(array1.shape[0]):
-            for col in range(array1.shape[1]):
-                if np.isnan(array1[row,col]) and np.isnan(array2[row,col]):
-                    pass
-                else:
-                    assert array1[row,col] - array2[row,col] < tol, 'Error at '+str(row)+', '+str(col)
-    return True

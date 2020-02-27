@@ -19,44 +19,34 @@ from models import run_mlp
 from models import run_regression
 from data import clean_data
 
-# for checking purposes/sanity check
-from sklearn import neural_network
-
-
-class Run(object):
-    def __init__(self, gene_name, shared_args, what_to_run, what_models):
-        """
-        <what_to_run> is a list of strings that can contain:
-            'perform_grid_search': this will do a grid search over different
-                model setups
-            'get_test_set_preds': this will save all of the test set
-                predictions on all examples for a specified model setup
-        <what_models> is a list of strings that can contain 'mlp' and/or 'lr'"""
-        results_dir = os.path.abspath(os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d')))
-        if not os.path.exists(results_dir):
-            os.mkdir(results_dir)
-        d = clean_data.PrepareData(gene_name, shared_args, results_dir)
-        real_data_split = d.real_data_split
-        mysteryAAs_Dataset = d.mysteryAAs_Dataset
+def run(gene_name, what_to_run, modeling_approach):
+    """Parameters:
+    <gene_name> a string, either 'ryr2', 'kcnh2', 'kcnq1', or 'scn5a'
+    <what_to_run> a string, either
+        'perform_grid_search': this will do a grid search over different
+            model setups
+        or
+        'get_mysteryAA_preds': this will get the predictions on the
+            mysteryAAs for the best model
+    <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
+        or 'LR' for logistic regression"""
+    results_dir = os.path.abspath(os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d')))
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
+    data_preproc_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
+                'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
+                'batch_size':256}
+    d = clean_data.PrepareData(gene_name, data_preproc_args, results_dir)
+    real_data_split = d.real_data_split
+    mysteryAAs_Dataset = d.mysteryAAs_Dataset
+    
+    if what_to_run == 'perform_grid_search':
+        run_mlp.GridSearch(gene_name, modeling_approach, results_dir, real_data_split, None, testing=True)
+    if what_to_run == 'get_mysteryAA_preds':
+        run_mlp.PredictMysteryAAs(gene_name, modeling_approach, results_dir, real_data_split, mysteryAAs_Dataset)
         
-        #Multilayer Perceptron Model
-        if 'mlp' in what_models:
-            if 'perform_grid_search' in what_to_run:
-                run_mlp.GridSearchMLP(gene_name, results_dir, real_data_split, None, testing=True)
-            if 'get_test_set_preds' in what_to_run:
-                pass #TODO IMPLEMENT THIS (or maybe you don't need this right becasue you only care about mysteryAA preds!!!)
-            if 'make_mysteryAA_preds' in what_to_run:
-                run_mlp.PredictMysteryAAs_MLP(gene_name, results_dir, real_data_split, mysteryAAs_Dataset)
-        
-        #Logistic Regression Model
-        elif 'lr' in what_models:
-            pass
 
 if __name__=='__main__':
-    shared_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
-                    'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
-                    'seed':10393, #make it 12345 for original split
-                    'batch_size':256}
-    Run('ryr2', shared_args,
-        what_to_run=['perform_grid_search'],
-        what_models=['mlp'])
+    Run('ryr2',
+        what_to_run='perform_grid_search',
+        what_models='MLP')
