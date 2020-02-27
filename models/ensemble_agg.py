@@ -1,5 +1,6 @@
-#mlp_loops.py
-#Functions to train and evaluate ensembles
+#ensemble_agg.py
+#Functions to train and evaluate ensembles and aggregate predictions across
+#different models applied to the same data
 
 import numpy as np
 import pandas as pd
@@ -11,11 +12,18 @@ from . import reformat_output
 # Ensembles #-------------------------------------------------------------------
 #############
 def train_and_eval_ensemble(mlp_args, num_ensemble):
+    """Train and evaluate an ensemble consisting of <num_ensemble> MLPs,
+    each trained according to <mlp_args>.
+    When <num_ensemble>==1 then this is the case where only one MLP is trained"""
+    assert num_ensemble >= 1
+    assert isinstance(num_ensemble, int)
     #Train
     ensemble_lst = train_ensemble(mlp_args, num_ensemble)
     #Evaluate
     fold_test_out = create_fold_test_out(ensemble_lst, mlp_args['num_epochs'], mlp_args['decision_threshold'])
     fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out, mlp_args['num_epochs'])
+    #note that fold_test_out contains the data and the predictions, while
+    #fold_eval_dfs_dict contains the performance
     return fold_test_out, fold_eval_dfs_dict
 
 def train_ensemble(mlp_args, num_ensemble):
@@ -31,10 +39,7 @@ def train_ensemble(mlp_args, num_ensemble):
          print("Initializing mlp number", i+1, " out of", num_ensemble, "for ensemble")
          # initialize mlp
          m = mlp.MLP(**mlp_args)
-         m.set_up_graph_and_session()
-         m.train()
-
-         # store to list
+         m.run_all() #open session, train and test, close session
          ensemble_lst.append(m)
      return ensemble_lst
 
@@ -48,14 +53,16 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
     The data has NOT been put in human-readable format yet, so for example the
     Consensus is many columns (one-hot encoding) and the Position is
     normalized (not integer positions.)"""
-    # test_out is a dictionary of dataframes. Gather all of the test_outs for
-    #all the models in the ensemble.
+    #test_out is produced by the MLP class. test_out is a pandas dataframe
+    #with the data itself, the pred probs, the pred labels, and the true labels
+    #test_out has columns self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label']
+    #Gather all of the test_outs for all the models in the ensemble.
     test_out_collection = []
     for model in ensemble_lst:
         test_out_collection.append(model.test_out)
     
-    #Columns Consensus_etc, Change_etc, Position, Conservation, SigNoise, and True_Label
-    #should be identical across all models in the ensemble.
+    #test_out columns Consensus_etc, Change_etc, Position, Conservation,
+    #SigNoise, and True_Label should be identical across all models in the ensemble.
     #Rows are sorted by position. The Pred_Prob column should be summed.
     for idx in range(len(test_out_collection)):
         test_out = test_out_collection[idx]
@@ -65,13 +72,15 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
             for epoch in range(1,num_epochs+1):
                 df = test_out['epoch_'+str(epoch)] #this df
                 fold_df = fold_test_out['epoch_'+str(epoch)] #the aggregated df
-                #First check that the different members of the ensemble were
+                
+                #Sanity check: ensure that the different members of the ensemble were
                 #applied to the exact same data:
                 all_cols = df.columns.values.tolist()
                 samecols = [x for x in all_cols if 'Consensus' in x]+[x for x in all_cols if 'Change' in x]+['True_Label']
                 assert np.equal(df[samecols].values, fold_df[samecols].values).all()
                 closecols = ['Position','Conservation','SigNoise']
                 assert np.isclose(df[closecols].values, fold_df[closecols].values, rtol=1e-4).all()
+                
                 #Now sum up the Pred_Prob column:
                 fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'] += df['Pred_Prob']
     
@@ -104,13 +113,3 @@ def create_fold_eval_dfs_dict(fold_test_out, num_epochs):
         fold_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)] = metrics.roc_auc_score(true_label, pred_prob)
         fold_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)] = metrics.average_precision_score(true_label, pred_prob)
     return fold_eval_dfs_dict
-
-##############
-# Single MLP #------------------------------------------------------------------
-##############
-def train_and_eval_one_mlp(mlp_args):
-    #redefine mlp object with the new split and train it
-    m = mlp.MLP(**mlp_args)
-    m.set_up_graph_and_session()
-    m.train()
-    return m.test_out, m.fold_eval_dfs_dict

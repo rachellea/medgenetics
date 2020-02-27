@@ -42,7 +42,7 @@ class Run(object):
         #Multilayer Perceptron Model
         if 'mlp' in what_models:
             if 'perform_grid_search' in what_to_run:
-                run_mlp.GridSearchMLP(gene_name, results_dir, real_data_split, None)
+                run_mlp.GridSearchMLP(gene_name, results_dir, real_data_split, None, testing=True)
             if 'get_test_set_preds' in what_to_run:
                 pass #TODO IMPLEMENT THIS (or maybe you don't need this right becasue you only care about mysteryAA preds!!!)
             if 'make_mysteryAA_preds' in what_to_run:

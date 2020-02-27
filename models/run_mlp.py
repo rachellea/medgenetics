@@ -1,4 +1,4 @@
-#run_models.py
+#run_mlp.py
 
 import os
 import copy
@@ -13,7 +13,8 @@ from sklearn import model_selection, metrics, calibration
 
 #Custom imports
 from . import mlp
-from . import mlp_loops
+from . import cv_agg
+from . import ensemble_agg
 from . import reformat_output
 
 class SimpleMLP(object):
@@ -33,8 +34,10 @@ class SimpleMLP(object):
 
 class GridSearchMLP(object):
     """Perform a grid search across predefined architectures and hyperparameters
-    for a given gene <gene_name> to determine the best MLP model setup."""
-    def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split, testing=False):
+    for a given gene <gene_name> to determine the best MLP model setup.
+    To run without ensembling, i.e. to run each architecture/hyperparameter
+    grouping on only one MLP, set ensemble=[1]"""
+    def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split, testing):
         """<gene_name> is a string, one of: 'kcnh2', 'kcnq1', 'ryr2', or 'scn5a'."""
         self.gene_name = gene_name
         self.real_data_split = real_data_split
@@ -57,142 +60,91 @@ class GridSearchMLP(object):
             self._initialize_testing_search_params()
         else:
             self._initialize_search_params()
-        self._get_best_mlp()
+        self._run_all_mlp_setups()
         self._save_test_preds_of_best_mlp()
     
     def _initialize_testing_search_params(self):
-        #Initialize lists of hyperparameters and architectures to try
-        learn_rate = [1e-2,100]
+        """Initialize a small list of hyperparameters and architectures to try
+        for testing purposes"""
+        learn_rate = [100]
         dropout = [0.3]
-        ensemble = [0]
+        ensemble = [1]
         layers = [[20],[120,60,20]]
         comb_lst = [learn_rate, dropout, ensemble, layers]
         self.combinations = list(itertools.product(*comb_lst))
     
     def _initialize_search_params(self):
-        #Initialize lists of hyperparameters and architectures to try
+        """Initialize lists of hyperparameters and architectures to assess"""
         learn_rate = [1e-4,1e-3,1e-2,1e-1,1,10,100,1000]
         dropout = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-        ensemble = [0]
+        ensemble = [1]
         layers = [[20],[30,20],[60,20],[60,60, 20],[120,60,20],[40],[40,40],[60,40], [120,60,40]]
         comb_lst = [learn_rate, dropout, ensemble, layers]
         self.combinations = list(itertools.product(*comb_lst))
     
-    def _get_best_mlp(self):
-        self.save_test_out = False
-
-        # for each combination of hyperparameters, get set the epoch and run mlp
+    def _run_all_mlp_setups(self):
+        """Run an MLP (or MLP ensemble) for each combination of hyperparameters"""
         for comb in tqdm(self.combinations):
-            best_epoch = 0
-            epoch_max_avg_prec = 0
-            # set the hyperparameters
-            self.num_ensemble = comb[2]
-            self.get_best_epoch = True
-            
             mlp_args_specific = {'descriptor':self.gene_name,
                 'decision_threshold':0.5,
                 'num_epochs':self.max_epochs, # fix number of epochs to 300
                 'learningrate':comb[0],
                 'mlp_layers': copy.deepcopy(comb[3]),
                 'dropout':comb[1],
-                'exclusive_classes':True,
-                'save_model':False,
-                'mysteryAAs':self.mysteryAAs_split,
-                'cv_fold':self.cv_fold_mlp,
-                'ensemble':self.num_ensemble,
-                'save_test_out':self.save_test_out}
-            
-            self._run_mlp(mlp_args_specific)
+                'mysteryAAs':self.mysteryAAs_split}
+            self._run_one_mlp_setup(mlp_args_specific, num_ensemble = comb[2])
     
-    def _run_mlp(self, mlp_args_specific):
-        print('Running MLP')
-        #Initializations
-        test_labels = [] #TODO delete this if it turns out you don't need it
+    def _run_one_mlp_setup(self, mlp_args_specific, num_ensemble):
+        print('Running one MLP setup')
         fold_num = 1
-        
         cv = model_selection.StratifiedKFold(n_splits=self.cv_fold_mlp, random_state=19357)
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels
         
-        for train, test in cv.split(data, label):
+        for train_indices, test_indices in cv.split(data, label):
             print("In CV fold number", fold_num, " out of", self.cv_fold_mlp)
-            
-            # create a copy of the real_data_split
+            #Create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
             
-            # update the splits with the train and test indices for this cv loop and
-            # normalize training data
-            split._make_splits_cv(train, test)
-            test_labels.append(split.test.labels)
-            
-            #Gather MLP args
-            mlp_args = {**mlp_args_specific, **{'split':copy.deepcopy(split)}}
+            #Update the splits with the train and test indices for this cv loop and
+            #normalize training data
+            split._make_splits_cv(train_indices, test_indices)
             
             #Train and evaluate the model
-            if self.num_ensemble > 0: #do ensembling
-                fold_test_out, fold_eval_dfs_dict = mlp_loops.train_and_eval_ensemble(mlp_args, self.num_ensemble)
-            else: #no ensembling (only one MLP)
-                fold_test_out, fold_eval_dfs_dict = mlp_loops.train_and_eval_one_mlp(mlp_args)
+            mlp_args = {**mlp_args_specific, **{'split':copy.deepcopy(split)}}
+            fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(mlp_args, num_ensemble)
             
             #Aggregate the fold_eval_dfs_dict (performance metrics) for FIRST WAY:
             if fold_num == 1:
                 all_eval_dfs_dict = fold_eval_dfs_dict
             else:
-                all_eval_dfs_dict = evaluate.sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
+                all_eval_dfs_dict = cv_agg.sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
             
             #Aggregate the fold_test_out (data and predictions) for SECOND WAY:
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
-                all_test_out = evaluate.concat_test_outs(fold_test_out, all_test_out, num_epochs = mlp_args['num_epochs'])
-            
+                all_test_out = cv_agg.concat_test_outs(fold_test_out, all_test_out, num_epochs = mlp_args['num_epochs'])
             fold_num += 1
             
-        # Calculating Performance in Two Ways #---------------------------------
-        #Now we are done with the folds of cross-validation.
-        #We need to calculate performance. We will do this in two ways:
-        #FIRST WAY: 'Averaged Perf':averaging the performance of each fold.
-        #This will help us see if there is a lot of variability in performance
-        #between folds. Technically if we're using average precision we also
-        #would need to account for the number of positives in each fold to do
-        #a proper weighting. But due to computational cost we are not going to
-        #do that.
-        #SECOND WAY: 'Generalized Perf': we concatenate the actual predictions
-        #for each example in the test set of each fold so that we get a
-        #predicted probability for every example in the data set. Then we
-        #calculate the performance metrics on all this data at the same time.
-        #This implicitly does all of the weighting correctly based on number of
-        #true positives, number of false positives, and so on. But it hides
-        #any 'variability between folds' that may exist with this model setup.
-        self.perf_all_models = evaluate.update_and_save_cv_perf_df(
+        # Calculating Performance in Two Ways (see cv_agg.py for documentation)
+        self.perf_all_models = cv_agg.update_and_save_cv_perf_df(
             self.perf_all_models, all_eval_dfs_dict, all_test_out, self.cv_fold_mlp, mlp_args_specific, 
             save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models.csv'))
     
     def _save_test_preds_of_best_MLP(self):
-        """Save the test predictions of the best MLP model"""
-          # get the best model
+        """Save a text file describing the setup of the best model"""
         best_mod = output_df.iloc[output_df['Avg Precision'].idxmax()]
-        self.layer = best_mod["MLP Layer"]
-        self.learningrate =  best_mod["Learning Rate"]
-        self.dropout = best_mod["Dropout Rate"]
-        self.num_ensemble =  best_mod["Ensemble Size"]
-        self.max_epochs = best_mod["Best Epoch"]
-        # save best param to txt file
-        with open(os.path.join(self.results_dir,self.gene_name+'_best_mlp_summary.txt'), 'w') as f:
+        with open(os.path.join(self.results_dir,self.gene_name+'_best_AP_mlp_summary.txt'), 'w') as f:
             f.write("---------Hyperparameters for the best model--------")
-            f.write("\nMLP Layer:" + str(self.layer))
-            f.write("\nLearning Rate:" + str(self.learningrate))
-            f.write("\nDropout Rate:" + str(self.dropout))
-            f.write("\nEnsemble Size:" + str(self.num_ensemble))
-            f.write("\nBest Epoch:" + str(self.max_epochs))
-            f.write("\nAccuracy:" + str(round(best_mod["Accuracy"],4)))
+            f.write("\nMLP Layer:" + str(best_mod['MLP Layer']))
+            f.write("\nLearning Rate:" + str(best_mod['Learning Rate']))
+            f.write("\nDropout Rate:" + str(best_mod['Dropout Rate']))
+            f.write("\nEnsemble Size:" + str(best_mod['Ensemble Size']))
+            f.write("\nBest Epoch:" + str(best_mod['Best Epoch']))
+            f.write("\nAccuracy:" + str(round(best_mod['Accuracy'],4)))
             f.write("\nAUROC:" + str(round(best_mod['AUROC'], 4)))
-            f.write("\nAvg Precision:" + str(round(best_mod["Avg Precision"],4)))
-        print("Done saving all results")                    
-        # run the best model again to obtain true label and predicted probabilities
-        self.save_test_out = True
-        self._run_mlp()
-        self.all_folds_test_out.to_csv(os.path.join(self.results_dir,self.gene_name+'_best_mlp_test_preds.csv'),index=False)
+            f.write("\nAvg Precision:" + str(round(best_mod['Avg Precision'],4)))
     
 class PredictMysteryAAs_MLP(object):
     def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split):

@@ -7,7 +7,7 @@ import pandas as pd
 import sklearn.preprocessing
 
 class Splits(object):
-    """Split the provided data into self.train, self.valid, and self.test,
+    """Split the provided data into self.train and self.test,
     where each is a Dataset object.
     self.train.data is a numpy array; self.train.labels is a numpy array"""
     def __init__(self,
@@ -93,8 +93,7 @@ class Splits(object):
                 self.clean_data[required_column] = 0
         self.clean_data = self.clean_data[self.columns_to_ensure]
     
-    def _normalize(self, train_data, test_data):
-        #TODO test this
+    def _normalize(self, train_data, test_data):#TODO test this
         """Return train_data and test_data such that the features specified
         in self.normalize_these_continuous have been normalized to
         approximately zero mean and unit variance, based on the
@@ -114,8 +113,10 @@ class Splits(object):
         return train_data, test_data
         
     def _make_splits_cv(self, train_indices, test_indices):
-        """Split up self.clean_data and self.clean_labels
-        into train and test data. Perfrom normalization based on the training data."""
+        """Split up self.clean_data and self.clean_labels into train and test
+        data. <train_indices> and <test_indices> are the output of a function
+        like model_selection.StratifiedKFold.
+        Perform normalization based on the training data."""
         assert self.clean_data.index.values.tolist()==self.clean_labels.index.values.tolist()
         extra_args = {'data_meanings':self.clean_data.columns.values.tolist(),
             'label_meanings': self.clean_labels.columns.values.tolist(),
@@ -140,13 +141,10 @@ class Splits(object):
         
         #Note: you want to shuffle the training set between each epoch
         #so that the model can't cheat and learn the order of the training
-        #data. You don't want to bother shuffling the validation or test
-        #sets because those are just evaluated on a fixed model.
+        #data. You don't want to bother shuffling the test set because it is
+        #just used for evaluation.
         self.train = Dataset(train_data, train_labels, shuffle = True, **extra_args)
         self.test = Dataset(test_data, test_labels, shuffle = False, **extra_args)
-        self.valid = None #not used. Only need train/test for cross validation
-        #Note that we could have called it 'train/val' for cross-validation, but
-        #we are calling it train/test.
         
         print('Finished making cross validation splits')
         print('\tTrain data shape:',str(train_data.shape))
