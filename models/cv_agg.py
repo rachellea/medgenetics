@@ -13,6 +13,7 @@ import sklearn.metrics
 def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_dict, all_test_out,
             number_of_cv_folds, model_args_specific, save_path):
     #First Way: Averaged Peformance
+    #TODO ADD STANDARD DEVIATION!
     best_epoch_avg, best_acc_avg, best_auroc_avg, best_avg_prec_avg = determine_best_epoch_by_firstway(
         all_eval_dfs_dict, number_of_cv_folds, model_args_specific['num_epochs'])
     
@@ -46,10 +47,10 @@ def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_
     perf_all_models_out = perf_all_models.append(model_summary, ignore_index=True)
     
     #Print
-    print('\n****** Summary of all CV folds******')
-    print('\tThe mean accuracy is', round(best_acc_avg,4))
-    print('\tThe mean AUROC is',round(best_auroc_avg,4))
-    print('\tThe mean Average Precision is',round(best_avg_prec_avg))
+    print('\n****** Summary of CV folds for this model setup******')
+    print('\taccuracy: folds avg:', round(best_acc_avg,4),'gen:',round(best_acc_gen,4))
+    print('\tAUROC: folds avg:',round(best_auroc_avg,4),'gen:',round(best_auroc_gen,4))
+    print('\tAverage Precision: folds avg:',round(best_avg_prec_avg,4),'gen:',round(best_avg_prec_gen,4))
     
     #Save output to csv
     perf_all_models_out.to_csv(save_path, index=False)
@@ -74,7 +75,8 @@ def sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict):
     for key in ['accuracy','auroc','avg_precision']:
         assert all_eval_dfs_dict[key].columns.values.tolist()==fold_eval_dfs_dict[key].columns.values.tolist()
         assert all_eval_dfs_dict[key].index.values.tolist()==fold_eval_dfs_dict[key].index.values.tolist()
-    #Sum together
+    #Sum together (we will divide by the number of folds later, in the function
+    #determine_best_epoch_by_firstway()
     combined_dfs_dict={}
     combined_dfs_dict['accuracy'] = all_eval_dfs_dict['accuracy'].add(fold_eval_dfs_dict['accuracy'])
     combined_dfs_dict['auroc'] = all_eval_dfs_dict['auroc'].add(fold_eval_dfs_dict['auroc'])
@@ -88,19 +90,21 @@ def determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds, num_
     Note: I know I could do something fancy with the number of true positives
     in each fold affecting the average precision averaging but because I
     have 'Second Way' below I am not doing that here."""
-    #Divide by the number of folds to get the average performance across all folds
+    #eval_dfs_dict currently contains the sum of all the performance metrics
+    #across all of the folds. So we need to divide by the number of folds
+    #to get the average performance across all the folds
     for key in ['accuracy','auroc','avg_precision']:
         all_eval_dfs_dict[key].loc[:,:] = all_eval_dfs_dict[key].values / number_of_cv_folds
     
     #Calculate performance
-    best_epoch = None; best_acc = 0; best_auroc = 0; best_avg_prec = 0
+    best_epoch = 0; best_acc = 0; best_auroc = 0; best_avg_prec = 0
     for epoch in range(num_epochs):
         avg_prec_epoch = all_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)]
         if avg_prec_epoch > best_avg_prec:
+            best_avg_prec = avg_prec_epoch
             best_epoch = epoch
             best_acc = all_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)]
             best_auroc = all_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)]
-            best_avg_prec = avg_prec_epoch
     return best_epoch, best_acc, best_auroc, best_avg_prec
  
 ###################################

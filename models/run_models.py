@@ -164,7 +164,7 @@ class GridSearch(object):
         # Calculating Performance in Two Ways (see cv_agg.py for documentation)
         self.perf_all_models = cv_agg.update_and_save_cv_perf_df(self.modeling_approach,
             self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds, model_args_specific, 
-            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_all_models.csv'))
+            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_'+self.modeling_approach+'.csv'))
     
 class PredictMysteryAAs(object):
     def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split):
