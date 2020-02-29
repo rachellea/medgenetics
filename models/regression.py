@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from sklearn import linear_model, metrics, model_selection
+from sklearn import linear_model
 
 class LogisticRegression(object):
     #http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
@@ -11,8 +11,7 @@ class LogisticRegression(object):
     <logreg_penalty>: can be 'l1' or 'l2'
     <C>: float, default: 1.0. Inverse of regularization strength; must be a
         positive float. Smaller values specify stronger regularization.
-    <num_epochs>: this isn't actually used here, it's just part of the
-        args for compatibility with some of the functions in ensemble_agg.py
+    <num_epochs>: used as the max_iter (max iterations) to reach a solution
     
     Note on linear_model.LogisticRegression defaults:
         fit_intercept = True
@@ -26,22 +25,24 @@ class LogisticRegression(object):
         self.logreg_penalty = logreg_penalty
         self.C = C
         self.decision_threshold = decision_threshold
+        self.num_epochs = num_epochs
     
     def run_all(self):
         """Train and evaluate a logistic regression model"""
-        logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C)
+        logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C, max_iter=self.num_epochs)
         logreg.fit(self.split.train.data, self.split.train.labels)
-        test_pred_probs = logreg.predict(self.split.test.data) #shape e.g. (752,)
+        #predicted probabilities are first for class 0 and then for class 1
+        test_pred_probs_array = logreg.predict_proba(self.split.test.data) #shape e.g. (752,)
+        #We only want the predicted probabilities for class 1 (i.e. for mutation):
+        test_pred_probs = test_pred_probs_array[:,1]
         test_pred_labels = (test_pred_probs >= self.decision_threshold).astype('int')
         
         #Save results
         #test_out is a dictionary with keys that are epochs and values
-        #that are dataframes. We're not using epochs for logistic regression
-        #but for compatibility with the MLP output we'll call the result of
-        #logistic regression 'epoch_0'
-        #A dataframe contains the data set (entire_x)
-        #as well as the predicted probabilities, predicted labels, and
-        #true labels for all examples
+        #that are dataframes. We do use <num_epochs> as the max_iter, but since
+        #we don't get performance at every iteration, just save logistic
+        #regression results under 'epoch_0' (for consistent output format
+        #between MLP and LR)
         test_out_df = pd.DataFrame(np.concatenate((self.split.test.data, np.expand_dims(test_pred_probs,1), np.expand_dims(test_pred_labels,1), self.split.test.labels),axis = 1),
                                columns=self.split.clean_data.columns.values.tolist()+['Pred_Prob','Pred_Label','True_Label'])
         test_out_df = test_out_df.sort_values(by='Position')

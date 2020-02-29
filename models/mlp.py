@@ -68,7 +68,6 @@ class MLP(object):
         self.session.run(self.initialize)            
     
     def train_and_test(self):
-        #Train
         for j in range(self.num_epochs):
             epoch_loss = 0
             for i in range(self.num_train_batches):
@@ -79,9 +78,7 @@ class MLP(object):
                 curr_loss, curr_opti = self.session.run([self.loss, self.optimizer], feed_dict=feed_dict_train)
                 self.num_batches_done+=1
                 epoch_loss+=curr_loss
-            self.num_epochs_done+=1
-            self.training_loss[self.num_epochs_done-1] = epoch_loss
-            #Test
+            self.training_loss[self.num_epochs_done] = epoch_loss
             self.test('Test')
     
     def test(self, chosen_dataset):
@@ -132,6 +129,7 @@ class MLP(object):
                                columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
             self.mysteryAAs_filename = self.descriptor + '_mysteryAAs_results_epoch_' 
             out.to_csv(self.mysteryAAs_filename + str(self.num_epochs_done) + ".csv", header=True,index=False)
+        self.num_epochs_done+=1
     
     #~~~Helper Methods for Graph Building~~~#
     def _build_graph(self):

@@ -28,9 +28,14 @@ def run(gene_name, what_to_run, modeling_approach):
             mysteryAAs for the best model
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
-    results_dir = os.path.abspath(os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d')))
+    #Make directories for storing results
+    date_dir = os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d'))
+    if not os.path.exists(date_dir):
+        os.mkdir(date_dir)
+    results_dir = os.path.abspath(os.path.join(date_dir,gene_name))
     if not os.path.exists(results_dir):
         os.mkdir(results_dir)
+    #Run
     data_preproc_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
                 'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
                 'batch_size':256}
@@ -45,5 +50,4 @@ def run(gene_name, what_to_run, modeling_approach):
         
 
 if __name__=='__main__':
-    #run('ryr2',what_to_run='grid_search',modeling_approach='MLP')
     run('ryr2',what_to_run='grid_search',modeling_approach='LR')

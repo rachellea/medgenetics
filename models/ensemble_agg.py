@@ -20,8 +20,8 @@ def train_and_eval_ensemble(modeling_approach, model_args, num_ensemble):
     #Train
     ensemble_lst = train_ensemble(modeling_approach, model_args, num_ensemble)
     #Evaluate
-    fold_test_out = create_fold_test_out(ensemble_lst, model_args['num_epochs'], model_args['decision_threshold'])
-    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out, model_args['num_epochs'])
+    fold_test_out = create_fold_test_out(ensemble_lst, model_args['decision_threshold'])
+    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out)
     #note that fold_test_out contains the data and the predictions, while
     #fold_eval_dfs_dict contains the performance
     return fold_test_out, fold_eval_dfs_dict
@@ -37,14 +37,14 @@ def train_ensemble(modeling_approach, model_args, num_ensemble):
      elif modeling_approach == 'LR':
         model_class = regression.LogisticRegression
      for i in range(num_ensemble):
-         print('\tTraining and testing mlp number',i+1,'out of',num_ensemble,'for ensemble')
+         print('\tTraining and testing model',i+1,'out of',num_ensemble,'for ensemble')
          m = model_class(**model_args)
          m.run_all() #train and test
          ensemble_lst.append(m)
      return ensemble_lst
 
 #Part of evaluating the ensemble
-def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
+def create_fold_test_out(ensemble_lst, decision_threshold):
     """For ensemble models in <ensemble_lst>, aggregate their predictions.
     Returns a dictionary of dataframes.
     The dictionary keys are 'epoch_1', 'epoch_2',... and so on.
@@ -55,6 +55,7 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
     normalized (not integer positions.)"""
     #test out is a dictionary with keys that are epochs (e.g. 'epoch_0') and
     #values that are pandas dataframes
+    num_epochs = len(ensemble_lst[0].test_out.keys())
     test_out_collection = []
     for model in ensemble_lst:
         test_out_collection.append(model.test_out)
@@ -85,14 +86,15 @@ def create_fold_test_out(ensemble_lst, num_epochs, decision_threshold):
     #the ensemble, divide the summed Pred_Prob by the number of models
     #in the ensemble, and then determine the Pred_Label:
     for epoch in range(num_epochs):
-        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].div(len(ensemble_lst))
+        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'] = fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].div(len(ensemble_lst))
         fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Label'] = (fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].values > decision_threshold).astype('int')
     return fold_test_out
 
 #Part of evaluating the ensemble
-def create_fold_eval_dfs_dict(fold_test_out, num_epochs):
+def create_fold_eval_dfs_dict(fold_test_out):
     """Return the performance of the ensemble models for all epochs
     based on the predictions and ground truth in <fold_test_out>."""
+    num_epochs = len(fold_test_out.keys())
     #Initialize empty fold_eval_dfs_dict
     result_df = pd.DataFrame(data=np.zeros((1, num_epochs)),
                             index = ['Label'],

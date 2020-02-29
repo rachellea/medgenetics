@@ -11,26 +11,25 @@ import sklearn.metrics
 # Both Ways: Averaged Performance and General Performance #---------------------
 ###########################################################
 def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_dict, all_test_out,
-            number_of_cv_folds, model_args_specific, save_path):
+            number_of_cv_folds, num_ensemble, model_args_specific, save_path):
     #First Way: Averaged Peformance
-    #TODO ADD STANDARD DEVIATION!
     best_epoch_avg, best_acc_avg, best_auroc_avg, best_avg_prec_avg = determine_best_epoch_by_firstway(
-        all_eval_dfs_dict, number_of_cv_folds, model_args_specific['num_epochs'])
+        all_eval_dfs_dict, number_of_cv_folds)
     
     #Second Way: General Performance
     best_epoch_gen, best_acc_gen, best_auroc_gen, best_avg_prec_gen = determine_best_epoch_by_secondway(
-        all_test_out, model_args_specific['num_epochs'])
+        all_test_out)
     
     #Save model details and performance to the perf_all_models dataframe:
     if modeling_approach == 'MLP':
         model_description = {'MLP_Layer':str(model_args_specific['mlp_layers']),
                      'Learning_Rate':model_args_specific['learningrate'],
                      'Dropout_Rate':model_args_specific['dropout'],
-                     'Ensemble_Size':model_args_specific['num_epochs']}
+                     'Ensemble_Size':num_ensemble}
     elif modeling_approach == 'LR':
         model_description = {'Penalty':model_args_specific['logreg_penalty'],
                              'C':model_args_specific['C'],
-                             'Ensemble_Size':model_args_specific['num_epochs']}
+                             'Ensemble_Size':num_ensemble}
     model_performance = {'Mean_Best_Epoch':best_epoch_avg,
                      'Mean_Accuracy':round(best_acc_avg,4),
                      'Mean_AUROC':round(best_auroc_avg,4),
@@ -83,13 +82,14 @@ def sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict):
     combined_dfs_dict['avg_precision'] = all_eval_dfs_dict['avg_precision'].add(fold_eval_dfs_dict['avg_precision'])
     return combined_dfs_dict
 
-def determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds, num_epochs):
+def determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds):
     """Figure out the best epoch for this particular model according to
     the highest average precision. Performance is calculated as the average of the
     performance of each fold.
     Note: I know I could do something fancy with the number of true positives
     in each fold affecting the average precision averaging but because I
     have 'Second Way' below I am not doing that here."""
+    num_epochs = all_eval_dfs_dict['accuracy'].shape[1]
     #eval_dfs_dict currently contains the sum of all the performance metrics
     #across all of the folds. So we need to divide by the number of folds
     #to get the average performance across all the folds
@@ -119,13 +119,14 @@ def determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds, num_
 #any 'variability between folds' that may exist with this model setup.
 #These functions enable calculating the performance metrics based on the
 #aggregated predictions for all examples across all the folds of cross-validation
-def concat_test_outs(fold_test_out, all_test_out, num_epochs):
+def concat_test_outs(fold_test_out, all_test_out):
     """<all_test_out> contains the data and predictions for many of the
     examples in the dataset but not all of them. <fold_test_out> contains some
     of the data and predictions that aren't in <all_test_out> yet. Each of
     these is a dictionary of dataframes where the keys are epochs. For each
     epoch concatenate <fold_test_out> into <all_test_out> to make <all_test_out>
     more complete."""
+    num_epochs = len(fold_test_out.keys())
     combined_test_out = {}
     for epoch in range(num_epochs):
         key = 'epoch_'+str(epoch)
@@ -133,11 +134,12 @@ def concat_test_outs(fold_test_out, all_test_out, num_epochs):
         combined_test_out[key] = pd.concat([fold_test_out[key], all_test_out[key]], ignore_index=True)
     return combined_test_out
 
-def determine_best_epoch_by_secondway(all_test_out, num_epochs):
+def determine_best_epoch_by_secondway(all_test_out):
     """Used in cross-validation. Save the performance of this particular model
     to <perf_all_models_gen>. Performance is calculated by using the aggregated
     predictions for each example to freshly calculate all performance metrics
     across all examples in the data set simultaneously."""
+    num_epochs = len(all_test_out.keys())
     all_epochs_perf = pd.DataFrame(np.zeros((num_epochs,3)),
                                    index = [x for x in range(num_epochs)],
                                    columns=['accuracy','auroc','avg_precision'])

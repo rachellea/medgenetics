@@ -16,21 +16,9 @@ from . import cv_agg
 from . import ensemble_agg
 from . import reformat_output
 
-class SimpleMLP(object):
-    def __init__(self, real_data_split, hidden_layer_sizes=(30,20),
-                 batch_size=300, max_iter=1000, early_stopping=False):
-        """Run the sklearn MLP implementation rather than the
-        Tensorflow implementation"""
-        # initialize an MLP
-        nn = neural_network.MLPClassifier(hidden_layer_sizes, batch_size, max_iter, early_stopping)
-        #train MLP using all the training data
-        x_train = real_data_split.clean_data
-        y_train = real_data_split.clean_labels
-        x_test = mysteryAAs_split.data
-        nn.fit(x_train, np.array(y_train).ravel())
-        predict_proba = nn.predict_proba(x_test)
-        print(sorted(predict_proba[:,1], reverse=True))
-
+#####################################################################
+# Grid Search - Calculate Performance Across Different Model Setups #-----------
+#####################################################################
 class GridSearch(object):
     """Perform a grid search across predefined architectures and hyperparameters
     for a given gene <gene_name> to determine the best MLP model setup.
@@ -44,9 +32,7 @@ class GridSearch(object):
         self.real_data_split = real_data_split
         self.number_of_cv_folds = 10 #ten fold cross validation
         self.max_epochs = 1000
-        self.results_dir = os.path.join(results_dir, gene_name)
-        if not os.path.exists(self.results_dir):
-            os.mkdir(self.results_dir)
+        self.results_dir = results_dir
         self._initialize_perf_df()
         
         #Run
@@ -81,7 +67,7 @@ class GridSearch(object):
         for testing purposes"""
         learn_rate = [100]
         dropout = [0.3]
-        ensemble = [1]
+        ensemble = [3]
         layers = [[20],[120,60,20]]
         comb_lst = [learn_rate, dropout, ensemble, layers]
         self.combinations = list(itertools.product(*comb_lst))
@@ -124,7 +110,7 @@ class GridSearch(object):
                                 'logreg_penalty':comb[0],
                                 'C':comb[1],
                                 'decision_threshold':0.5,
-                                'num_epochs':1}
+                                'num_epochs':self.max_epochs}
             self._run_one_model_setup(lr_args_specific, num_ensemble = comb[2])
     
     # Generic Method to Run a Model Setup #-------------------------------------
@@ -158,14 +144,60 @@ class GridSearch(object):
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
-                all_test_out = cv_agg.concat_test_outs(fold_test_out, all_test_out, num_epochs = model_args['num_epochs'])
+                all_test_out = cv_agg.concat_test_outs(fold_test_out, all_test_out)
             fold_num += 1
             
         # Calculating Performance in Two Ways (see cv_agg.py for documentation)
         self.perf_all_models = cv_agg.update_and_save_cv_perf_df(self.modeling_approach,
-            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds, model_args_specific, 
-            save_path = os.path.join(self.results_dir,self.gene_name+'_perf_'+self.modeling_approach+'.csv'))
+            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds,
+            num_ensemble, model_args_specific, 
+            save_path = os.path.join(self.results_dir,self.gene_name+'_Performance_All_'+self.modeling_approach+'_Models.csv'))
+
+################################
+# Select Best-Performing Model #------------------------------------------------
+################################
+def select_best_model_setup(path_to_perf_results,modeling_approach):
+    """<path_to_results> is a path to a Performance_All_LR_Models.csv or
+    a Performance_All_MLP_Models.csv file. The best model setup will be selected
+    based on highest average precision."""
+    if modeling_approach == 'MLP':
+        assert 'MLP' in path_to_perf_results
+        model_setup_cols = ['MLP_Layer','Learning_Rate','Dropout_Rate','Ensemble_Size']
+    elif modeling_approach == 'LR':
+        assert 'LR' in path_to_perf_results
+        model_setup_cols = ['Penalty','C','Ensemble_Size']
+    perf_all_models = pd.read_csv(path_to_perf_results,index_col=0)
+    perf_all_models = perf_all_models.sort_values(by='Gen_Avg_Precision',ascending=False)
+    best_model = perf_all_models.iloc[0,:]
+    best_model_idx = best_model.index.values.tolist()[0]
+    model_setup_dict={}
+    for col in model_setup_cols:
+        model_setup_dict[col] = best_model.at[best_model_idx,col]
+    print('Model with highest Gen_Avg_Precision selected:',model_setup_dict)
+    return model_setup_dict
     
+###########################################
+# Run Best-Performing Model on MysteryAAs #-------------------------------------
+###########################################
+def predict_mysteryAAs_sklearn_mlp(real_data_split, mysteryAAs_Dataset,
+                                   path_to_perf_results):
+    """Use the sklearn MLP implementation to predict the mutation
+    pathogenicity of the mysteryAAs"""
+    #Data
+    real_data_split = copy.deepcopy(real_data_split)
+    train_data_unnorm = real_data_split.clean_data
+    train_data, _ = real_data_split._normalize(train_data_unnorm, train_data_unnorm)
+    train_labels = real_data_split.clean_labels
+    mysteryAAs_data = mysteryAAs_Dataset.data
+    #Model
+    model_setup_dict = select_best_model_setup(path_to_perf_results,'MLP')
+    nn = neural_network.MLPClassifier(
+        hidden_layer_sizes, batch_size, max_iter, early_stopping)
+    nn.fit(train_data, np.array(train_labels).ravel())
+    predict_proba = nn.predict_proba(mysteryAAs_data)
+    #TODO format the predicted probabilities nicely!!!
+
+
 class PredictMysteryAAs(object):
     def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split):
         """This function uses mlp to predict the mysteryAAs"""
