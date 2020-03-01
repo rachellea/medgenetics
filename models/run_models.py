@@ -19,13 +19,24 @@ from . import reformat_output
 #####################################################################
 # Grid Search - Calculate Performance Across Different Model Setups #-----------
 #####################################################################
-class GridSearch(object):
-    """Perform a grid search across predefined architectures and hyperparameters
-    for a given gene <gene_name> to determine the best MLP model setup.
+class RunPredictiveModels(object):
+    """Run models using cross validation and ensembling.
+    Parameters:
+    <gene_name>: a string e.g. 'ryr2'
+    <modeling_approach>: a string, either 'MLP' or 'LR' (for logistic regression)
+    <results_dir>: path to directory to save results
+    <real_data_split>: data split defined in clean_data.py PrepareData class
+    <testing>: if True, and if <what_to_run>=='grid_search' then only run
+        on a small number of possible settings (for code testing purposes)
+    <what_to_run>: a string, either 'grid_search' (to perform grid search
+        over many predefined model setups) or 'test_pred' (after a grid search
+        is complete this will select the best model and then save the test set
+        predictions of that model for use in e.g. visualization functions)
+    
     To run without ensembling, i.e. to run each architecture/hyperparameter
     grouping on only one instantiation of the model, set ensemble=[1]"""
     def __init__(self, gene_name, modeling_approach, results_dir,
-                 real_data_split, testing):
+                 real_data_split, testing, what_to_run):
         self.gene_name = gene_name
         self.modeling_approach = modeling_approach
         assert self.modeling_approach in ['MLP','LR']
@@ -34,19 +45,73 @@ class GridSearch(object):
         self.max_epochs = 1000
         self.results_dir = results_dir
         self._initialize_perf_df()
+        self.what_to_run = what_to_run
         
-        #Run
+        if what_to_run == 'grid_search':
+            self._run_grid_search()
+        elif what_to_run == 'test_pred':
+            self._run_test_pred()
+            
+    # Grid Search Method #------------------------------------------------------
+    def _run_grid_search(self):
+        """Perform a grid search across predefined architectures and
+        hyperparameters for a given gene <gene_name> to determine the best
+        MLP model setup."""
         if self.modeling_approach == 'MLP':
             if testing:
                 self._initialize_search_params_mlp_testing()
             else:
                 self._initialize_search_params_mlp()
             self._run_all_mlp_setups()
-        
+            
         elif self.modeling_approach == 'LR':
             self._initialize_search_params_lr()
             self._run_all_lr_setups()
     
+    # Test Predictions Methods #------------------------------------------------
+    def _run_test_pred(self):
+        """Load the setup of the best model and save the test set predictions
+        for that model"""
+        model_args_specific, num_ensemble = self._return_model_args_for_best_model()
+        #because self.what_to_run == 'test_pred', calling _run_one_model_setup
+        #will result in the test predictions being saved for this model setup.
+        self._run_one_model_setup(model_args_specific, num_ensemble)
+    
+    def _return_model_args_for_best_model(self):
+        best_model = select_best_model_setup(self.gene_name, self.results_dir,
+                                             self.modeling_approach)
+        if self.modeling_approach == 'MLP':
+            model_args_specific = {'descriptor':self.gene_name,
+                'decision_threshold':0.5,
+                'num_epochs':best_model['Gen_Best_Epoch'],
+                'learningrate':best_model['Learning_Rate'],
+                'mlp_layers':best_model['MLP_Layer'],
+                'dropout':best_model['Dropout_Rate'],
+                'mysteryAAs':None}
+            
+        elif self.modeling_approach == 'LR':        
+            model_args_specific = {'descriptor':self.gene_name,
+                                'logreg_penalty':best_model['Penalty'],
+                                'C':best_model['C'],
+                                'decision_threshold':0.5,
+                                'num_epochs':best_model['Gen_Best_Epoch']}
+        return model_args_specific, best_model['Ensemble_Size']
+    
+    def _return_best_model_string(self):
+        """Return a string that roughly describes the setup of the best model"""
+        best_model = select_best_model_setup(self.gene_name, self.results_dir,
+                                             self.modeling_approach)
+        if self.modeling_approach == 'MLP':
+            return ('MLP-Ep'+str(best_model['Gen_Best_Epoch'])
+                    +'-'+str(best_model['MLP_Layer'])
+                    +'-LR'+str(best_model['Learning_Rate'])
+                    +'-D'+str(best_model['Dropout_Rate']))
+        elif self.modeling_approach == 'LR':
+            return ('LR-Ep'+str(best_model['Gen_Best_Epoch'])
+                    +'-'+str(best_model['Penalty'])
+                    +'-C'+str(best_model['C']))
+    
+    # Init Perf Df #------------------------------------------------------------
     def _initialize_perf_df(self):
         """Initialize dataframe that will store the performance for all of the
         different model variants"""
@@ -55,7 +120,8 @@ class GridSearch(object):
         elif self.modeling_approach == 'LR':
             model_colnames = ['Penalty','C']
         self.perf_all_models = pd.DataFrame(columns = model_colnames+['Ensemble_Size',
-                    'Mean_Best_Epoch','Mean_Accuracy','Mean_AUROC','Mean_Avg_Precision',
+                    'Mean_Best_Epoch','Mean_Accuracy','Std_Accuracy',
+                    'Mean_AUROC','Std_AUROC','Mean_Avg_Precision','Std_Avg_Precision',
                     'Gen_Best_Epoch','Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision'])
         for colname in ['MLP_Layer','Penalty']:
             if colname in self.perf_all_models.columns.values.tolist():
@@ -87,10 +153,11 @@ class GridSearch(object):
         for comb in tqdm(self.combinations):
             mlp_args_specific = {'descriptor':self.gene_name,
                 'decision_threshold':0.5,
-                'num_epochs':self.max_epochs, # fix number of epochs to 300
+                'num_epochs':self.max_epochs,
                 'learningrate':comb[0],
                 'mlp_layers': copy.deepcopy(comb[3]),
-                'dropout':comb[1]}
+                'dropout':comb[1],
+                'mysteryAAs':None}
             self._run_one_model_setup(mlp_args_specific, num_ensemble = comb[2])
     
     # LR Methods #--------------------------------------------------------------
@@ -132,13 +199,13 @@ class GridSearch(object):
             
             #Train and evaluate the model
             model_args = {**model_args_specific, **{'split':copy.deepcopy(split)}}
-            fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(self.modeling_approach, model_args, num_ensemble)
+            fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(self.modeling_approach, model_args, num_ensemble, fold_num)
             
             #Aggregate the fold_eval_dfs_dict (performance metrics) for FIRST WAY:
             if fold_num == 1:
                 all_eval_dfs_dict = fold_eval_dfs_dict
             else:
-                all_eval_dfs_dict = cv_agg.sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
+                all_eval_dfs_dict = cv_agg.concat_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
             
             #Aggregate the fold_test_out (data and predictions) for SECOND WAY:
             if fold_num == 1:
@@ -152,138 +219,74 @@ class GridSearch(object):
             self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds,
             num_ensemble, model_args_specific, 
             save_path = os.path.join(self.results_dir,self.gene_name+'_Performance_All_'+self.modeling_approach+'_Models.csv'))
-
+        
+        #Save test set predictions if indicated
+        if self.what_to_run == 'test_pred':
+            bestmodelstring = self._return_best_model_string()
+            pickle.dump(all_eval_dfs_dict, open(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_eval_dfs_dict_test.pickle'), 'wb'),-1)
+            pickle.dump(all_test_out, open(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.pickle'), 'wb'),-1)
+            
 ################################
 # Select Best-Performing Model #------------------------------------------------
 ################################
-def select_best_model_setup(path_to_perf_results,modeling_approach):
+def select_best_model_setup(gene_name, results_dir, modeling_approach):
     """<path_to_results> is a path to a Performance_All_LR_Models.csv or
     a Performance_All_MLP_Models.csv file. The best model setup will be selected
     based on highest average precision."""
-    if modeling_approach == 'MLP':
-        assert 'MLP' in path_to_perf_results
-        model_setup_cols = ['MLP_Layer','Learning_Rate','Dropout_Rate','Ensemble_Size']
-    elif modeling_approach == 'LR':
-        assert 'LR' in path_to_perf_results
-        model_setup_cols = ['Penalty','C','Ensemble_Size']
-    perf_all_models = pd.read_csv(path_to_perf_results,index_col=0)
+    path_to_perf_results = os.path.join(results_dir,gene_name+'_Performance_All_'+modeling_approach+'_Models.csv'))
+    perf_all_models = pd.read_csv(path_to_perf_results,index_col=False)
     perf_all_models = perf_all_models.sort_values(by='Gen_Avg_Precision',ascending=False)
     best_model = perf_all_models.iloc[0,:]
-    best_model_idx = best_model.index.values.tolist()[0]
-    model_setup_dict={}
-    for col in model_setup_cols:
-        model_setup_dict[col] = best_model.at[best_model_idx,col]
-    print('Model with highest Gen_Avg_Precision selected:',model_setup_dict)
-    return model_setup_dict
+    print('Model with highest Gen_Avg_Precision selected:',best_model)
+    return best_model
     
 ###########################################
 # Run Best-Performing Model on MysteryAAs #-------------------------------------
 ###########################################
-def predict_mysteryAAs_sklearn_mlp(real_data_split, mysteryAAs_Dataset,
-                                   path_to_perf_results):
-    """Use the sklearn MLP implementation to predict the mutation
-    pathogenicity of the mysteryAAs"""
-    #Data
-    real_data_split = copy.deepcopy(real_data_split)
-    train_data_unnorm = real_data_split.clean_data
-    train_data, _ = real_data_split._normalize(train_data_unnorm, train_data_unnorm)
-    train_labels = real_data_split.clean_labels
-    mysteryAAs_data = mysteryAAs_Dataset.data
-    #Model
-    model_setup_dict = select_best_model_setup(path_to_perf_results,'MLP')
-    nn = neural_network.MLPClassifier(
-        hidden_layer_sizes, batch_size, max_iter, early_stopping)
-    nn.fit(train_data, np.array(train_labels).ravel())
-    predict_proba = nn.predict_proba(mysteryAAs_data)
-    #TODO format the predicted probabilities nicely!!!
-
-
 class PredictMysteryAAs(object):
-    def __init__(self, gene_name, results_dir, real_data_split, mysteryAAs_split):
-        """This function uses mlp to predict the mysteryAAs"""
-        #TODO UPDATE THIS FUNCTION SO THAT IT WORKS FOR ANY KIND OF MODELING APPROACH
+    def __init__(self, gene_name, results_dir, modeling_approach,
+                 real_data_split, mysteryAAs_Dataset):
+        """Use MLP model to predict mutation pathogenicity of mysteryAAs"""
         self.gene_name = gene_name
-        self.real_data_split = real_data_split
-        self.mysteryAAs_split = mysteryAAs_split
+        self.real_data_split_tocopy = real_data_split
+        self.mysteryAAs_Dataset = mysteryAAs_Dataset
+        self.path_to_perf_results = path_to_perf_results
+        self.modeling_approach = modeling_approach
+        self.best_model = select_best_model_setup(gene_name, results_dir, modeling_approach)
         
-        # set hyperparameters
-        self.learningrate = 1000
-        self.dropout = 0.4
-        self.max_epochs = 1000
-        self.num_ensemble = 10 
-        self.layer = [30,20]
-        self.number_of_cv_folds = 10
+        #Run
+        self._prepare_data()
+    
+    def _prepare_data(self):
+        #Data
+        self.real_data_split = copy.deepcopy(self.real_data_split_tocopy)
+        train_indices = np.array([x for x in range(self.real_data_split.clean_data.shape[0])])
+        test_indices = np.array([])
+        self.real_data_split._make_splits_cv(train_indices, test_indices)
+        assert self.real_data_split.train.data.shape[0] == self.real_data_split.clean_data.shape[0]
+        assert self.real_data_split.test.data.shape[0] ==0
+    
+    def _run_mlp_on_mysteryAAs(self):
+        #Train on all available data and make predictions on mysteryAAs
+        mlp_args = {'descriptor':self.gene_name,
+                'decision_threshold':0.5,
+                'num_epochs':self.best_model['Gen_Best_Epoch'],
+                'learningrate':self.best_model['Learning_Rate'],
+                'mlp_layers':[int(x) for x in self.best_model['MLP_Layer'].replace(']','').replace('[','').split(',')],
+                'dropout':self.best_model['Dropout_Rate'],
+                'split':self.real_data_split,
+                'mysteryAAs':self.mysteryAAs_Dataset}
+        
+        ensemble_lst = train_ensemble(self.modeling_approach, mlp_args, self.best_model['Ensemble_Size'], 'mysteryAA_pred')
+        mysteryAA_raw_preds_df = create_fold_test_out(ensemble_lst, mlp_args['decision_threshold'], 'mysteryAA_pred')
+        
+        
+        #Make predictions
+        
+        
 
-        print("Predicting mysteryAAs using MLP...")
-        print("Learning rate:", self.learningrate)
-        print("Dropout:", self.dropout)
-        print("Number of Epochs:", self.max_epochs)
-        print("Number of MLPs in the ensemble:", self.num_ensemble)
- 
-        # define a list to store mlps for our ensemble
-        self.ensemble_output_lst = []
-
-        # initialize ensembles and store in the list
-        for en_num in range(self.num_ensemble):
-            
-            print("Initializing ensemble number", en_num + 1, " out of", self.num_ensemble )
-
-            # initialize mlp
-            m = mlp.MLP(descriptor=self.gene_name,
-                split=copy.deepcopy(self.real_data_split),
-                decision_threshold = 0.5,
-                num_epochs = self.max_epochs,
-                learningrate = self.learningrate,
-                mlp_layers = copy.deepcopy(self.layer),
-                dropout=self.dropout,
-                exclusive_classes = True,
-                save_model = False,
-                mysteryAAs = self.mysteryAAs_split,
-                cv_fold = self.number_of_cv_folds,
-                ensemble=self.num_ensemble)
-
-            # set up graph and session for the model
-            m.set_up_graph_and_session()
-
-            # train as per normal
-            m.train()
-
-            # get the unnormalized positions
-            self.ori_position = self.ori_position[m.perm_ind]
-
-            if m.best_valid_loss_epoch == 0:
-                print("best valid loss epoch was not initialized")
-                m.best_valid_loss_epoch = self.max_epochs
-            m.clean_up()
-          
-            print("Cleaning up output file of ensemble number:", en_num)
-
-            # clean up the output file from training
-            reformat_output.mysteryAAs_make_output_human_readable(m.mysteryAAs_filename +str(m.best_valid_loss_epoch)+'.csv',
+        reformat_output.mysteryAAs_make_output_human_readable(m.mysteryAAs_filename +str(m.best_valid_loss_epoch)+'.csv',
                                                                   self.gene_name, self.ori_position)
       
-        # loop through the list of cleaned dataframe to get the average of predicted probas
-        ori_df = self.ensemble_output_lst[0]
-        for j in range(len(ori_df.index)):
-            tot_pred_proba = 0
-            consensus_AA = ori_df.iloc[j]['ConsensusAA']
-            change_AA = ori_df.iloc[j]['ChangeAA']
-            position = ori_df.iloc[j]['Position']
-            tot_pred_proba += float(ori_df.iloc[j]['Pred_Prob'])
-
-            for i in range(1,len(self.ensemble_output_lst)):
-                curr_df = self.ensemble_output_lst[i]
-                row = curr_df.loc[(curr_df['ConsensusAA'] == consensus_AA) & (curr_df['ChangeAA']== change_AA) & (curr_df['Position'] == position)]
-                tot_pred_proba += float(row["Pred_Prob"])
-             
-            # get the average predict proba
-            avg_pred_prob = tot_pred_proba / self.num_ensemble
-            
-            # replace the pred_proba value of ori_df with this average
-            ori_df.iloc[j]['Pred_Prob'] = avg_pred_prob
-  
-        # sort the dataframe by pred proba column of ori_df
-        ori_df.sort_values('Pred_Prob')
-
-        # save dataframe to a file
+       
         ori_df.to_csv('mysteryAAs_predictions_bestMLP_with_ensemble.csv', index=False)          

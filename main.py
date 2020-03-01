@@ -44,8 +44,10 @@ def run(gene_name, what_to_run, modeling_approach):
     mysteryAAs_Dataset = d.mysteryAAs_Dataset
     
     if what_to_run == 'grid_search':
-        run_models.GridSearch(gene_name, modeling_approach, results_dir, real_data_split, testing=True)
-    if what_to_run == 'get_mysteryAA_preds':
+        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, real_data_split, testing=True)
+    elif what_to_run == 'test_pred':
+        pass
+    elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, real_data_split, mysteryAAs_Dataset)
         
 

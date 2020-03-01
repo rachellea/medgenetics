@@ -18,7 +18,8 @@ class MLP(object):
                  num_epochs,
                  learningrate, #e.g. 1e-4
                  mlp_layers,
-                 dropout):
+                 dropout,
+                 mysteryAAs):
         """Variables
         <descriptor>: string describing the model
         <split>: created by Splits class in utils.py
@@ -31,6 +32,7 @@ class MLP(object):
         #Data sets
         self.train_set = split.train
         self.test_set = split.test
+        self.mysteryAAs = mysteryAAs
         
         #Tracking
         assert self.train_set.batch_size == self.test_set.batch_size
@@ -52,12 +54,20 @@ class MLP(object):
         self.dropout = dropout
         self.test_out = {} #this will be a dictionary of data and predictions for every epoch
     
-    def run_all(self):
+    def run_all_train_test(self):
         """Set up model, train model, test model, and close session"""
         self.set_up_graph_and_session()
         self.train_and_test()
         self.session.close()
-
+    
+    def run_all_mysteryAA_preds(self):
+        """Set up model, train model on all available data, make predictions
+        on mysteryAAs, and close session"""
+        self.set_up_graph_and_session()
+        self.train_and_test()
+        self.test('mysteryAAs')
+        self.session.close()
+    
     #~~~Key Methods~~~#
     def set_up_graph_and_session(self):
         #Build the graph
@@ -80,15 +90,15 @@ class MLP(object):
                 epoch_loss+=curr_loss
             self.training_loss[self.num_epochs_done] = epoch_loss
             self.test('Test')
+            self.num_epochs_done+=1
     
     def test(self, chosen_dataset):
         if chosen_dataset == 'Test':
             chosen_set = self.test_set
             num_batches = self.num_test_batches
         elif chosen_dataset == 'mysteryAAs':
-            #TODO IMPLEMENT HANDLING OF MYSTERYAAS
             chosen_set = self.mysteryAAs
-            num_batches = self.num_mysteryAAs_batches
+            num_batches = math.ceil((self.mysteryAAs.num_examples)/self.mysteryAAs.batch_size)
         else:
             assert False, "chosen_dataset must be 'Test' or 'mysteryAAs' but you passed "+str(chosen_dataset)
         
@@ -113,23 +123,23 @@ class MLP(object):
                 self.labels_true = np.concatenate((self.labels_true, y_labels_batch),axis=0)
                 #$self.labels_true = labels_true
                 entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
-       
-        #test_out is a dictionary with keys that are epochs and values
-        #that are dataframes. A dataframe contains the data set (entire_x)
-        #as well as the predicted probabilities, predicted labels, and
-        #true labels for all examples
-        test_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
-                               columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
-        test_out_df = test_out_df.sort_values(by='Position')
-        self.test_out['epoch_'+str(self.num_epochs_done)] = test_out_df
         
-        #~~~Save outputs for mysteryAAs~~~#
-        if chosen_dataset == 'mysteryAAs':
-            out = pd.DataFrame(np.concatenate((entire_x, entire_pred_probs, entire_pred_labels),axis = 1),
-                               columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label'])
-            self.mysteryAAs_filename = self.descriptor + '_mysteryAAs_results_epoch_' 
-            out.to_csv(self.mysteryAAs_filename + str(self.num_epochs_done) + ".csv", header=True,index=False)
-        self.num_epochs_done+=1
+        if chosen_dataset == 'Test':
+            #test_out is a dictionary with keys that are epochs and values
+            #that are dataframes. A dataframe contains the data set (entire_x)
+            #as well as the predicted probabilities, predicted labels, and
+            #true labels for all examples
+            test_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
+                                   columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
+            test_out_df = test_out_df.sort_values(by='Position')
+            self.test_out['epoch_'+str(self.num_epochs_done)] = test_out_df
+            
+        elif chosen_dataset == 'mysteryAAs':
+            mysteryAAs_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels),axis = 1),
+                               columns=self.mysteryAAs.data_meanings+['Pred_Prob','Pred_Label'])
+            mysteryAAs_out_df = mysteryAAs_out_df.sort_values(by='Position')
+            self.mysteryAAs_out = {}
+            self.mysteryAAs_out['epoch_'+str(self.num_epochs_done)] = mysteryAAs_out_df
     
     #~~~Helper Methods for Graph Building~~~#
     def _build_graph(self):

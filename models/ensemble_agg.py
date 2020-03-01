@@ -12,21 +12,21 @@ from . import mlp
 from . import regression
 from . import reformat_output
 
-def train_and_eval_ensemble(modeling_approach, model_args, num_ensemble):
+def train_and_eval_ensemble(modeling_approach, model_args, num_ensemble, fold_num):
     """Train and evaluate an ensemble consisting of <num_ensemble> MLPs,
     each trained according to <model_args>."""
     assert num_ensemble >= 1
     assert isinstance(num_ensemble, int)
     #Train
-    ensemble_lst = train_ensemble(modeling_approach, model_args, num_ensemble)
+    ensemble_lst = train_ensemble(modeling_approach, model_args, num_ensemble, 'grid_search')
     #Evaluate
-    fold_test_out = create_fold_test_out(ensemble_lst, model_args['decision_threshold'])
-    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out)
+    fold_test_out = create_fold_test_out(ensemble_lst, model_args['decision_threshold'], 'train_test')
+    fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out, fold_num)
     #note that fold_test_out contains the data and the predictions, while
     #fold_eval_dfs_dict contains the performance
     return fold_test_out, fold_eval_dfs_dict
 
-def train_ensemble(modeling_approach, model_args, num_ensemble):
+def train_ensemble(modeling_approach, model_args, num_ensemble, what_to_run):
      """This function trains and tests MLPs for the ensemble.
         <split>: the split object to specify training and testing data
         <num_ensemble>: the number of MLPs in the ensemble
@@ -39,18 +39,21 @@ def train_ensemble(modeling_approach, model_args, num_ensemble):
      for i in range(num_ensemble):
          print('\tTraining and testing model',i+1,'out of',num_ensemble,'for ensemble')
          m = model_class(**model_args)
-         m.run_all() #train and test
+         if what_to_run == 'grid_search':
+             m.run_all_train_test() #train and test
+         elif what_to_run == 'mysteryAA_pred':
+             m.run_all_mysteryAA_preds()
          ensemble_lst.append(m)
      return ensemble_lst
 
 #Part of evaluating the ensemble
-def create_fold_test_out(ensemble_lst, decision_threshold):
+def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
     """For ensemble models in <ensemble_lst>, aggregate their predictions.
-    Returns a dictionary of dataframes.
+    Returns a dictionary of dataframes called 'fold_test_out':
     The dictionary keys are 'epoch_1', 'epoch_2',... and so on.
     The values are dataframes with columns ['Consensus_etc','Change_etc','Position',
     'Conservation','SigNoise','Pred_Prob','Pred_Label','True_Label']
-    The data has NOT been put in human-readable format yet, so for example the
+    The data has NOT been put in human-readable format, so for example the
     Consensus is many columns (one-hot encoding) and the Position is
     normalized (not integer positions.)"""
     #test out is a dictionary with keys that are epochs (e.g. 'epoch_0') and
@@ -58,7 +61,10 @@ def create_fold_test_out(ensemble_lst, decision_threshold):
     num_epochs = len(ensemble_lst[0].test_out.keys())
     test_out_collection = []
     for model in ensemble_lst:
-        test_out_collection.append(model.test_out)
+        if what_to_run == 'grid_search':
+            test_out_collection.append(model.test_out)
+        elif what_to_run == 'mysteryAA_pred':
+            test_out_collection.append(model.mysteryAAs_out)
     
     for idx in range(len(test_out_collection)):
         test_out = test_out_collection[idx]
@@ -91,13 +97,17 @@ def create_fold_test_out(ensemble_lst, decision_threshold):
     return fold_test_out
 
 #Part of evaluating the ensemble
-def create_fold_eval_dfs_dict(fold_test_out):
+def create_fold_eval_dfs_dict(fold_test_out, fold_num):
     """Return the performance of the ensemble models for all epochs
-    based on the predictions and ground truth in <fold_test_out>."""
-    num_epochs = len(fold_test_out.keys())
+    based on the predictions and ground truth in <fold_test_out>.
+    Returns fold_eval_dfs_dict which has keys 'accuracy', 'auroc', and
+    'avg_precision' and values that are dataframes with an index of <fold_num>
+    and columns of epoch number."""
     #Initialize empty fold_eval_dfs_dict
+    num_epochs = len(fold_test_out.keys())
+    idx = 'fold_num'+str(fold_num)
     result_df = pd.DataFrame(data=np.zeros((1, num_epochs)),
-                            index = ['Label'],
+                            index = [idx],
                             columns = ['epoch_'+str(n) for n in range(num_epochs)])
     fold_eval_dfs_dict = {'accuracy':copy.deepcopy(result_df),
         'auroc':copy.deepcopy(result_df),
@@ -108,7 +118,8 @@ def create_fold_eval_dfs_dict(fold_test_out):
         true_label = fold_test_out['epoch_'+str(epoch)]['True_Label'].values
         pred_label = fold_test_out['epoch_'+str(epoch)]['Pred_Label'].values
         pred_prob = fold_test_out['epoch_'+str(epoch)]['Pred_Prob'].values
-        fold_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)] = sklearn.metrics.accuracy_score(true_label, pred_label)
-        fold_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
-        fold_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)] = sklearn.metrics.average_precision_score(true_label, pred_prob)
+        col = 'epoch_'+str(epoch)
+        fold_eval_dfs_dict['accuracy'].at[idx,col] = sklearn.metrics.accuracy_score(true_label, pred_label)
+        fold_eval_dfs_dict['auroc'].at[idx,col] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
+        fold_eval_dfs_dict['avg_precision'].at[idx,col] = sklearn.metrics.average_precision_score(true_label, pred_prob)
     return fold_eval_dfs_dict

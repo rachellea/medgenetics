@@ -3,6 +3,7 @@
 #Functions to aggregate predictions across different folds of cross validation
 
 #Imports
+import copy
 import numpy as np
 import pandas as pd
 import sklearn.metrics
@@ -13,12 +14,10 @@ import sklearn.metrics
 def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_dict, all_test_out,
             number_of_cv_folds, num_ensemble, model_args_specific, save_path):
     #First Way: Averaged Peformance
-    best_epoch_avg, best_acc_avg, best_auroc_avg, best_avg_prec_avg = determine_best_epoch_by_firstway(
-        all_eval_dfs_dict, number_of_cv_folds)
+    avg_perf_dict = determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds)
     
     #Second Way: General Performance
-    best_epoch_gen, best_acc_gen, best_auroc_gen, best_avg_prec_gen = determine_best_epoch_by_secondway(
-        all_test_out)
+    gen_perf_dict = determine_best_epoch_by_secondway(all_test_out)
     
     #Save model details and performance to the perf_all_models dataframe:
     if modeling_approach == 'MLP':
@@ -29,27 +28,18 @@ def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_
     elif modeling_approach == 'LR':
         model_description = {'Penalty':model_args_specific['logreg_penalty'],
                              'C':model_args_specific['C'],
-                             'Ensemble_Size':num_ensemble}
-    model_performance = {'Mean_Best_Epoch':best_epoch_avg,
-                     'Mean_Accuracy':round(best_acc_avg,4),
-                     'Mean_AUROC':round(best_auroc_avg,4),
-                     'Mean_Avg_Precision':round(best_avg_prec_avg,4),
-                     'Gen_Best_Epoch':best_epoch_gen,
-                     'Gen_Accuracy':round(best_acc_gen,4),
-                     'Gen_AUROC':round(best_auroc_gen,4),
-                     'Gen_Avg_Precision':round(best_avg_prec_gen,4)}
+                             'Ensemble_Size':num_ensemble}    
     model_summary = {}
-    for dictionary in [model_description, model_performance]:
+    for dictionary in [model_description, avg_perf_dict, gen_perf_dict]:
         for key in list(dictionary.keys()):
             model_summary[key] = dictionary[key]
-    
     perf_all_models_out = perf_all_models.append(model_summary, ignore_index=True)
     
     #Print
     print('\n****** Summary of CV folds for this model setup******')
-    print('\taccuracy: folds avg:', round(best_acc_avg,4),'gen:',round(best_acc_gen,4))
-    print('\tAUROC: folds avg:',round(best_auroc_avg,4),'gen:',round(best_auroc_gen,4))
-    print('\tAverage Precision: folds avg:',round(best_avg_prec_avg,4),'gen:',round(best_avg_prec_gen,4))
+    print('\taccuracy: folds avg:',model_summary['Mean_Accuracy'],'+/-',model_summary['Std_Accuracy'],'gen:',model_summary['Gen_Accuracy'])
+    print('\tAUROC: folds avg:',model_summary['Mean_AUROC'],'+/-',model_summary['Std_AUROC'],'gen:',model_summary['Gen_AUROC'])
+    print('\tAverage Precision: folds avg:',model_summary['Mean_Avg_Precision'],'+/-',model_summary['Std_Avg_Precision'],'gen:',model_summary['Gen_Avg_Precision'])
     
     #Save output to csv
     perf_all_models_out.to_csv(save_path, index=False)
@@ -68,45 +58,63 @@ def update_and_save_cv_perf_df(modeling_approach, perf_all_models, all_eval_dfs_
 #do that.
 #These functions enable averaging the performance metrics for each fold of
 #cross-validation
-def sum_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict):    
-    """Return <fold_eval_dfs_dict> + <all_eval_dfs_dict>"""
-    #Check that columns and index are equivalent
+def concat_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict):    
+    """Return <fold_eval_dfs_dict> concatenated to the end of <all_eval_dfs_dict>
+    These dicts have keys 'accuracy', 'auroc', and 'avg_precision' and values
+    that are dataframes with an index of <fold_num> and columns of epoch number
+    
+    For example:
+    >>> fold_eval_dfs_dict['accuracy']
+                    epoch_0  epoch_1
+        fold_num1  0.892523  0.99823
+        fold_num2  0.892019  0.87237
+    """
+    #Check that columns are equivalent
     for key in ['accuracy','auroc','avg_precision']:
         assert all_eval_dfs_dict[key].columns.values.tolist()==fold_eval_dfs_dict[key].columns.values.tolist()
-        assert all_eval_dfs_dict[key].index.values.tolist()==fold_eval_dfs_dict[key].index.values.tolist()
     #Sum together (we will divide by the number of folds later, in the function
     #determine_best_epoch_by_firstway()
     combined_dfs_dict={}
-    combined_dfs_dict['accuracy'] = all_eval_dfs_dict['accuracy'].add(fold_eval_dfs_dict['accuracy'])
-    combined_dfs_dict['auroc'] = all_eval_dfs_dict['auroc'].add(fold_eval_dfs_dict['auroc'])
-    combined_dfs_dict['avg_precision'] = all_eval_dfs_dict['avg_precision'].add(fold_eval_dfs_dict['avg_precision'])
+    combined_dfs_dict['accuracy'] = all_eval_dfs_dict['accuracy'].append(fold_eval_dfs_dict['accuracy'])
+    combined_dfs_dict['auroc'] = all_eval_dfs_dict['auroc'].append(fold_eval_dfs_dict['auroc'])
+    combined_dfs_dict['avg_precision'] = all_eval_dfs_dict['avg_precision'].append(fold_eval_dfs_dict['avg_precision'])
     return combined_dfs_dict
 
 def determine_best_epoch_by_firstway(all_eval_dfs_dict, number_of_cv_folds):
-    """Figure out the best epoch for this particular model according to
-    the highest average precision. Performance is calculated as the average of the
-    performance of each fold.
+    """Return the best epoch, and the accuracy, AUROC, and average precision at
+    the best epoch. 'Best epoch' means the epoch with highest average precision.
+    Performance is calculated as the average of the performance of each fold.
     Note: I know I could do something fancy with the number of true positives
     in each fold affecting the average precision averaging but because I
     have 'Second Way' below I am not doing that here."""
     num_epochs = all_eval_dfs_dict['accuracy'].shape[1]
-    #eval_dfs_dict currently contains the sum of all the performance metrics
-    #across all of the folds. So we need to divide by the number of folds
-    #to get the average performance across all the folds
-    for key in ['accuracy','auroc','avg_precision']:
-        all_eval_dfs_dict[key].loc[:,:] = all_eval_dfs_dict[key].values / number_of_cv_folds
     
-    #Calculate performance
-    best_epoch = 0; best_acc = 0; best_auroc = 0; best_avg_prec = 0
-    for epoch in range(num_epochs):
-        avg_prec_epoch = all_eval_dfs_dict['avg_precision'].at['Label','epoch_'+str(epoch)]
-        if avg_prec_epoch > best_avg_prec:
-            best_avg_prec = avg_prec_epoch
-            best_epoch = epoch
-            best_acc = all_eval_dfs_dict['accuracy'].at['Label','epoch_'+str(epoch)]
-            best_auroc = all_eval_dfs_dict['auroc'].at['Label','epoch_'+str(epoch)]
-    return best_epoch, best_acc, best_auroc, best_avg_prec
- 
+    #eval_dfs_dict has keys for performance metrics and values that are dataframes
+    #that have folds as index and epochs as columns.
+    #make a different dict where keys are performance metrics and the values
+    #are dataframes that have index of epochs and columns Mean and StDev
+    summary_df = pd.DataFrame(np.empty((num_epochs,2),dtype='float'),
+                              columns=['Mean','StDev'],index=['epoch_'+str(epoch) for epoch in range(num_epochs)])
+    summary_dict = {'accuracy':copy.deepcopy(summary_df),
+                    'auroc':copy.deepcopy(summary_df),
+                    'avg_precision':copy.deepcopy(summary_df)}
+    for key in ['accuracy','auroc','avg_precision']:
+        eval_df = all_eval_dfs_dict[key]
+        for epoch in summary_df.index.values.tolist(): #e.g. epoch_23
+            epoch_data = eval_df.loc[:,epoch].values
+            summary_dict[key].at[epoch,'Mean'] = np.mean(epoch_data)
+            summary_dict[key].at[epoch,'StDev'] = np.std(epoch_data)
+    
+    #Get best performance
+    best_epoch = summary_dict['avg_precision'].nlargest(n=1,columns=['Mean']).index.values.tolist()[0]
+    return {'Mean_Best_Epoch':best_epoch,
+            'Mean_Accuracy':round(summary_dict['accuracy'].at[best_epoch,'Mean'],4),
+            'Std_Accuracy':round(summary_dict['accuracy'].at[best_epoch,'StDev'],4),
+            'Mean_AUROC':round(summary_dict['auroc'].at[best_epoch,'Mean'],4),
+            'Std_AUROC':round(summary_dict['auroc'].at[best_epoch,'StDev'],4),
+            'Mean_Avg_Precision':round(summary_dict['avg_precision'].at[best_epoch,'Mean'],4),
+            'Std_Avg_Precision':round(summary_dict['avg_precision'].at[best_epoch,'StDev'],4)}
+    
 ###################################
 # Second Way: General Performance #---------------------------------------------
 ###################################
@@ -123,9 +131,11 @@ def concat_test_outs(fold_test_out, all_test_out):
     """<all_test_out> contains the data and predictions for many of the
     examples in the dataset but not all of them. <fold_test_out> contains some
     of the data and predictions that aren't in <all_test_out> yet. Each of
-    these is a dictionary of dataframes where the keys are epochs. For each
-    epoch concatenate <fold_test_out> into <all_test_out> to make <all_test_out>
-    more complete."""
+    these is a dictionary where the keys are epochs and the values are
+    dataframes. The value dataframes have columns corresponding to the data
+    features and the predictions, and rows for different mutations in the dataset.
+    For each epoch concatenate <fold_test_out> into <all_test_out> to make
+    <all_test_out> more complete."""
     num_epochs = len(fold_test_out.keys())
     combined_test_out = {}
     for epoch in range(num_epochs):
@@ -135,10 +145,11 @@ def concat_test_outs(fold_test_out, all_test_out):
     return combined_test_out
 
 def determine_best_epoch_by_secondway(all_test_out):
-    """Used in cross-validation. Save the performance of this particular model
-    to <perf_all_models_gen>. Performance is calculated by using the aggregated
-    predictions for each example to freshly calculate all performance metrics
-    across all examples in the data set simultaneously."""
+    """Return the best epoch, and the accuracy, AUROC, and average precision at
+    the best epoch. 'Best epoch' means the epoch with highest average precision.
+    Performance is calculated by using the aggregated predictions for each
+    example to freshly calculate all performance metrics across all examples
+    in the data set simultaneously."""
     num_epochs = len(all_test_out.keys())
     all_epochs_perf = pd.DataFrame(np.zeros((num_epochs,3)),
                                    index = [x for x in range(num_epochs)],
@@ -155,9 +166,7 @@ def determine_best_epoch_by_secondway(all_test_out):
     
     #Pick out the highest avg precision
     best = all_epochs_perf.nlargest(n=1,columns=['avg_precision'])
-    best_epoch = best.index.values.tolist()[0]
-    best_acc = best.loc[:,'accuracy'].values.tolist()[0]
-    best_auroc = best.loc[:,'auroc'].values.tolist()[0]
-    best_avg_prec = best.loc[:,'avg_precision'].values.tolist()[0]
-    return best_epoch, best_acc, best_auroc, best_avg_prec
-    
+    return {'Gen_Best_Epoch':best.index.values.tolist()[0],
+            'Gen_Accuracy':round(best.loc[:,'accuracy'].values.tolist()[0],4),
+            'Gen_AUROC':round(best.loc[:,'auroc'].values.tolist()[0],4),
+            'Gen_Avg_Precision':round(best.loc[:,'avg_precision'].values.tolist()[0],4)}
