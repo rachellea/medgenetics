@@ -20,7 +20,7 @@ def train_and_eval_ensemble(modeling_approach, model_args, num_ensemble, fold_nu
     #Train
     ensemble_lst = train_ensemble(modeling_approach, model_args, num_ensemble, 'grid_search')
     #Evaluate
-    fold_test_out = create_fold_test_out(ensemble_lst, model_args['decision_threshold'], 'train_test')
+    fold_test_out = create_fold_test_out(ensemble_lst, model_args['decision_threshold'], 'grid_search')
     fold_eval_dfs_dict = create_fold_eval_dfs_dict(fold_test_out, fold_num)
     #note that fold_test_out contains the data and the predictions, while
     #fold_eval_dfs_dict contains the performance

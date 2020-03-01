@@ -19,15 +19,16 @@ class LogisticRegression(object):
             for small datasets; 'sag' and 'saga' are faster for large ones;
             'sag' can handle l2, 'saga' can handle l1)"""
     def __init__(self, descriptor, split, logreg_penalty, C, decision_threshold,
-                 num_epochs):
+                 num_epochs, mysteryAAs):
         print('\tLogistic Regresssion with penalty=',str(logreg_penalty),'and C=',str(C))
         self.split = split
         self.logreg_penalty = logreg_penalty
         self.C = C
         self.decision_threshold = decision_threshold
         self.num_epochs = num_epochs
+        self.mysteryAAs = mysteryAAs
     
-    def run_all(self):
+    def run_all_train_test(self):
         """Train and evaluate a logistic regression model"""
         logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C, max_iter=self.num_epochs)
         logreg.fit(self.split.train.data, self.split.train.labels)
@@ -48,3 +49,8 @@ class LogisticRegression(object):
         test_out_df = test_out_df.sort_values(by='Position')
         self.test_out = {}
         self.test_out['epoch_0'] = test_out_df
+    
+    def run_all_mysteryAA_preds(self):
+        """Train logistic regression model on all available data and then
+        make predictions on mysteryAAs"""
+        pass

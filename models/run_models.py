@@ -26,17 +26,17 @@ class RunPredictiveModels(object):
     <modeling_approach>: a string, either 'MLP' or 'LR' (for logistic regression)
     <results_dir>: path to directory to save results
     <real_data_split>: data split defined in clean_data.py PrepareData class
-    <testing>: if True, and if <what_to_run>=='grid_search' then only run
-        on a small number of possible settings (for code testing purposes)
     <what_to_run>: a string, either 'grid_search' (to perform grid search
         over many predefined model setups) or 'test_pred' (after a grid search
         is complete this will select the best model and then save the test set
         predictions of that model for use in e.g. visualization functions)
+    <testing>: if True, and if <what_to_run>=='grid_search' then only run
+        on a small number of possible settings (for code testing purposes)
     
     To run without ensembling, i.e. to run each architecture/hyperparameter
     grouping on only one instantiation of the model, set ensemble=[1]"""
     def __init__(self, gene_name, modeling_approach, results_dir,
-                 real_data_split, testing, what_to_run):
+                 real_data_split, what_to_run, testing):
         self.gene_name = gene_name
         self.modeling_approach = modeling_approach
         assert self.modeling_approach in ['MLP','LR']
@@ -72,44 +72,12 @@ class RunPredictiveModels(object):
     def _run_test_pred(self):
         """Load the setup of the best model and save the test set predictions
         for that model"""
-        model_args_specific, num_ensemble = self._return_model_args_for_best_model()
+        model_args_specific, num_ensemble = \
+                return_best_model_args(self.gene_name,
+                        self.results_dir, self.modeling_approach)
         #because self.what_to_run == 'test_pred', calling _run_one_model_setup
         #will result in the test predictions being saved for this model setup.
         self._run_one_model_setup(model_args_specific, num_ensemble)
-    
-    def _return_model_args_for_best_model(self):
-        best_model = select_best_model_setup(self.gene_name, self.results_dir,
-                                             self.modeling_approach)
-        if self.modeling_approach == 'MLP':
-            model_args_specific = {'descriptor':self.gene_name,
-                'decision_threshold':0.5,
-                'num_epochs':best_model['Gen_Best_Epoch'],
-                'learningrate':best_model['Learning_Rate'],
-                'mlp_layers':best_model['MLP_Layer'],
-                'dropout':best_model['Dropout_Rate'],
-                'mysteryAAs':None}
-            
-        elif self.modeling_approach == 'LR':        
-            model_args_specific = {'descriptor':self.gene_name,
-                                'logreg_penalty':best_model['Penalty'],
-                                'C':best_model['C'],
-                                'decision_threshold':0.5,
-                                'num_epochs':best_model['Gen_Best_Epoch']}
-        return model_args_specific, best_model['Ensemble_Size']
-    
-    def _return_best_model_string(self):
-        """Return a string that roughly describes the setup of the best model"""
-        best_model = select_best_model_setup(self.gene_name, self.results_dir,
-                                             self.modeling_approach)
-        if self.modeling_approach == 'MLP':
-            return ('MLP-Ep'+str(best_model['Gen_Best_Epoch'])
-                    +'-'+str(best_model['MLP_Layer'])
-                    +'-LR'+str(best_model['Learning_Rate'])
-                    +'-D'+str(best_model['Dropout_Rate']))
-        elif self.modeling_approach == 'LR':
-            return ('LR-Ep'+str(best_model['Gen_Best_Epoch'])
-                    +'-'+str(best_model['Penalty'])
-                    +'-C'+str(best_model['C']))
     
     # Init Perf Df #------------------------------------------------------------
     def _initialize_perf_df(self):
@@ -177,7 +145,8 @@ class RunPredictiveModels(object):
                                 'logreg_penalty':comb[0],
                                 'C':comb[1],
                                 'decision_threshold':0.5,
-                                'num_epochs':self.max_epochs}
+                                'num_epochs':self.max_epochs,
+                                'mysteryAAs':None}
             self._run_one_model_setup(lr_args_specific, num_ensemble = comb[2])
     
     # Generic Method to Run a Model Setup #-------------------------------------
@@ -208,6 +177,7 @@ class RunPredictiveModels(object):
                 all_eval_dfs_dict = cv_agg.concat_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
             
             #Aggregate the fold_test_out (data and predictions) for SECOND WAY:
+            fold_test_out = reformat_output.make_fold_test_out_human_readable(fold_test_out, split.scaler)
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
@@ -222,71 +192,93 @@ class RunPredictiveModels(object):
         
         #Save test set predictions if indicated
         if self.what_to_run == 'test_pred':
-            bestmodelstring = self._return_best_model_string()
-            pickle.dump(all_eval_dfs_dict, open(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_eval_dfs_dict_test.pickle'), 'wb'),-1)
-            pickle.dump(all_test_out, open(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.pickle'), 'wb'),-1)
-            
+            bestmodelstring = return_best_model_string(self.gene_name,self.results_dir,self.modeling_approach)
+            all_test_out['epoch_'+str(model_args['num_epochs'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
+            all_eval_dfs_dict['epoch_'+str(model_args['num_epochs'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
+
 ################################
 # Select Best-Performing Model #------------------------------------------------
 ################################
 def select_best_model_setup(gene_name, results_dir, modeling_approach):
-    """<path_to_results> is a path to a Performance_All_LR_Models.csv or
-    a Performance_All_MLP_Models.csv file. The best model setup will be selected
-    based on highest average precision."""
-    path_to_perf_results = os.path.join(results_dir,gene_name+'_Performance_All_'+modeling_approach+'_Models.csv'))
+    """Return a pandas series describing the best model. The best model setup
+    is selected based on highest general average precision."""
+    path_to_perf_results = os.path.join(results_dir,gene_name+'_Performance_All_'+modeling_approach+'_Models.csv')
     perf_all_models = pd.read_csv(path_to_perf_results,index_col=False)
     perf_all_models = perf_all_models.sort_values(by='Gen_Avg_Precision',ascending=False)
     best_model = perf_all_models.iloc[0,:]
     print('Model with highest Gen_Avg_Precision selected:',best_model)
     return best_model
     
+def return_best_model_args(gene_name, results_dir, modeling_approach):
+    """Return a dictionary of model args and the ensemble size for the best model"""
+    best_model = select_best_model_setup(gene_name,results_dir,modeling_approach)
+    if modeling_approach == 'MLP':
+        model_args = {'descriptor':gene_name,
+            'decision_threshold':0.5,
+            'num_epochs':best_model['Gen_Best_Epoch'],
+            'learningrate':best_model['Learning_Rate'],
+            'mlp_layers':best_model['MLP_Layer'],
+            'dropout':best_model['Dropout_Rate'],
+            'mysteryAAs':None}
+    
+    elif modeling_approach == 'LR':        
+        model_args = {'descriptor':gene_name,
+            'logreg_penalty':best_model['Penalty'],
+            'C':best_model['C'],
+            'decision_threshold':0.5,
+            'num_epochs':best_model['Gen_Best_Epoch'],
+            'mysteryAAs':None}
+    return model_args, int(best_model['Ensemble_Size'])
+
+def return_best_model_string(gene_name, results_dir, modeling_approach):
+    """Return a string that describes the setup of the best model"""
+    best_model = select_best_model_setup(gene_name, results_dir,modeling_approach)
+    if modeling_approach == 'MLP':
+        return ('MLP-Ep'+str(best_model['Gen_Best_Epoch'])
+                +'-'+str(best_model['MLP_Layer'])
+                +'-LR'+str(best_model['Learning_Rate'])
+                +'-D'+str(best_model['Dropout_Rate']))
+    elif modeling_approach == 'LR':
+        return ('LR-Ep'+str(best_model['Gen_Best_Epoch'])
+                +'-'+str(best_model['Penalty'])
+                +'-C'+str(best_model['C']))
+
 ###########################################
 # Run Best-Performing Model on MysteryAAs #-------------------------------------
 ###########################################
 class PredictMysteryAAs(object):
-    def __init__(self, gene_name, results_dir, modeling_approach,
+    def __init__(self, gene_name, modeling_approach, results_dir,
                  real_data_split, mysteryAAs_Dataset):
         """Use MLP model to predict mutation pathogenicity of mysteryAAs"""
         self.gene_name = gene_name
-        self.real_data_split_tocopy = real_data_split
-        self.mysteryAAs_Dataset = mysteryAAs_Dataset
-        self.path_to_perf_results = path_to_perf_results
+        self.results_dir = results_dir
         self.modeling_approach = modeling_approach
-        self.best_model = select_best_model_setup(gene_name, results_dir, modeling_approach)
+        self.real_data_split_tocopy = real_data_split
+        self.model_args = return_best_model_args(gene_name, results_dir, modeling_approach)
+        #note that the mysteryAAs are already normalized according to the
+        #statistics of all the real data
+        self.model_args['mysteryAAs'] = mysteryAAs_Dataset
         
         #Run
         self._prepare_data()
+        self._prepare_model_args()
+        self._run_model_on_mysteryAAs()
     
     def _prepare_data(self):
-        #Data
+        #Put all the real data into the train split and leave the test split empty
         self.real_data_split = copy.deepcopy(self.real_data_split_tocopy)
         train_indices = np.array([x for x in range(self.real_data_split.clean_data.shape[0])])
         test_indices = np.array([])
         self.real_data_split._make_splits_cv(train_indices, test_indices)
         assert self.real_data_split.train.data.shape[0] == self.real_data_split.clean_data.shape[0]
-        assert self.real_data_split.test.data.shape[0] ==0
+        assert self.real_data_split.test.data.shape[0] == 0
     
-    def _run_mlp_on_mysteryAAs(self):
+    def _run_model_on_mysteryAAs(self):
         #Train on all available data and make predictions on mysteryAAs
-        mlp_args = {'descriptor':self.gene_name,
-                'decision_threshold':0.5,
-                'num_epochs':self.best_model['Gen_Best_Epoch'],
-                'learningrate':self.best_model['Learning_Rate'],
-                'mlp_layers':[int(x) for x in self.best_model['MLP_Layer'].replace(']','').replace('[','').split(',')],
-                'dropout':self.best_model['Dropout_Rate'],
-                'split':self.real_data_split,
-                'mysteryAAs':self.mysteryAAs_Dataset}
+        ensemble_lst = train_ensemble(self.modeling_approach, self.model_args, self.best_model['Ensemble_Size'], 'mysteryAA_pred')
+        mysteryAA_raw_preds_df = create_fold_test_out(ensemble_lst, self.model_args['decision_threshold'], 'mysteryAA_pred')
         
-        ensemble_lst = train_ensemble(self.modeling_approach, mlp_args, self.best_model['Ensemble_Size'], 'mysteryAA_pred')
-        mysteryAA_raw_preds_df = create_fold_test_out(ensemble_lst, mlp_args['decision_threshold'], 'mysteryAA_pred')
+        #Convert predictions to human readable format and save
+        mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(mysteryAA_raw_preds_df, self.real_data_split.scaler)
+        mysteryAAs_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
         
-        
-        #Make predictions
-        
-        
-
-        reformat_output.mysteryAAs_make_output_human_readable(m.mysteryAAs_filename +str(m.best_valid_loss_epoch)+'.csv',
-                                                                  self.gene_name, self.ori_position)
-      
-       
-        ori_df.to_csv('mysteryAAs_predictions_bestMLP_with_ensemble.csv', index=False)          

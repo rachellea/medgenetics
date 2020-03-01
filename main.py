@@ -44,12 +44,15 @@ def run(gene_name, what_to_run, modeling_approach):
     mysteryAAs_Dataset = d.mysteryAAs_Dataset
     
     if what_to_run == 'grid_search':
-        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, real_data_split, testing=True)
+        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, real_data_split, what_to_run, True)
     elif what_to_run == 'test_pred':
-        pass
+        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, real_data_split, what_to_run, True)
     elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, real_data_split, mysteryAAs_Dataset)
-        
 
 if __name__=='__main__':
-    run('ryr2',what_to_run='grid_search',modeling_approach='LR')
+    #run('ryr2',what_to_run='grid_search',modeling_approach='LR')
+    run('ryr2',what_to_run='test_pred',modeling_approach='LR')
+    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
+    
+    
