@@ -56,9 +56,9 @@ def run(gene_name, what_to_run, modeling_approach):
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, d.real_data_split, d.mysteryAAs_dict)
 
 if __name__=='__main__':
-    run('ryr2',what_to_run='grid_search',modeling_approach='LR')
-    run('ryr2',what_to_run='test_pred',modeling_approach='LR')
+    #run('ryr2',what_to_run='grid_search',modeling_approach='LR')
+    #run('ryr2',what_to_run='test_pred',modeling_approach='LR')
     run('ryr2',what_to_run='test_pred_viz',modeling_approach='LR')
-    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
+    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
     
     
