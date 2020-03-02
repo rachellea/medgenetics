@@ -1,7 +1,7 @@
 #utils.py
-#Rachel Ballantyne Draelos
 
 import math
+import copy
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing
@@ -30,6 +30,8 @@ class Splits(object):
         Produces self.clean_data and self.clean_labels which are pandas
         dataframes that contain the data and labels respectively."""
         assert data.index.values.tolist()==labels.index.values.tolist()
+        self.raw_data = copy.deepcopy(data) #for checks on human readable format later
+        self.raw_labels = copy.deepcopy(labels) #for checks on human readable format later
         self.clean_data = data
         self.clean_labels = labels
         self.one_hotify_these_categorical = one_hotify_these_categorical
@@ -74,6 +76,7 @@ class Splits(object):
         train_selected = train_data[self.normalize_these_continuous].values
         self.scaler = sklearn.preprocessing.StandardScaler()
         self.scaler.fit(train_selected)
+        print('scaler mean:',self.scaler.mean_,'\nscaler scale:',self.scaler.scale_)
         assert len(self.normalize_these_continuous)==self.scaler.mean_.shape[0]==self.scaler.scale_.shape[0]
         train_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(train_selected)
         

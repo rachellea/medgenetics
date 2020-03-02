@@ -176,8 +176,18 @@ class RunPredictiveModels(object):
             else:
                 all_eval_dfs_dict = cv_agg.concat_eval_dfs_dicts(fold_eval_dfs_dict, all_eval_dfs_dict)
             
+            #If you want to save the test predictions in a human readable format
+            #then you need to convert test_out to a human readable format here,
+            #because the scaler mean and scale will change slightly with each fold.
+            if self.what_to_run == 'test_pred':
+                raw_test_data = copy.deepcopy(self.real_data_split.raw_data.iloc[test_indices])
+                raw_test_labels = copy.deepcopy(self.real_data_split.raw_labels.iloc[test_indices])
+                raw_test_data['True_Label'] = raw_test_labels['Label']
+                fold_test_out = \
+                    reformat_output.make_fold_test_out_human_readable(self.gene_name,
+                    fold_test_out, split.scaler, raw_test_data)
+            
             #Aggregate the fold_test_out (data and predictions) for SECOND WAY:
-            fold_test_out = reformat_output.make_fold_test_out_human_readable(fold_test_out, split.scaler)
             if fold_num == 1:
                 all_test_out = fold_test_out
             else:
@@ -194,7 +204,8 @@ class RunPredictiveModels(object):
         if self.what_to_run == 'test_pred':
             bestmodelstring = return_best_model_string(self.gene_name,self.results_dir,self.modeling_approach)
             all_test_out['epoch_'+str(model_args['num_epochs'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
-            all_eval_dfs_dict['epoch_'+str(model_args['num_epochs'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
+            reformat_output.save_all_eval_dfs_dict(all_eval_dfs_dict, colname = 'epoch_'+str(model_args['num_epochs']),
+                outfilepath = os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_eval_dfs_dict.csv'))
 
 ################################
 # Select Best-Performing Model #------------------------------------------------
@@ -279,6 +290,6 @@ class PredictMysteryAAs(object):
         mysteryAA_raw_preds_df = create_fold_test_out(ensemble_lst, self.model_args['decision_threshold'], 'mysteryAA_pred')
         
         #Convert predictions to human readable format and save
-        mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(mysteryAA_raw_preds_df, self.real_data_split.scaler)
+        mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(self.gene_name, mysteryAA_raw_preds_df, self.real_data_split.scaler)
         mysteryAAs_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
         

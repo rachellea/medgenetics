@@ -367,7 +367,12 @@ class PrepareData(object):
         #Normalize mysteryAAs based on the statistics of the entire train/val
         #set (because the final predictive model is trained based on all
         #available healthy/diseased AAs)
-        _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(self.real_data_split.clean_data, mysteryAAs_split.clean_data)
+        #must deep copy self.real_data_split.clean_data or else you will
+        #end up normalizing the real data twice due to modifying the
+        #underlying dataframe!
+        all_real_data = copy.deepcopy(self.real_data_split.clean_data)
+        _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(all_real_data, mysteryAAs_split.clean_data)
+        self.mysteryAAs_scaler = mysteryAAs_split.scaler
         assert mysteryAAs_final_clean_data.shape[0] == mysteryAAs_raw.shape[0]
         #self.mysteryAAs_Dataset instead of self.mysteryAAs_split
         self.mysteryAAs_Dataset = utils.Dataset(data = mysteryAAs_final_clean_data.values,
