@@ -217,7 +217,7 @@ def select_best_model_setup(gene_name, results_dir, modeling_approach):
     perf_all_models = pd.read_csv(path_to_perf_results,index_col=False)
     perf_all_models = perf_all_models.sort_values(by='Gen_Avg_Precision',ascending=False)
     best_model = perf_all_models.iloc[0,:]
-    print('Model with highest Gen_Avg_Precision selected:',best_model)
+    print('Model with highest Gen_Avg_Precision selected:\n',best_model)
     return best_model
     
 def return_best_model_args(gene_name, results_dir, modeling_approach):
@@ -259,20 +259,24 @@ def return_best_model_string(gene_name, results_dir, modeling_approach):
 ###########################################
 class PredictMysteryAAs(object):
     def __init__(self, gene_name, modeling_approach, results_dir,
-                 real_data_split, mysteryAAs_Dataset):
+                 real_data_split, mysteryAAs_dict):
         """Use MLP model to predict mutation pathogenicity of mysteryAAs"""
         self.gene_name = gene_name
-        self.results_dir = results_dir
         self.modeling_approach = modeling_approach
+        self.results_dir = results_dir
         self.real_data_split_tocopy = real_data_split
-        self.model_args = return_best_model_args(gene_name, results_dir, modeling_approach)
+        
+        #mysteryAAs_dict is produced in clean_data.py and has keys 'scaler',
+        #'Dataset' and 'raw_data'
+        self.mysteryAAs_dict = mysteryAAs_dict
+        
         #note that the mysteryAAs are already normalized according to the
         #statistics of all the real data
-        self.model_args['mysteryAAs'] = mysteryAAs_Dataset
+        self.model_args, self.num_ensemble = return_best_model_args(gene_name, results_dir, modeling_approach)
+        self.model_args['mysteryAAs'] = self.mysteryAAs_dict['Dataset']
         
         #Run
         self._prepare_data()
-        self._prepare_model_args()
         self._run_model_on_mysteryAAs()
     
     def _prepare_data(self):
@@ -281,15 +285,27 @@ class PredictMysteryAAs(object):
         train_indices = np.array([x for x in range(self.real_data_split.clean_data.shape[0])])
         test_indices = np.array([])
         self.real_data_split._make_splits_cv(train_indices, test_indices)
+        
+        #Sanity checks, including that the scaler used to normalize the real
+        #data here should be identical to that previously used to normalize
+        #the mysteryAAs, because both scalers are calculated on the full
+        #available labeled dataset
+        assert (self.real_data_split.scaler.mean_ == self.mysteryAAs_dict['scaler'].mean_).all()
+        assert (self.real_data_split.scaler.scale_ == self.mysteryAAs_dict['scaler'].scale_).all()
         assert self.real_data_split.train.data.shape[0] == self.real_data_split.clean_data.shape[0]
         assert self.real_data_split.test.data.shape[0] == 0
+        
+        self.model_args['split'] = self.real_data_split
     
     def _run_model_on_mysteryAAs(self):
         #Train on all available data and make predictions on mysteryAAs
-        ensemble_lst = train_ensemble(self.modeling_approach, self.model_args, self.best_model['Ensemble_Size'], 'mysteryAA_pred')
-        mysteryAA_raw_preds_df = create_fold_test_out(ensemble_lst, self.model_args['decision_threshold'], 'mysteryAA_pred')
+        ensemble_lst = ensemble_agg.train_ensemble(self.modeling_approach, self.model_args, self.num_ensemble, 'mysteryAA_pred')
+        mysteryAA_raw_preds = ensemble_agg.create_fold_test_out(ensemble_lst, self.model_args['decision_threshold'], 'mysteryAA_pred')
+        mysteryAA_raw_preds_df = mysteryAA_raw_preds['epoch_'+str(self.model_args['num_epochs'])]
         
         #Convert predictions to human readable format and save
-        mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(self.gene_name, mysteryAA_raw_preds_df, self.real_data_split.scaler)
-        mysteryAAs_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
+        mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(self.gene_name,
+                        mysteryAA_raw_preds_df, self.mysteryAAs_dict['scaler'],
+                        self.mysteryAAs_dict['raw_data'])
+        mysteryAA_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
         

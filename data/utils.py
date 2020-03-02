@@ -80,9 +80,12 @@ class Splits(object):
         assert len(self.normalize_these_continuous)==self.scaler.mean_.shape[0]==self.scaler.scale_.shape[0]
         train_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(train_selected)
         
-        # normalize the test data
-        test_selected = test_data[self.normalize_these_continuous].values
-        test_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(test_selected)
+        # normalize the test data if there is test data
+        #(there will be no test data when doing the prediction on mysteryAAs
+        #because in that case all data is used for training)
+        if test_data.shape[0] > 0:
+            test_selected = test_data[self.normalize_these_continuous].values
+            test_data.loc[:,self.normalize_these_continuous] = self.scaler.transform(test_selected)
         #print('Normalized data:\n\tscaler.mean_',str(scaler.mean_), '\n\tscaler.scale_',str(scaler.scale_))
         return train_data, test_data
         

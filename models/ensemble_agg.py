@@ -56,9 +56,13 @@ def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
     The data has NOT been put in human-readable format, so for example the
     Consensus is many columns (one-hot encoding) and the Position is
     normalized (not integer positions.)"""
+    if what_to_run == 'grid_search':
+        num_epochs = len(ensemble_lst[0].test_out.keys())
+    elif what_to_run == 'mysteryAA_pred':
+        num_epochs = len(ensemble_lst[0].mysteryAAs_out.keys())
+    
     #test out is a dictionary with keys that are epochs (e.g. 'epoch_0') and
     #values that are pandas dataframes
-    num_epochs = len(ensemble_lst[0].test_out.keys())
     test_out_collection = []
     for model in ensemble_lst:
         if what_to_run == 'grid_search':

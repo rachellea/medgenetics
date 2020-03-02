@@ -11,7 +11,7 @@ class LogisticRegression(object):
     <logreg_penalty>: can be 'l1' or 'l2'
     <C>: float, default: 1.0. Inverse of regularization strength; must be a
         positive float. Smaller values specify stronger regularization.
-    <num_epochs>: used as the max_iter (max iterations) to reach a solution
+    <num_epochs>: passed in only for compatibility in input parameters with mlp
     
     Note on linear_model.LogisticRegression defaults:
         fit_intercept = True
@@ -25,12 +25,12 @@ class LogisticRegression(object):
         self.logreg_penalty = logreg_penalty
         self.C = C
         self.decision_threshold = decision_threshold
-        self.num_epochs = num_epochs
         self.mysteryAAs = mysteryAAs
+        self.max_iter = 1000
     
     def run_all_train_test(self):
         """Train and evaluate a logistic regression model"""
-        logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C, max_iter=self.num_epochs)
+        logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C, max_iter=self.max_iter)
         logreg.fit(self.split.train.data, self.split.train.labels)
         #predicted probabilities are first for class 0 and then for class 1
         test_pred_probs_array = logreg.predict_proba(self.split.test.data) #shape e.g. (752,)
@@ -40,12 +40,15 @@ class LogisticRegression(object):
         
         #Save results
         #test_out is a dictionary with keys that are epochs and values
-        #that are dataframes. We do use <num_epochs> as the max_iter, but since
+        #that are dataframes. We do use 1000 as the max_iter, but since
         #we don't get performance at every iteration, just save logistic
         #regression results under 'epoch_0' (for consistent output format
         #between MLP and LR)
-        test_out_df = pd.DataFrame(np.concatenate((self.split.test.data, np.expand_dims(test_pred_probs,1), np.expand_dims(test_pred_labels,1), self.split.test.labels),axis = 1),
-                               columns=self.split.clean_data.columns.values.tolist()+['Pred_Prob','Pred_Label','True_Label'])
+        test_out_df = pd.DataFrame(np.concatenate((self.split.test.data,
+                                np.expand_dims(test_pred_probs,1),
+                                np.expand_dims(test_pred_labels,1),
+                                self.split.test.labels),axis = 1),
+                                columns=self.split.clean_data.columns.values.tolist()+['Pred_Prob','Pred_Label','True_Label'])
         test_out_df = test_out_df.sort_values(by='Position')
         self.test_out = {}
         self.test_out['epoch_0'] = test_out_df
@@ -53,4 +56,21 @@ class LogisticRegression(object):
     def run_all_mysteryAA_preds(self):
         """Train logistic regression model on all available data and then
         make predictions on mysteryAAs"""
-        pass
+        logreg = linear_model.LogisticRegression(penalty=self.logreg_penalty, C=self.C, max_iter=self.max_iter)
+        logreg.fit(self.split.train.data, self.split.train.labels)
+        #predicted probabilities are first for class 0 and then for class 1
+        mysteryAAs_pred_probs_array = logreg.predict_proba(self.mysteryAAs.data) #shape e.g. (752,)
+        #We only want the predicted probabilities for class 1 (i.e. for mutation):
+        mysteryAAs_pred_probs = mysteryAAs_pred_probs_array[:,1]
+        mysteryAAs_pred_labels = (mysteryAAs_pred_probs >= self.decision_threshold).astype('int')
+        
+        #Save results
+        mysteryAAs_out_df = pd.DataFrame(np.concatenate((self.mysteryAAs.data,
+                               np.expand_dims(mysteryAAs_pred_probs,1),
+                               np.expand_dims(mysteryAAs_pred_labels,1),
+                               self.mysteryAAs.labels),axis = 1),
+                               columns=self.split.clean_data.columns.values.tolist()+['Pred_Prob','Pred_Label','True_Label'])
+        mysteryAAs_out_df = mysteryAAs_out_df.sort_values(by='Position')
+        self.mysteryAAs_out = {}
+        self.mysteryAAs_out['epoch_0'] = mysteryAAs_out_df
+        

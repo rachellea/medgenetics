@@ -372,10 +372,13 @@ class PrepareData(object):
         #underlying dataframe!
         all_real_data = copy.deepcopy(self.real_data_split.clean_data)
         _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(all_real_data, mysteryAAs_split.clean_data)
-        self.mysteryAAs_scaler = mysteryAAs_split.scaler
         assert mysteryAAs_final_clean_data.shape[0] == mysteryAAs_raw.shape[0]
-        #self.mysteryAAs_Dataset instead of self.mysteryAAs_split
-        self.mysteryAAs_Dataset = utils.Dataset(data = mysteryAAs_final_clean_data.values,
+        self.mysteryAAs_dict = {}
+        self.mysteryAAs_dict['scaler'] = mysteryAAs_split.scaler
+        tempdata = copy.deepcopy(mysteryAAs_data)
+        tempdata['True_Label'] = mysteryAAs_labels['Label']
+        self.mysteryAAs_dict['raw_data'] = tempdata
+        self.mysteryAAs_dict['Dataset'] = utils.Dataset(data = mysteryAAs_final_clean_data.values,
                                                 labels = mysteryAAs_split.clean_labels.values,
                                                 shuffle = False,
                                                 data_meanings = mysteryAAs_final_clean_data.columns.values.tolist(),
