@@ -1,4 +1,4 @@
-Redisue ID,Wild Type,Variant,PSSM,Rate of Evolution,Label
+Residue_ID,Wild_Type,Variant,PSSM,Rate_of_Evolution,Label
 46,A,T,1.22,4.094,0
 110,V,I,1.77,1.976,1
 111,Y,C,12.38,1.094,1

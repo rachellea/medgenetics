@@ -2,14 +2,12 @@
 
 import os
 import copy
-import pickle
 import itertools
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from sklearn import neural_network
-from sklearn import model_selection, metrics, calibration
+from sklearn import model_selection
 
 #Custom imports
 from . import cv_agg
@@ -46,6 +44,7 @@ class RunPredictiveModels(object):
         self.results_dir = results_dir
         self._initialize_perf_df()
         self.what_to_run = what_to_run
+        self.testing = testing
         
         if what_to_run == 'grid_search':
             self._run_grid_search()
@@ -58,7 +57,7 @@ class RunPredictiveModels(object):
         hyperparameters for a given gene <gene_name> to determine the best
         MLP model setup."""
         if self.modeling_approach == 'MLP':
-            if testing:
+            if self.testing:
                 self._initialize_search_params_mlp_testing()
             else:
                 self._initialize_search_params_mlp()
@@ -108,10 +107,11 @@ class RunPredictiveModels(object):
     
     def _initialize_search_params_mlp(self):
         """Initialize lists of hyperparameters and architectures to assess"""
-        learn_rate = [1e-4,1e-3,1e-2,1e-1,1,10,100,1000]
-        dropout = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+        #running this grid search should take about 10 hours on one GPU
+        learn_rate = [1e-3,1e-2,1e-1,1,10,100,1000]
+        dropout = [0,0.2,0.4,0.6]
         ensemble = [1]
-        layers = [[20],[30,20],[60,20],[60,60, 20],[120,60,20],[40],[40,40],[60,40], [120,60,40]]
+        layers = [[30,20],[60,60],[60,60,40],[120,60,20],[120,60,40]]
         comb_lst = [learn_rate, dropout, ensemble, layers]
         self.combinations = list(itertools.product(*comb_lst))
     

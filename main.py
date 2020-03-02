@@ -15,7 +15,7 @@ import itertools
 from tqdm import tqdm
 
 #Custom imports
-from models import run_models
+from models import run_models, circgenetics_replication
 from data import clean_data, visualization
 
 def run(gene_name, what_to_run, modeling_approach):
@@ -26,12 +26,10 @@ def run(gene_name, what_to_run, modeling_approach):
         'test_pred': this will save the test set predictions for the best
             model setup identified in the grid_search (meaning that grid_search
             must be run before test_pred is run)
-        'test_pred_viz': this will make figures based on the saved test set
-            predictions (meaning that test_pred must be run before test_pred_viz
-            is run)
         'mysteryAA_pred': this will save the mysteryAA predictions for the
             best model setup identified in the grid_search (meaning that grid_search
             must be run before mysteryAA_pred is run)
+            
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
     #Make directories for storing results
@@ -47,18 +45,29 @@ def run(gene_name, what_to_run, modeling_approach):
                 'batch_size':256}
     d = clean_data.PrepareData(gene_name, data_preproc_args, results_dir)
     if what_to_run == 'grid_search':
-        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, True)
+        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'test_pred':
-        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, True)
-    elif what_to_run == 'test_pred_viz':
-        visualization.MakeAllFigures(gene_name, modeling_approach, results_dir)
+        run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, d.real_data_split, d.mysteryAAs_dict)
+        
+    
+def replicate_entire_study():
+    run('ryr2',what_to_run='grid_search',modeling_approach='LR')
+    run('ryr2',what_to_run='test_pred',modeling_approach='LR')
+    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
+    
+    run('ryr2',what_to_run='grid_search',modeling_approach='MLP')
+    run('ryr2',what_to_run='test_pred',modeling_approach='MLP')
+    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='MLP')
+    
+    visualization.MakeAllFigures('ryr2', results_dir)
+
 
 if __name__=='__main__':
-    #run('ryr2',what_to_run='grid_search',modeling_approach='LR')
-    #run('ryr2',what_to_run='test_pred',modeling_approach='LR')
-    run('ryr2',what_to_run='test_pred_viz',modeling_approach='LR')
-    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
-    
+    #replicate_entire_study()
+    delthis = 'results/delthis'
+    if not os.path.exists(delthis):
+        os.mkdir(delthis)
+    circgenetics_replication.ReplicateCircGenetics(delthis)
     

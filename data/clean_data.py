@@ -338,8 +338,7 @@ class PrepareData(object):
         self._run_sanity_check(inputx)
         
         #Prepare split data
-        split_args = {'max_position':self.ag.max_position,
-                        'columns_to_ensure':self.ag.columns_to_ensure}
+        split_args = {'columns_to_ensure':self.ag.columns_to_ensure}
         all_args = {**self.shared_args, **split_args }
         data = (copy.deepcopy(inputx)).drop(columns=['Label'])
         labels = copy.deepcopy(inputx[['Label']])
@@ -360,7 +359,6 @@ class PrepareData(object):
         mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
         mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
                                      labels = mysteryAAs_labels,
-                                     max_position = self.ag.max_position,
                                      columns_to_ensure = self.ag.columns_to_ensure,
                                      **self.shared_args)
 

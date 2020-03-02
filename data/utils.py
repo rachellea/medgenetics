@@ -15,7 +15,6 @@ class Splits(object):
              labels,
              one_hotify_these_categorical, #columns to one hotify
              normalize_these_continuous, #columns to normalize
-             max_position, #int for the last position of the gene
              columns_to_ensure, #list of column names you must have
              batch_size):
         """Variables:
@@ -36,7 +35,6 @@ class Splits(object):
         self.clean_labels = labels
         self.one_hotify_these_categorical = one_hotify_these_categorical
         self.normalize_these_continuous = normalize_these_continuous
-        self.max_position = max_position
         self.columns_to_ensure = columns_to_ensure
         self.batch_size = batch_size
         

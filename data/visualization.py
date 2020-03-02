@@ -12,7 +12,10 @@ plt.ioff() #turn interactive plotting off
 import matplotlib.lines as mlines
 
 class MakeAllFigures(object):
-    def __init__(self, gene_name, modeling_approach, results_dir):
+    def __init__(self, gene_name, results_dir):
+        
+        #TODO: modify this so that it does figures for both modeling approach, LR and MLP!
+        
         self.results_dir = results_dir
         possible_files = os.listdir(results_dir)
         self.chosen_file = [y for y in [x for x in possible_files if modeling_approach in x] if 'all_test_out.csv' in y][0]
