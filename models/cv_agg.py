@@ -136,37 +136,44 @@ def concat_test_outs(fold_test_out, all_test_out):
     features and the predictions, and rows for different mutations in the dataset.
     For each epoch concatenate <fold_test_out> into <all_test_out> to make
     <all_test_out> more complete."""
-    num_epochs = len(fold_test_out.keys())
+    epochs_to_consider = list(fold_test_out.keys())
     combined_test_out = {}
-    for epoch in range(num_epochs):
-        key = 'epoch_'+str(epoch)
-        assert fold_test_out[key].columns.values.tolist()==all_test_out[key].columns.values.tolist()
-        combined_test_out[key] = pd.concat([fold_test_out[key], all_test_out[key]], ignore_index=True)
+    for epochstr in epochs_to_consider:
+        assert fold_test_out[epochstr].columns.values.tolist()==all_test_out[epochstr].columns.values.tolist()
+        combined_test_out[epochstr] = pd.concat([fold_test_out[epochstr], all_test_out[epochstr]], ignore_index=True)
     return combined_test_out
 
+def add_fold_column(fold_test_out, fold_num):
+    """Add a column to each df in <fold_test_out> specifying which fold the
+    prediction was made in"""
+    epochs_to_consider = list(fold_test_out.keys())
+    for epochstr in epochs_to_consider:
+        fold_test_out[epochstr]['FoldNum'] = 'fold_'+str(fold_num)
+    return fold_test_out
+    
 def determine_best_epoch_by_secondway(all_test_out):
     """Return the best epoch, and the accuracy, AUROC, and average precision at
     the best epoch. 'Best epoch' means the epoch with highest average precision.
     Performance is calculated by using the aggregated predictions for each
     example to freshly calculate all performance metrics across all examples
     in the data set simultaneously."""
-    num_epochs = len(all_test_out.keys())
-    all_epochs_perf = pd.DataFrame(np.zeros((num_epochs,3)),
-                                   index = [x for x in range(num_epochs)],
+    epochs_to_consider = list(all_test_out.keys())
+    all_epochs_perf = pd.DataFrame(np.zeros((len(epochs_to_consider),3)),
+                                   index = epochs_to_consider,
                                    columns=['accuracy','auroc','avg_precision'])
     
     #Calculate performance at each epoch
-    for epoch in range(num_epochs):
-        true_label = all_test_out['epoch_'+str(epoch)]['True_Label'].values
-        pred_label = all_test_out['epoch_'+str(epoch)]['Pred_Label'].values
-        pred_prob = all_test_out['epoch_'+str(epoch)]['Pred_Prob'].values
-        all_epochs_perf.at[epoch,'accuracy'] = sklearn.metrics.accuracy_score(true_label, pred_label)
-        all_epochs_perf.at[epoch,'auroc'] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
-        all_epochs_perf.at[epoch,'avg_precision'] = sklearn.metrics.average_precision_score(true_label, pred_prob)
+    for epochstr in epochs_to_consider:
+        true_label = all_test_out[epochstr]['True_Label'].values
+        pred_label = all_test_out[epochstr]['Pred_Label'].values
+        pred_prob = all_test_out[epochstr]['Pred_Prob'].values
+        all_epochs_perf.at[epochstr,'accuracy'] = sklearn.metrics.accuracy_score(true_label, pred_label)
+        all_epochs_perf.at[epochstr,'auroc'] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
+        all_epochs_perf.at[epochstr,'avg_precision'] = sklearn.metrics.average_precision_score(true_label, pred_prob)
     
     #Pick out the highest avg precision
     best = all_epochs_perf.nlargest(n=1,columns=['avg_precision'])
-    return {'Gen_Best_Epoch':best.index.values.tolist()[0],
+    return {'Gen_Best_Epoch':int(best.index.values.tolist()[0].replace('epoch_','')),
             'Gen_Accuracy':round(best.loc[:,'accuracy'].values.tolist()[0],4),
             'Gen_AUROC':round(best.loc[:,'auroc'].values.tolist()[0],4),
             'Gen_Avg_Precision':round(best.loc[:,'avg_precision'].values.tolist()[0],4)}
