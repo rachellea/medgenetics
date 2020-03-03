@@ -61,6 +61,9 @@ def make_output_human_readable(gene_name, df, scaler, raw_data):
     for colname in ['Pred_Prob','Pred_Label','True_Label']:
         new_df[colname] = df[colname].values
     
+    if 'FoldNum' in df.columns.values.tolist(): #true for test set, not mysteryAAs
+        new_df['FoldNum'] = df['FoldNum'].values
+    
     #sort so that different members of an ensemble will all have the AAs in
     #the same order. Must sort by Position, Consensus, AND Change because this
     #is the minimum information needed to uniquely identify a mutation
@@ -86,11 +89,24 @@ def save_all_eval_dfs_dict(all_eval_dfs_dict, colname, outfilepath):
         save_df.at[idx,'avg_precision_'+colname] = all_eval_dfs_dict['avg_precision'].at[idx,colname]
     save_df.to_csv(outfilepath, header=True, index=True)
 
-def split_mysteryAAs_into_wes_and_clinvar(gene_name, new_df): #TODO IMPLEMENT THIS!!!
+def tag_mysteryAAs_with_wes_and_clinvar(gene_name, new_df):
     """Check to make sure that the result of converting back to human readable
     format is correct and the entries match up with the original files"""
     clinvar_raw = pd.read_csv(os.path.join('data/', os.path.join(gene_name,gene_name+'_variants_clinvar_raw.csv')),header= 0)
     wes_raw = pd.read_csv(os.path.join('data/',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header = 0)
+    sources = {'clinvar':clinvar_raw,'wes':wes_raw}
+    new_df['Source'] = ''
+    for idx in new_df.index.values.tolist():
+        position = new_df.at[idx,'Position']
+        consensus = new_df.at[idx,'Consensus']
+        change = new_df.at[idx,'Change']
+        for source in sources.keys():
+            source_df = sources[source]
+            same_position = source_df[source_df['Position']==position]
+            if same_position.shape[0] > 0:
+                for sidx in same_position.index.values.tolist():
+                    if (same_position.at[sidx,'Consensus']==consensus) and (same_position.at[sidx,'Change']==change):
+                        new_df.at[idx,'Source'] = source
     return new_df
 
 def make_fold_test_out_human_readable(gene_name, fold_test_out, scaler, raw_data):

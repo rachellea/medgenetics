@@ -42,7 +42,6 @@ def run(gene_name, what_to_run, modeling_approach, results_dir):
         run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, d.real_data_split, d.mysteryAAs_dict)
-        
 
 def make_results_dirs():
     """Make directories for storing results"""
@@ -64,37 +63,46 @@ def replicate_entire_study():
     results_dir_ryr2, results_dir_kcnq1, results_dir_kcnh2, results_dir_scn5a = make_results_dirs()
     
     #Logistic Regression
-    #run('ryr2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_ryr2)
-    #run('ryr2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
-    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
+    run('ryr2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_ryr2)
+    run('ryr2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
+    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
     
-    #run('kcnq1',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnq1)
-    #run('kcnq1',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
-    #run('kcnq1',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    run('kcnq1',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    run('kcnq1',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    run('kcnq1',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
     
-    #run('kcnh2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnh2)
-    #run('kcnh2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
-    #run('kcnh2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    run('kcnh2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    run('kcnh2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    run('kcnh2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
     
-    #run('scn5a',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_scn5a)
-    #run('scn5a',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
-    #run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
     
     #MLPs
     #run('ryr2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_ryr2)
-    #run('ryr2',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
-    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
-    #visualization.MakeAllFigures('ryr2',results_dir_ryr2)
+    run('ryr2',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
+    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
     
-    #KCNQ1
     #run('kcnq1',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_kcnq1)
+    run('kcnq1',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_kcnq1)
+    run('kcnq1',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_kcnq1)
     
-    #KCNH2
-    run('kcnh2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_kcnh2)
-
-
+    #run('kcnh2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_kcnh2)
+    run('kcnh2',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_kcnh2)
+    run('kcnh2',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_kcnh2)
     
-
+    #run('scn5a',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_scn5a)
+    
+    #Visualization
+    visualization.MakeAllFigures('ryr2',results_dir_ryr2)
+    visualization.MakeAllFigures('kcnq1',results_dir_ryr2)
+    visualization.MakeAllFigures('kcnh2',results_dir_ryr2)
+    visualization.MakeAllFigures('scn5a',results_dir_ryr2)
+    
+    
 if __name__=='__main__':
     replicate_entire_study()
     
