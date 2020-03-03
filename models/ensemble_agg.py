@@ -57,9 +57,9 @@ def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
     Consensus is many columns (one-hot encoding) and the Position is
     normalized (not integer positions.)"""
     if what_to_run == 'grid_search':
-        num_epochs = len(ensemble_lst[0].test_out.keys())
+        epochs_to_consider = list(ensemble_lst[0].test_out.keys()) #e.g. ['epoch_0','epoch_1']
     elif what_to_run == 'mysteryAA_pred':
-        num_epochs = len(ensemble_lst[0].mysteryAAs_out.keys())
+        epochs_to_consider = list(ensemble_lst[0].mysteryAAs_out.keys())
     
     #test out is a dictionary with keys that are epochs (e.g. 'epoch_0') and
     #values that are pandas dataframes
@@ -75,9 +75,9 @@ def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
         if idx == 0:
             fold_test_out = test_out
         else:
-            for epoch in range(num_epochs):
-                df = test_out['epoch_'+str(epoch)] #this df
-                fold_df = fold_test_out['epoch_'+str(epoch)] #the aggregated df
+            for epochstr in epochs_to_consider:
+                df = test_out[epochstr] #this df
+                fold_df = fold_test_out[epochstr] #the aggregated df
                 
                 #Sanity check: ensure that the different members of the ensemble
                 #were applied to the exact same data. Data columns Consensus_etc,
@@ -90,14 +90,14 @@ def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
                 assert np.isclose(df[closecols].values, fold_df[closecols].values, rtol=1e-4).all()
                 
                 #Now sum up the Pred_Prob column:
-                fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'] += df['Pred_Prob']
+                fold_test_out[epochstr].loc[:,'Pred_Prob'] += df['Pred_Prob']
     
     #Since we want to store the average Pred_Prob across all members of
     #the ensemble, divide the summed Pred_Prob by the number of models
     #in the ensemble, and then determine the Pred_Label:
-    for epoch in range(num_epochs):
-        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'] = fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].div(len(ensemble_lst))
-        fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Label'] = (fold_test_out['epoch_'+str(epoch)].loc[:,'Pred_Prob'].values > decision_threshold).astype('int')
+    for epochstr in epochs_to_consider:
+        fold_test_out[epochstr].loc[:,'Pred_Prob'] = fold_test_out[epochstr].loc[:,'Pred_Prob'].div(len(ensemble_lst))
+        fold_test_out[epochstr].loc[:,'Pred_Label'] = (fold_test_out[epochstr].loc[:,'Pred_Prob'].values > decision_threshold).astype('int')
     return fold_test_out
 
 #Part of evaluating the ensemble
@@ -108,22 +108,21 @@ def create_fold_eval_dfs_dict(fold_test_out, fold_num):
     'avg_precision' and values that are dataframes with an index of <fold_num>
     and columns of epoch number."""
     #Initialize empty fold_eval_dfs_dict
-    num_epochs = len(fold_test_out.keys())
+    epochs_to_consider = list(fold_test_out.keys())
     idx = 'fold_num'+str(fold_num)
-    result_df = pd.DataFrame(data=np.zeros((1, num_epochs)),
+    result_df = pd.DataFrame(data=np.zeros((1, len(epochs_to_consider))),
                             index = [idx],
-                            columns = ['epoch_'+str(n) for n in range(num_epochs)])
+                            columns = epochs_to_consider)
     fold_eval_dfs_dict = {'accuracy':copy.deepcopy(result_df),
         'auroc':copy.deepcopy(result_df),
         'avg_precision':copy.deepcopy(result_df)}
     
     #Calculate performance
-    for epoch in range(num_epochs):
-        true_label = fold_test_out['epoch_'+str(epoch)]['True_Label'].values
-        pred_label = fold_test_out['epoch_'+str(epoch)]['Pred_Label'].values
-        pred_prob = fold_test_out['epoch_'+str(epoch)]['Pred_Prob'].values
-        col = 'epoch_'+str(epoch)
-        fold_eval_dfs_dict['accuracy'].at[idx,col] = sklearn.metrics.accuracy_score(true_label, pred_label)
-        fold_eval_dfs_dict['auroc'].at[idx,col] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
-        fold_eval_dfs_dict['avg_precision'].at[idx,col] = sklearn.metrics.average_precision_score(true_label, pred_prob)
+    for epochstr in epochs_to_consider:
+        true_label = fold_test_out[epochstr]['True_Label'].values
+        pred_label = fold_test_out[epochstr]['Pred_Label'].values
+        pred_prob = fold_test_out[epochstr]['Pred_Prob'].values
+        fold_eval_dfs_dict['accuracy'].at[idx,epochstr] = sklearn.metrics.accuracy_score(true_label, pred_label)
+        fold_eval_dfs_dict['auroc'].at[idx,epochstr] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
+        fold_eval_dfs_dict['avg_precision'].at[idx,epochstr] = sklearn.metrics.average_precision_score(true_label, pred_prob)
     return fold_eval_dfs_dict

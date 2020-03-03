@@ -124,19 +124,22 @@ class MLP(object):
                 #$self.labels_true = labels_true
                 entire_x = np.concatenate((entire_x, x_data_batch),axis = 0)
         
-        if chosen_dataset == 'Test':
+        if chosen_dataset == 'Test' and (self.test_set.data.shape[0] > 0):
             #test_out is a dictionary with keys that are epochs and values
             #that are dataframes. A dataframe contains the data set (entire_x)
             #as well as the predicted probabilities, predicted labels, and
             #true labels for all examples
+            #We need the check for whether the test set data contains data
+            #because if we are predicting on mysteryAAs, the 'test set' will be
+            #empty
             test_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
                                    columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
             test_out_df = test_out_df.sort_values(by='Position')
             self.test_out['epoch_'+str(self.num_epochs_done)] = test_out_df
             
         elif chosen_dataset == 'mysteryAAs':
-            mysteryAAs_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels),axis = 1),
-                               columns=self.mysteryAAs.data_meanings+['Pred_Prob','Pred_Label'])
+            mysteryAAs_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
+                               columns=self.mysteryAAs.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
             mysteryAAs_out_df = mysteryAAs_out_df.sort_values(by='Position')
             self.mysteryAAs_out = {}
             self.mysteryAAs_out['epoch_'+str(self.num_epochs_done)] = mysteryAAs_out_df

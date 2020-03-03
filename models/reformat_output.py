@@ -18,9 +18,8 @@ def make_output_human_readable(gene_name, df, scaler, raw_data):
        <raw_data> contains data and labels that can be used to verify that the
            data denormalization was successful and that the labels are in the
            right order"""
-    print('Making output human readable. Number of rows:', len(df.index))
     col = [col for col in df.columns.values if col.startswith('Consensus') or col.startswith('Change') or col.startswith('Position')]
-    print('Number of duplicates:', len(df[df.duplicated(subset=col,keep=False)]))
+    #print('Number of duplicates:', len(df[df.duplicated(subset=col,keep=False)]))
     
     consensusAA = []
     changeAA = []

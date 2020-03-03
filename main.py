@@ -18,7 +18,7 @@ from tqdm import tqdm
 from models import run_models, circgenetics_replication
 from data import clean_data, visualization
 
-def run(gene_name, what_to_run, modeling_approach):
+def run(gene_name, what_to_run, modeling_approach, results_dir):
     """Parameters:
     <gene_name> a string, either 'ryr2', 'kcnh2', 'kcnq1', or 'scn5a'
     <what_to_run> a string, one of:
@@ -32,14 +32,6 @@ def run(gene_name, what_to_run, modeling_approach):
             
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
-    #Make directories for storing results
-    date_dir = os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d'))
-    if not os.path.exists(date_dir):
-        os.mkdir(date_dir)
-    results_dir = os.path.abspath(os.path.join(date_dir,gene_name))
-    if not os.path.exists(results_dir):
-        os.mkdir(results_dir)
-    #Run
     data_preproc_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
                 'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
                 'batch_size':256}
@@ -51,23 +43,58 @@ def run(gene_name, what_to_run, modeling_approach):
     elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, d.real_data_split, d.mysteryAAs_dict)
         
-    
-def replicate_entire_study():
-    run('ryr2',what_to_run='grid_search',modeling_approach='LR')
-    run('ryr2',what_to_run='test_pred',modeling_approach='LR')
-    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR')
-    
-    run('ryr2',what_to_run='grid_search',modeling_approach='MLP')
-    run('ryr2',what_to_run='test_pred',modeling_approach='MLP')
-    run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='MLP')
-    
-    visualization.MakeAllFigures('ryr2', results_dir)
 
+def make_results_dirs():
+    """Make directories for storing results"""
+    date_dir = os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d'))
+    if not os.path.exists(date_dir):
+        os.mkdir(date_dir)
+    
+    results_dir_ryr2 = os.path.abspath(os.path.join(date_dir,'ryr2'))
+    results_dir_kcnq1 = os.path.abspath(os.path.join(date_dir,'kcnq1'))
+    results_dir_kcnh2 = os.path.abspath(os.path.join(date_dir,'kcnh2'))
+    results_dir_scn5a = os.path.abspath(os.path.join(date_dir,'scn5a'))
+    
+    for directory in [results_dir_ryr2, results_dir_kcnq1, results_dir_kcnh2, results_dir_scn5a]:
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+    return results_dir_ryr2, results_dir_kcnq1, results_dir_kcnh2, results_dir_scn5a
+
+def replicate_entire_study():
+    results_dir_ryr2, results_dir_kcnq1, results_dir_kcnh2, results_dir_scn5a = make_results_dirs()
+    
+    #Logistic Regression
+    #run('ryr2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_ryr2)
+    #run('ryr2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
+    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_ryr2)
+    
+    #run('kcnq1',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    #run('kcnq1',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    #run('kcnq1',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnq1)
+    
+    #run('kcnh2',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    #run('kcnh2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    #run('kcnh2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
+    
+    run('scn5a',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
+    run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
+    
+    
+    
+    #MLPs
+    #run('ryr2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_ryr2)
+    #run('ryr2',what_to_run='test_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
+    #run('ryr2',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_ryr2)
+    #visualization.MakeAllFigures('ryr2',results_dir_ryr2)
+    
+    #KCNQ1
+    
 
 if __name__=='__main__':
-    #replicate_entire_study()
-    delthis = 'results/delthis'
-    if not os.path.exists(delthis):
-        os.mkdir(delthis)
-    circgenetics_replication.ReplicateCircGenetics(delthis)
+    replicate_entire_study()
     
+    #delthis = 'results/delthis'
+    #if not os.path.exists(delthis):
+    #    os.mkdir(delthis)
+    #circgenetics_replication.ReplicateCircGenetics(delthis)

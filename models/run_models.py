@@ -158,7 +158,7 @@ class RunPredictiveModels(object):
         label = self.real_data_split.clean_labels
         
         for train_indices, test_indices in cv.split(data, label):
-            print('\n******In CV fold number',fold_num,'out of',self.number_of_cv_folds,'******')
+            print('\n******For',self.gene_name+', in CV fold number',fold_num,'out of',self.number_of_cv_folds,'******')
             #Create a copy of the real_data_split
             split = copy.deepcopy(self.real_data_split)
             
@@ -202,9 +202,10 @@ class RunPredictiveModels(object):
         
         #Save test set predictions if indicated
         if self.what_to_run == 'test_pred':
+            best_model = select_best_model_setup(self.gene_name, self.results_dir, self.modeling_approach)
             bestmodelstring = return_best_model_string(self.gene_name,self.results_dir,self.modeling_approach)
-            all_test_out['epoch_'+str(model_args['num_epochs'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
-            reformat_output.save_all_eval_dfs_dict(all_eval_dfs_dict, colname = 'epoch_'+str(model_args['num_epochs']),
+            all_test_out['epoch_'+str(best_model['Gen_Best_Epoch'])].to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_test_out.csv'))
+            reformat_output.save_all_eval_dfs_dict(all_eval_dfs_dict, colname = 'epoch_'+str(best_model['Gen_Best_Epoch']),
                 outfilepath = os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_eval_dfs_dict.csv'))
 
 ################################
@@ -228,7 +229,7 @@ def return_best_model_args(gene_name, results_dir, modeling_approach):
             'decision_threshold':0.5,
             'num_epochs':best_model['Gen_Best_Epoch'],
             'learningrate':best_model['Learning_Rate'],
-            'mlp_layers':best_model['MLP_Layer'],
+            'mlp_layers':[int(x) for x in best_model['MLP_Layer'].replace(']','').replace('[','').split(',')],
             'dropout':best_model['Dropout_Rate'],
             'mysteryAAs':None}
     
