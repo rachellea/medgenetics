@@ -39,7 +39,10 @@ class RunPredictiveModels(object):
         self.modeling_approach = modeling_approach
         assert self.modeling_approach in ['MLP','LR']
         self.real_data_split = real_data_split
-        self.number_of_cv_folds = 10 #ten fold cross validation
+        if testing:
+            self.number_of_cv_folds = 2
+        else:
+            self.number_of_cv_folds = 10 #ten fold cross validation
         self.max_epochs = 1000
         self.results_dir = results_dir
         self._initialize_perf_df()
@@ -231,7 +234,10 @@ def return_best_model_args(gene_name, results_dir, modeling_approach):
     if modeling_approach == 'MLP':
         model_args = {'descriptor':gene_name,
             'decision_threshold':0.5,
-            'num_epochs':best_model['Gen_Best_Epoch'],
+            #add one to the best epoch because the MLP code will run for
+            #range(0,num_epochs) which means that if you want to include num_epochs
+            #you need to run for range(0,num_epochs+1)
+            'num_epochs':best_model['Gen_Best_Epoch']+1,
             'learningrate':best_model['Learning_Rate'],
             'mlp_layers':[int(x) for x in best_model['MLP_Layer'].replace(']','').replace('[','').split(',')],
             'dropout':best_model['Dropout_Rate'],
@@ -304,9 +310,10 @@ class PredictMysteryAAs(object):
     
     def _run_model_on_mysteryAAs(self):
         #Train on all available data and make predictions on mysteryAAs
+        best_model = select_best_model_setup(self.gene_name, self.results_dir, self.modeling_approach)
         ensemble_lst = ensemble_agg.train_ensemble(self.modeling_approach, self.model_args, self.num_ensemble, 'mysteryAA_pred')
         mysteryAA_raw_preds = ensemble_agg.create_fold_test_out(ensemble_lst, self.model_args['decision_threshold'], 'mysteryAA_pred')
-        mysteryAA_raw_preds_df = mysteryAA_raw_preds['epoch_'+str(self.model_args['num_epochs'])]
+        mysteryAA_raw_preds_df = mysteryAA_raw_preds['epoch_'+str(best_model['Gen_Best_Epoch'])]
         
         #Convert predictions to human readable format and save
         mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(self.gene_name,

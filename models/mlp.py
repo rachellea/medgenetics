@@ -65,6 +65,10 @@ class MLP(object):
         on mysteryAAs, and close session"""
         self.set_up_graph_and_session()
         self.train_and_test()
+        #subtract one from the epochs because the 'best epoch' is chosen based
+        #on the epoch number for the test set, which is recorded BEFORE the
+        #incrementation that automatically happens at the end of self.train_and_test()
+        self.num_epochs_done-=1
         self.test('mysteryAAs')
         self.session.close()
     
