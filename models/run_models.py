@@ -169,6 +169,7 @@ class RunPredictiveModels(object):
             #Train and evaluate the model
             model_args = {**model_args_specific, **{'split':copy.deepcopy(split)}}
             fold_test_out, fold_eval_dfs_dict = ensemble_agg.train_and_eval_ensemble(self.modeling_approach, model_args, num_ensemble, fold_num)
+            fold_test_out = cv_agg.add_fold_column(fold_test_out, fold_num)
             
             #Aggregate the fold_eval_dfs_dict (performance metrics) for FIRST WAY:
             if fold_num == 1:
@@ -195,10 +196,13 @@ class RunPredictiveModels(object):
             fold_num += 1
             
         # Calculating Performance in Two Ways (see cv_agg.py for documentation)
-        self.perf_all_models = cv_agg.update_and_save_cv_perf_df(self.modeling_approach,
-            self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds,
-            num_ensemble, model_args_specific, 
-            save_path = os.path.join(self.results_dir,self.gene_name+'_Performance_All_'+self.modeling_approach+'_Models.csv'))
+        if self.what_to_run == 'grid_search':
+            #don't do this for 'test_pred' because then you will overwrite the file
+            #that was saved during the 'grid_search'
+            self.perf_all_models = cv_agg.update_and_save_cv_perf_df(self.modeling_approach,
+                self.perf_all_models, all_eval_dfs_dict, all_test_out, self.number_of_cv_folds,
+                num_ensemble, model_args_specific, 
+                save_path = os.path.join(self.results_dir,self.gene_name+'_Performance_All_'+self.modeling_approach+'_Models.csv'))
         
         #Save test set predictions if indicated
         if self.what_to_run == 'test_pred':
@@ -308,5 +312,6 @@ class PredictMysteryAAs(object):
         mysteryAA_readable_preds_df = reformat_output.make_output_human_readable(self.gene_name,
                         mysteryAA_raw_preds_df, self.mysteryAAs_dict['scaler'],
                         self.mysteryAAs_dict['raw_data'])
+        mysteryAA_readable_preds_df = reformat_output.tag_mysteryAAs_with_wes_and_clinvar(self.gene_name, mysteryAA_readable_preds_df)
         mysteryAA_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
         
