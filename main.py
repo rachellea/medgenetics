@@ -76,11 +76,9 @@ def replicate_entire_study():
     #run('kcnh2',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
     #run('kcnh2',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_kcnh2)
     
-    run('scn5a',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_scn5a)
-    run('scn5a',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
-    run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
-    
-    
+    #run('scn5a',what_to_run='grid_search',modeling_approach='LR',results_dir = results_dir_scn5a)
+    #run('scn5a',what_to_run='test_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
+    #run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='LR',results_dir = results_dir_scn5a)
     
     #MLPs
     #run('ryr2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_ryr2)
@@ -89,6 +87,12 @@ def replicate_entire_study():
     #visualization.MakeAllFigures('ryr2',results_dir_ryr2)
     
     #KCNQ1
+    #run('kcnq1',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_kcnq1)
+    
+    #KCNH2
+    run('kcnh2',what_to_run='grid_search',modeling_approach='MLP',results_dir = results_dir_kcnh2)
+
+
     
 
 if __name__=='__main__':
