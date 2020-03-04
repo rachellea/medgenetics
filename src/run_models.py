@@ -67,7 +67,10 @@ class RunPredictiveModels(object):
             self._run_all_mlp_setups()
             
         elif self.modeling_approach == 'LR':
-            self._initialize_search_params_lr()
+            if self.testing:
+                self._initialize_search_params_lr_testing()
+            else:
+                self._initialize_search_params_lr()
             self._run_all_lr_setups()
     
     # Test Predictions Methods #------------------------------------------------
@@ -92,7 +95,8 @@ class RunPredictiveModels(object):
         self.perf_all_models = pd.DataFrame(columns = model_colnames+['Ensemble_Size',
                     'Mean_Best_Epoch','Mean_Accuracy','Std_Accuracy',
                     'Mean_AUROC','Std_AUROC','Mean_Avg_Precision','Std_Avg_Precision',
-                    'Gen_Best_Epoch','Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision'])
+                    'Gen_Best_Epoch','Gen_Accuracy','Gen_AUROC','Gen_Avg_Precision',
+                    'Calibration_Slope'])
         for colname in ['MLP_Layer','Penalty']:
             if colname in self.perf_all_models.columns.values.tolist():
                 self.perf_all_models[colname] = self.perf_all_models[colname].astype('str')
@@ -132,6 +136,12 @@ class RunPredictiveModels(object):
             self._run_one_model_setup(mlp_args_specific, num_ensemble = comb[2])
     
     # LR Methods #--------------------------------------------------------------
+    def _initialize_search_params_lr_testing(self):
+        """Initialize a small list of hyperparameters to try for testing purposes"""
+        logreg_penalty = ['l1']; C = [0.1]; ensemble = [1]
+        comb_lst = [logreg_penalty, C, ensemble]
+        self.combinations = list(itertools.product(*comb_lst))
+    
     def _initialize_search_params_lr(self):
         """Initialize lists of hyperparmeters to assess"""
         logreg_penalty = ['l1', 'l2']
@@ -257,8 +267,8 @@ def return_best_model_string(gene_name, results_dir, modeling_approach):
     best_model = select_best_model_setup(gene_name, results_dir,modeling_approach)
     if modeling_approach == 'MLP':
         return ('MLP-Ep'+str(best_model['Gen_Best_Epoch'])
-                +'-'+str(best_model['MLP_Layer'])
-                +'-LR'+str(best_model['Learning_Rate'])
+                +'-'+str(best_model['MLP_Layer'].replace(' ','-'))
+                +'-L'+str(best_model['Learning_Rate'])
                 +'-D'+str(best_model['Dropout_Rate']))
     elif modeling_approach == 'LR':
         return ('LR-Ep'+str(best_model['Gen_Best_Epoch'])
@@ -320,5 +330,5 @@ class PredictMysteryAAs(object):
                         mysteryAA_raw_preds_df, self.mysteryAAs_dict['scaler'],
                         self.mysteryAAs_dict['raw_data'])
         mysteryAA_readable_preds_df = reformat_output.tag_mysteryAAs_with_wes_and_clinvar(self.gene_name, mysteryAA_readable_preds_df)
-        mysteryAA_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_all_mysteryAAs_out_df.csv'))
-        
+        bestmodelstring = return_best_model_string(self.gene_name,self.results_dir,self.modeling_approach)
+        mysteryAA_readable_preds_df.to_csv(os.path.join(self.results_dir, self.gene_name+'_'+bestmodelstring+'_all_mysteryAAs_out_df.csv'))

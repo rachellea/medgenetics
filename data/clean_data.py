@@ -35,7 +35,9 @@ class BareGene(object):
         
         self.healthy = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_healthy_raw.csv')),header=0)
         self.diseased = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_pathologic_raw.csv')),header=0)
-        self.mysteryAAs = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header=0)
+        wes = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header=0)
+        clinvar = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_clinvar_raw.csv')),header=0)
+        self.mysteryAAs = pd.concat([wes,clinvar]).reset_index()
        
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
@@ -43,7 +45,7 @@ class BareGene(object):
         
         #Clean the data and add in signal to noise
         dfs = {'healthy':self.healthy, 'pathologic':self.diseased,
-                'wes':self.mysteryAAs}
+                'mysteryAAs':self.mysteryAAs}
         for key in dfs.keys():
             df = dfs[key]
             print('\n***Working on',key,'***')
@@ -57,7 +59,7 @@ class BareGene(object):
         # update the variables with clean data
         self.healthy = dfs['healthy']
         self.diseased = dfs['pathologic']
-        self.mysteryAAs = dfs['wes']
+        self.mysteryAAs = dfs['mysteryAAs']
         
         #Merge healthy and diseased
         merged = self.merge_healthy_and_diseased(self.healthy, self.diseased)
@@ -321,6 +323,7 @@ class PrepareData(object):
     def __init__(self, gene_name, shared_args, results_dir):
         """This class produces self.real_data_split and self.mysteryAAs_split
         which are needed for all the modeling."""
+        print('*** Preparing data for',gene_name,'***')
         self.gene_name = gene_name
         self.shared_args = shared_args
         self.results_dir = results_dir

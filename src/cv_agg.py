@@ -6,7 +6,10 @@
 import copy
 import numpy as np
 import pandas as pd
+from scipy import stats
 import sklearn.metrics
+
+from . import calibr
 
 ###########################################################
 # Both Ways: Averaged Performance and General Performance #---------------------
@@ -158,9 +161,10 @@ def determine_best_epoch_by_secondway(all_test_out):
     example to freshly calculate all performance metrics across all examples
     in the data set simultaneously."""
     epochs_to_consider = list(all_test_out.keys())
-    all_epochs_perf = pd.DataFrame(np.zeros((len(epochs_to_consider),3)),
+    all_epochs_perf = pd.DataFrame(np.zeros((len(epochs_to_consider),4)),
                                    index = epochs_to_consider,
-                                   columns=['accuracy','auroc','avg_precision'])
+                                   columns=['accuracy','auroc','avg_precision',
+                                            'calibration_slope'])
     
     #Calculate performance at each epoch
     for epochstr in epochs_to_consider:
@@ -170,10 +174,15 @@ def determine_best_epoch_by_secondway(all_test_out):
         all_epochs_perf.at[epochstr,'accuracy'] = sklearn.metrics.accuracy_score(true_label, pred_label)
         all_epochs_perf.at[epochstr,'auroc'] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
         all_epochs_perf.at[epochstr,'avg_precision'] = sklearn.metrics.average_precision_score(true_label, pred_prob)
+        #Calibration
+        fraction_of_positives, mean_predicted_prob = calibr.calibration_curve_new(true_label, pred_prob,n_bins=20,strategy='quantile')
+        slope, _, _, _, _ = stats.linregress(mean_predicted_prob,fraction_of_positives)
+        all_epochs_perf.at[epochstr,'calibration_slope'] = slope
     
     #Pick out the highest avg precision
     best = all_epochs_perf.nlargest(n=1,columns=['avg_precision'])
     return {'Gen_Best_Epoch':int(best.index.values.tolist()[0].replace('epoch_','')),
             'Gen_Accuracy':round(best.loc[:,'accuracy'].values.tolist()[0],4),
             'Gen_AUROC':round(best.loc[:,'auroc'].values.tolist()[0],4),
-            'Gen_Avg_Precision':round(best.loc[:,'avg_precision'].values.tolist()[0],4)}
+            'Gen_Avg_Precision':round(best.loc[:,'avg_precision'].values.tolist()[0],4),
+            'Calibration_Slope':round(best.loc[:,'calibration_slope'].values.tolist()[0],4)}
