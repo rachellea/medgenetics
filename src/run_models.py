@@ -233,6 +233,11 @@ def select_best_model_setup(gene_name, results_dir, modeling_approach):
     is selected based on highest general average precision."""
     path_to_perf_results = os.path.join(results_dir,gene_name+'_Performance_All_'+modeling_approach+'_Models.csv')
     perf_all_models = pd.read_csv(path_to_perf_results,index_col=False)
+    #First remove anything with a calibration slope outside the range 0 - 2
+    #to eliminate poorly-calibrated models
+    perf_all_models = perf_all_models[perf_all_models['Calibration_Slope']>0]
+    perf_all_models = perf_all_models[perf_all_models['Calibration_Slope']<2]
+    #Now out of the remaining models, choose the one with the best avg precision
     perf_all_models = perf_all_models.sort_values(by='Gen_Avg_Precision',ascending=False)
     best_model = perf_all_models.iloc[0,:]
     print('Model with highest Gen_Avg_Precision selected:\n',best_model)
