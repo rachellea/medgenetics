@@ -1,13 +1,22 @@
 #mlp.py
 
+#To enable reproducible results, set the random seed to 0 for everything
+SEED_VALUE = 0
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #suppress all excessive printed text
+os.environ['PYTHONHASHSEED']=str(SEED_VALUE)
 
 import math
 import copy
+import random
+random.seed(SEED_VALUE)
 import numpy as np
+np.random.seed(SEED_VALUE)
 import pandas as pd
+
 import tensorflow as tf
+tf.set_random_seed(SEED_VALUE)
 
 class MLP(object):
     """Multilayer perceptron."""
@@ -74,6 +83,13 @@ class MLP(object):
     
     #~~~Key Methods~~~#
     def set_up_graph_and_session(self):
+        #Make absolutely sure you've set all of the seeds
+        global SEED_VALUE
+        os.environ['PYTHONHASHSEED']=str(SEED_VALUE)
+        random.seed(SEED_VALUE)
+        np.random.seed(SEED_VALUE)
+        tf.set_random_seed(SEED_VALUE)
+        
         #Build the graph
         tf.logging.set_verbosity(tf.logging.INFO) #Set output detail level (options: DEBUG, INFO, WARN, ERROR, or FATAL)
         self.graph = tf.Graph()
@@ -222,9 +238,11 @@ class MLP(object):
     
     def _new_fc_layer(self, inputx, num_inputs, num_outputs, name, use_relu):
         """Create a new fully-connected layer."""
+        global SEED_VALUE #for layers that introduce randomless, like
+        #dropout, you need to set the seed to enable reproducibility
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
         if use_relu:
             layer = tf.nn.relu(layer)
-        return tf.nn.dropout(layer, self.keep_prob)
+        return tf.nn.dropout(layer, self.keep_prob, seed=SEED_VALUE)

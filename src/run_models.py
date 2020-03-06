@@ -166,6 +166,11 @@ class RunPredictiveModels(object):
     def _run_one_model_setup(self, model_args_specific, num_ensemble):
         print('Running one model setup')
         fold_num = 1
+        #Set the numpy random seed to 0 because scikit-learn does not have its own
+        #global random state but rather it uses the numpy random state instead.
+        #So if you want to have reproducible results, you need to set the np
+        #seed before you use scikit-learn. 
+        np.random.seed(0)
         cv = model_selection.StratifiedKFold(n_splits=self.number_of_cv_folds, random_state=19357)
         data = self.real_data_split.clean_data #note that data is not yet normalized here
         label = self.real_data_split.clean_labels

@@ -153,6 +153,9 @@ class Dataset(object):
         self.epochs_completed = 0
         self.index_in_epoch = 0
         
+        #Set the numpy random seed in an effort to make the results reproducible
+        np.random.seed(0)
+        
     #Methods
     def next_batch(self):
         """Return the next set of examples from this data set.
