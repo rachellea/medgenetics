@@ -152,10 +152,7 @@ class Dataset(object):
         self.num_examples = np.shape(data)[0]
         self.epochs_completed = 0
         self.index_in_epoch = 0
-        
-        #Set the numpy random seed in an effort to make the results reproducible
-        np.random.seed(0)
-        
+    
     #Methods
     def next_batch(self):
         """Return the next set of examples from this data set.
@@ -165,7 +162,9 @@ class Dataset(object):
         remaining examples in the epoch."""
         start = self.index_in_epoch
         # Shuffle for the beginning of an epoch if indicated
-        if start == 0 and self.shuffle: 
+        if start == 0 and self.shuffle:
+            #Set the numpy random seed to make the results reproducible
+            np.random.seed(0+self.epochs_completed)
             perm0 = np.arange(self.num_examples)
             # shuffle the indices
             np.random.shuffle(perm0)

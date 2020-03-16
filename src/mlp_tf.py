@@ -35,7 +35,7 @@ class MLP(object):
         <mlp_layers>: list of ints e.g. [50, 30, 25] means the first layer of the
             MLP has size 50 and is followed by two hidden layers, of sizes
             30 and 25 respectively."""
-        print('\tMLP',descriptor)
+        print('\tMLP Tensorflow',descriptor)
         self.descriptor = descriptor
         
         #Data sets

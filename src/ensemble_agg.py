@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import sklearn.metrics
 
-from . import mlp
+from . import mlp_sklearn as mlp
 from . import regression
 from . import reformat_output
 
