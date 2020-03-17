@@ -17,6 +17,7 @@ import pandas as pd
 
 import tensorflow as tf
 tf.set_random_seed(SEED_VALUE)
+tf.reset_default_graph()
 
 class MLP(object):
     """Multilayer perceptron."""
@@ -89,6 +90,7 @@ class MLP(object):
         random.seed(SEED_VALUE)
         np.random.seed(SEED_VALUE)
         tf.set_random_seed(SEED_VALUE)
+        tf.reset_default_graph()
         
         #Build the graph
         tf.logging.set_verbosity(tf.logging.INFO) #Set output detail level (options: DEBUG, INFO, WARN, ERROR, or FATAL)
@@ -240,7 +242,7 @@ class MLP(object):
         """Create a new fully-connected layer."""
         global SEED_VALUE #for layers that introduce randomless, like
         #dropout, you need to set the seed to enable reproducibility
-        weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05), name=(name+'_weights'))
+        weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05, seed = SEED_VALUE), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
         if use_relu:
