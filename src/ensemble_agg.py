@@ -38,6 +38,7 @@ def train_ensemble(modeling_approach, model_args, num_ensemble, what_to_run):
         model_class = regression.LogisticRegression
      for i in range(num_ensemble):
          print('\tTraining and testing model',i+1,'out of',num_ensemble,'for ensemble')
+         model_args['seed'] = i+1 #different random seed for each member of the ensemble
          m = model_class(**model_args)
          if what_to_run == 'grid_search':
              m.run_all_train_test() #train and test

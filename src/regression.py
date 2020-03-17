@@ -12,6 +12,7 @@ class LogisticRegression(object):
     <C>: float, default: 1.0. Inverse of regularization strength; must be a
         positive float. Smaller values specify stronger regularization.
     <num_epochs>: passed in only for compatibility in input parameters with mlp
+    <seed>: this arg isn't used; it's just for compatibility with the mlp class
     
     Note on linear_model.LogisticRegression defaults:
         fit_intercept = True
@@ -19,7 +20,7 @@ class LogisticRegression(object):
             for small datasets; 'sag' and 'saga' are faster for large ones;
             'sag' can handle l2, 'saga' can handle l1)"""
     def __init__(self, descriptor, split, logreg_penalty, C, decision_threshold,
-                 num_epochs, mysteryAAs):
+                 num_epochs, mysteryAAs, seed):
         print('\tLogistic Regresssion with penalty=',str(logreg_penalty),'and C=',str(C))
         self.split = split
         self.logreg_penalty = logreg_penalty
@@ -27,6 +28,7 @@ class LogisticRegression(object):
         self.decision_threshold = decision_threshold
         self.mysteryAAs = mysteryAAs
         self.max_iter = 1000
+        self.seed = seed
     
     def run_all_train_test(self):
         """Train and evaluate a logistic regression model"""

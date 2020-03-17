@@ -117,7 +117,7 @@ class RunPredictiveModels(object):
         #running this grid search should take about 10 hours on one GPU
         learn_rate = [1e-3,1e-2,1e-1,1,10,100,1000]
         dropout = [0,0.2,0.4,0.6]
-        ensemble = [1]
+        ensemble = [1,3]
         layers = [[30,20],[60,60],[60,60,40],[120,60,20],[120,60,40]]
         comb_lst = [learn_rate, dropout, ensemble, layers]
         self.combinations = list(itertools.product(*comb_lst))
