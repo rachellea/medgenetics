@@ -197,7 +197,7 @@ class MLP(object):
     def _define_optimizer_and_performance(self):
         with self.graph.as_default():
             with tf.variable_scope('optimizer'):
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.loss)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learningrate).minimize(self.loss)
             
             with tf.variable_scope('performance_measures'):
                 if self.y_length == 1: #binary classification
