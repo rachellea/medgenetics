@@ -115,7 +115,7 @@ class RunPredictiveModels(object):
     def _initialize_search_params_mlp(self):
         """Initialize lists of hyperparameters and architectures to assess"""
         #running this grid search should take about 10 hours on one GPU
-        learn_rate = [1e-3,1e-2,1e-1,1,10,100,1000]
+        learn_rate = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]
         dropout = [0,0.2,0.4,0.6]
         ensemble = [1,3]
         layers = [[30,20],[60,60],[60,60,40],[120,60,20],[120,60,40]]
@@ -279,7 +279,8 @@ def return_best_model_string(gene_name, results_dir, modeling_approach):
         return ('MLP-Ep'+str(best_model['Gen_Best_Epoch'])
                 +'-'+str(best_model['MLP_Layer'].replace(' ','-'))
                 +'-L'+str(best_model['Learning_Rate'])
-                +'-D'+str(best_model['Dropout_Rate']))
+                +'-D'+str(best_model['Dropout_Rate'])
+                +'-Ens'+str(best_model['Ensemble_Size']))
     elif modeling_approach == 'LR':
         return ('LR-Ep'+str(best_model['Gen_Best_Epoch'])
                 +'-'+str(best_model['Penalty'])
