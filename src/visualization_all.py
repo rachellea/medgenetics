@@ -80,7 +80,7 @@ class MakePanelFigure(object):
         self.ax[0,self.idx].set_xlabel('False Positive Rate')
         self.ax[0,self.idx].set_ylabel('True Positive Rate')
         self.ax[0,self.idx].set_title('Receiver Operating Characteristic')
-        self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR, AUC=%0.2f' % roc_auc_LR, 'MLP, AUC=%0.2f' % roc_auc_MLP], loc='lower right')
+        self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR, AUROC=%0.2f' % roc_auc_LR, 'MLP, AUROC=%0.2f' % roc_auc_MLP], loc='lower right')
     
     def plot_precision_recall_curve(self):
         #http://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html

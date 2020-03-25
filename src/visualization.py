@@ -86,7 +86,7 @@ class MakeAllFigures(object):
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
         plt.title('Receiver Operating Characteristics')
-        plt.legend([LR_line, MLP_line], ['LR, AUC=%0.2f' % roc_auc_LR, 'MLP, AUC=%0.2f' % roc_auc_MLP], loc='lower right')
+        plt.legend([LR_line, MLP_line], ['LR, AUROC=%0.2f' % roc_auc_LR, 'MLP, AUROC=%0.2f' % roc_auc_MLP], loc='lower right')
         plt.savefig(os.path.join(self.results_dir, self.gene_name+'_Best_Models_ROC_Curves.pdf'))
         plt.close()
     
