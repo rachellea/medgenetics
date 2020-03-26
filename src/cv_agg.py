@@ -175,8 +175,14 @@ def determine_best_epoch_by_secondway(all_test_out):
         all_epochs_perf.at[epochstr,'auroc'] = sklearn.metrics.roc_auc_score(true_label, pred_prob)
         all_epochs_perf.at[epochstr,'avg_precision'] = sklearn.metrics.average_precision_score(true_label, pred_prob)
         #Calibration
-        fraction_of_positives, mean_predicted_prob = calibr.calibration_curve_new(true_label, pred_prob,n_bins=20,strategy='quantile')
-        slope, _, _, _, _ = stats.linregress(mean_predicted_prob,fraction_of_positives)
+        try:
+            fraction_of_positives, mean_predicted_prob = calibr.calibration_curve_new(true_label, pred_prob,n_bins=20,strategy='quantile')
+            slope, _, _, _, _ = stats.linregress(mean_predicted_prob,fraction_of_positives)
+        except ValueError:
+            #ValueError: bins must be monotonically increasing or decreasing
+            #caused by this line in calibr.py:
+            #binids = np.digitize(y_prob, bins) - 1
+            slope = 10000 #something horrible so that this model won't be chosen
         all_epochs_perf.at[epochstr,'calibration_slope'] = slope
     
     #Pick out the highest avg precision
