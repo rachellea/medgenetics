@@ -1,18 +1,7 @@
 # main.py
 
-import copy
 import os
-import pickle
 import datetime
-import pandas as pd
-import numpy as np
-from sklearn import model_selection, metrics, calibration
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
-import matplotlib.transforms as mtransforms
-from scipy import stats
-import itertools
-from tqdm import tqdm
 
 #Custom imports
 from src import run_models, circgenetics_replication, visualization, visualization_all
