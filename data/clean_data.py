@@ -14,8 +14,8 @@ try:
 except:
     import utils
 
-AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
-                    'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
+AMINO_ACIDS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
+               'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 #X is not really an amino acid; it's a stop codon
 
 class BareGene(object):
@@ -319,14 +319,64 @@ class AnnotatedGene(object):
         return df.merge(signoise, how = 'inner', on = 'Position')
 
 
+class Prepare_KCNQ1_CircGenetics(object):
+    def __init__(self, results_dir):
+        """Add PSSM and Rate of Evolution to the bare gene and make split"""
+        global AMINO_ACIDS
+        self.gene_name = 'kcnq1'
+        b = BareGene(self.gene_name, results_dir)
+        self.inputx = b.merged
+        self.max_position = b.max_position
+        self._add_pssm()
+        self._add_roe()
+        self._prep_train_val_data()
+        print('Done with Prepare_KCNQ1_CircGenetics')
+        
+    def _add_pssm(self):
+        print('Adding PSSM info')
+        PSSM_AAs = ['A','G','I','L','V','M','F','W','P','C',
+                    'S','T','Y','N','Q','H','K','R','D','E']
+        pssm_file = os.path.join(os.path.join('data','circgenetics'),'kcnq1_pssm_matrix.csv')
+        pssm = pd.read_csv(pssm_file,header = 0, index_col=0) #index is Position
+        self.inputx['PSSM'] = np.nan
+        for idx in self.inputx.index.values.tolist():
+            position = self.inputx.at[idx,'Position']
+            consensus = self.inputx.at[idx,'Consensus']
+            change = self.inputx.at[idx,'Change']
+            assert consensus == pssm.at[position,'Consensus']
+            if change in PSSM_AAs:
+                self.inputx.at[idx,'PSSM'] = pssm.at[position,change]
+            else: #change is some weird amino acid, e.g. 'X'
+                max_for_idx = np.amax(pssm[PSSM_AAs].loc[idx,:].values)
+                print('Using the max PSSM',max_for_idx,'for change',change)
+                self.inputx.at[idx,'PSSM'] = max_for_idx
+    
+    def _add_roe(self):
+        print('Adding rate of evolution info')
+        roe_file = os.path.join(os.path.join('data','circgenetics'),'kcnq1_rate_of_evolution.csv')
+        roe = pd.read_csv(roe_file,header = 0)
+        self.inputx = self.inputx.merge(roe, how = 'inner', on = 'Position')
+    
+    def _prep_train_val_data(self):
+        self.inputx = self.inputx[['PSSM','RateOfEvolution','Label']]
+        self.real_data_split = utils.Splits(data = self.inputx[['PSSM','RateOfEvolution']],
+             labels=self.inputx[['Label']],
+             one_hotify_these_categorical=[],
+             normalize_these_continuous=['PSSM','RateOfEvolution'],
+             columns_to_ensure=['PSSM','RateOfEvolution'],
+             batch_size=16) #circgenetics paper did not specify batch size
+
+
 class PrepareData(object):
-    def __init__(self, gene_name, shared_args, results_dir):
+    def __init__(self, gene_name, results_dir):
         """This class produces self.real_data_split and self.mysteryAAs_split
         which are needed for all the modeling."""
         print('*** Preparing data for',gene_name,'***')
         self.gene_name = gene_name
-        self.shared_args = shared_args
         self.results_dir = results_dir
+        self.shared_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
+                'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
+                'batch_size':256}
         
         #Load real data consisting of benign and pathologic mutations
         ag = AnnotatedGene(self.gene_name, results_dir)

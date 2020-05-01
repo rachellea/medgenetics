@@ -58,6 +58,7 @@ class MLP(object):
         print('\tMLP_layers is',str(self.mlp_layers))
         self.dropout = dropout
         self.test_out = {} #this will be a dictionary of data and predictions for every epoch
+        self.regularization = None #used only for circgenetics replication
     
     def run_all_train_test(self):
         """Set up model, train model, test model, and close session"""
@@ -150,7 +151,10 @@ class MLP(object):
             #empty
             test_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
                                    columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
-            test_out_df = test_out_df.sort_values(by='Position')
+            if self.descriptor == 'circgenetics':
+                test_out_df = test_out_df.sort_values(by='RateOfEvolution')
+            else: #out models
+                test_out_df = test_out_df.sort_values(by='Position')
             self.test_out['epoch_'+str(self.num_epochs_done)] = test_out_df
             
         elif chosen_dataset == 'mysteryAAs':
@@ -191,13 +195,23 @@ class MLP(object):
         with self.graph.as_default():
             with tf.variable_scope('self.loss'):
                 if self.y_length == 1: #binary classification
-                    print('\tBinary classifier: using sigmoid cross entropy')
-                    self.loss = tf.reduce_mean( tf.nn.sigmoid_cross_entropy_with_logits(logits=self.pred_raw, labels=self.y_labels) )
-    
+                    cross_entropy = tf.reduce_mean( tf.nn.sigmoid_cross_entropy_with_logits(logits=self.pred_raw, labels=self.y_labels) )
+                    if self.descriptor == 'circgenetics': #add L2 regularization weight_decay = 0.02 from circgenetics paper
+                        print('\tBinary classifier: circgenetics replication: using sigmoid cross entropy with L2 regularization')
+                        self.loss = cross_entropy + 0.02*self.regularization
+                    else: #our models
+                        print('\tBinary classifier: using sigmoid cross entropy')
+                        self.loss = cross_entropy
+                    
     def _define_optimizer_and_performance(self):
         with self.graph.as_default():
             with tf.variable_scope('optimizer'):
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learningrate).minimize(self.loss)
+                if self.descriptor == 'circgenetics':
+                    print('\tcircgenetics replication: Momentum Optimizer') #momentum = 0.8 from circgenetics paper
+                    self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learningrate, momentum=0.8).minimize(self.loss)
+                else: #our models
+                    print('Adam Optimizer')
+                    self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learningrate).minimize(self.loss)
             
             with tf.variable_scope('performance_measures'):
                 if self.y_length == 1: #binary classification
@@ -240,6 +254,15 @@ class MLP(object):
         weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05, seed = self.seed), name=(name+'_weights'))
         biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]), name=(name+'_biases'))
         layer = tf.matmul(inputx, weights) + biases
+        if self.descriptor == 'circgenetics': self._regularize(weights) #L2 Regularization (only for circ genetics paper replication)
         if use_relu:
             layer = tf.nn.relu(layer)
         return tf.nn.dropout(layer, self.keep_prob, seed=self.seed)
+    
+    def _regularize(self, weights):
+        penalty = tf.reduce_sum(tf.nn.l2_loss(weights))
+        if self.regularization is not None:
+            self.regularization += penalty
+        else:
+            self.regularization = penalty
+    

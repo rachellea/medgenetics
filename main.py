@@ -4,7 +4,7 @@ import os
 import datetime
 
 #Custom imports
-from src import run_models, circgenetics_replication, visualization, visualization_all
+from src import run_models, circgenetics_replication, visualization1, visualization1_all
 from data import clean_data
 
 def run(gene_name, what_to_run, modeling_approach, results_dir):
@@ -21,16 +21,27 @@ def run(gene_name, what_to_run, modeling_approach, results_dir):
             
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
-    data_preproc_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
-                'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
-                'batch_size':256}
-    d = clean_data.PrepareData(gene_name, data_preproc_args, results_dir)
+    d = clean_data.PrepareData(gene_name, results_dir)
     if what_to_run == 'grid_search':
         run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'test_pred':
         run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'mysteryAA_pred':
         run_models.PredictMysteryAAs(gene_name, modeling_approach, results_dir, d.real_data_split, d.mysteryAAs_dict)
+
+def replicate_circgenetics():
+    #Directories
+    date_dir = os.path.join('results',datetime.datetime.today().strftime('%Y-%m-%d'))
+    if not os.path.exists(date_dir):
+        os.mkdir(date_dir)
+    results_dir_circgenetics = os.path.abspath(os.path.join(date_dir,'circgenetics'))
+    if not os.path.exists(results_dir_circgenetics):
+        os.mkdir(results_dir_circgenetics)
+    
+    #Data and run
+    d = clean_data.Prepare_KCNQ1_CircGenetics(results_dir_circgenetics)
+    circgenetics_replication.ReplicateCircGenetics(results_dir_circgenetics, d.real_data_split)
+    
 
 def make_results_dirs():
     """Make directories for storing results"""
@@ -86,19 +97,16 @@ def replicate_entire_study():
     run('scn5a',what_to_run='mysteryAA_pred',modeling_approach='MLP',results_dir = results_dir_scn5a)
     
     #Visualization - Separate Figure for Each Gene/Performance Metric
-    visualization.MakeAllFigures('ryr2',results_dir_ryr2)
-    visualization.MakeAllFigures('kcnq1',results_dir_kcnq1)
-    visualization.MakeAllFigures('kcnh2',results_dir_kcnh2)
-    visualization.MakeAllFigures('scn5a',results_dir_scn5a)
+    visualization1.MakeAllFigures('ryr2',results_dir_ryr2)
+    visualization1.MakeAllFigures('kcnq1',results_dir_kcnq1)
+    visualization1.MakeAllFigures('kcnh2',results_dir_kcnh2)
+    visualization1.MakeAllFigures('scn5a',results_dir_scn5a)
     
     #Visualization - One Figure Summarizing Everything
-    visualization_all.MakePanelFigure(date_dir)
+    visualization1_all.MakePanelFigure(date_dir)
     
     
 if __name__=='__main__':
+    replicate_circgenetics()
     replicate_entire_study()
     
-    #delthis = 'results/delthis'
-    #if not os.path.exists(delthis):
-    #    os.mkdir(delthis)
-    #circgenetics_replication.ReplicateCircGenetics(delthis)
