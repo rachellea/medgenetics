@@ -218,11 +218,12 @@ class BareGene(object):
             self.history_idx += 1
 
 class AnnotatedGene(object):
-    def __init__(self, gene_name, results_dir):
+    def __init__(self, gene_name, results_dir, features_to_use):
         """Add domain, conservation, and signal to noise information to the
         bare gene and to mysteryAAs; produce gene and mysteryAAs dataframes"""
         global AMINO_ACIDS
         self.gene_name = gene_name
+        self.features_to_use = features_to_use
         
         b = BareGene(gene_name, results_dir)
         self.inputx = b.merged
@@ -243,9 +244,9 @@ class AnnotatedGene(object):
     
     def annotate_everything(self):
         #add a column denoting the domain of the protein it is part of
-        self.create_domain_dictionary()
-        self.inputx = self.add_domain_info(self.inputx)
-        self.mysteryAAs = self.add_domain_info(self.mysteryAAs)
+        self._create_domain_dictionary()
+        self.inputx = self._add_domain_info(self.inputx)
+        self.mysteryAAs = self._add_domain_info(self.mysteryAAs)
         
         #replace any domain annotation that is not used with 'Outside'
         self.domains_used = list(set(self.inputx.loc[:,'Domain'].values.tolist()))
@@ -258,20 +259,34 @@ class AnnotatedGene(object):
         print('Domains not used:', self.domains_not_used)
         
         #add a column with conservation score
-        self.inputx = self.add_conservation_info(self.inputx)
-        self.mysteryAAs = self.add_conservation_info(self.mysteryAAs)
+        self.inputx = self._add_conservation_info(self.inputx)
+        self.mysteryAAs = self._add_conservation_info(self.mysteryAAs)
         
         #add a column with signal to noise info
-        self.inputx = self.add_signoise_info(self.inputx)
-        self.mysteryAAs = self.add_signoise_info(self.mysteryAAs)
+        self.inputx = self._add_signoise_info(self.inputx)
+        self.mysteryAAs = self._add_signoise_info(self.mysteryAAs)
         
-        self.columns_to_ensure = (['Position', 'Conservation','SigNoise']
-            +['Consensus_'+letter for letter in AMINO_ACIDS]
-            +['Change_'+letter for letter in AMINO_ACIDS]
-            +self.domains_used)
+        #add a column with PSSM
+        self.inputx = self._add_pssm(self.inputx)
+        self.mysteryAAs = self._add_pssm(self.mysteryAAs)
+        
+        #add a column with Rate of Evolution
+        self.inputx = self._add_roe(self.inputx)
+        self.mysteryAAs = self._add_roe(self.mysteryAAs)
+        
+        #Run sanity check
+        self._run_sanity_check(self.inputx)
+        self._run_sanity_check(self.mysteryAAs)
+        
+        #Keep only the requested features
+        self.inputx = self.inputx[self.features_to_use+['Label']]
+        self.mysteryAAs = self.mysteryAAs[self.features_to_use]
+        
+        #Clean up columns to ensure
+        self._clean_up_columns_to_ensure()
         print('Done with AnnotatedGene')
-       
-    def add_domain_info(self, df):
+    
+    def _add_domain_info(self, df):
         print('Adding domain info')
         df['Domain'] = ''
         domain_added_count = 0
@@ -293,7 +308,7 @@ class AnnotatedGene(object):
         print('No domain annotation for',str(domain_not_added_count),'examples')
         return df
     
-    def create_domain_dictionary(self):
+    def _create_domain_dictionary(self):
         self.domains = {}
         domain_df = pd.read_csv(os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_domains.csv')),
                                 header=0)
@@ -302,7 +317,7 @@ class AnnotatedGene(object):
             stop = domain_df.at[rowidx,'Stop']
             self.domains[domain_df.at[rowidx,'Domain']] = [start,stop]
     
-    def add_conservation_info(self, df):
+    def _add_conservation_info(self, df):
         print('Adding conservation info')
         con_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_conservation.csv'))
         conservation = pd.read_csv(con_file,
@@ -310,15 +325,63 @@ class AnnotatedGene(object):
                                    names=['Position','Conservation'])
         return df.merge(conservation, how='inner', on='Position')
     
-    def add_signoise_info(self, df):
+    def _add_signoise_info(self, df):
         print('Adding signoise info')
         signoise_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_signal_to_noise.csv')) #Columns Position, SigNoise
         signoise = pd.read_csv(signoise_file,
                                header = None,
                                names = ['Position','SigNoise'])
         return df.merge(signoise, how = 'inner', on = 'Position')
-
-
+    
+    def _add_pssm(self, df):
+        print('Adding PSSM info')
+        PSSM_AAs = ['A','G','I','L','V','M','F','W','P','C',
+                    'S','T','Y','N','Q','H','K','R','D','E']
+        pssm_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_pssm_matrix.csv'))
+        pssm = pd.read_csv(pssm_file,header = 0, index_col=0) #index is Position
+        df['PSSM'] = np.nan
+        for idx in df.index.values.tolist():
+            position = df.at[idx,'Position']
+            consensus = df.at[idx,'Consensus']
+            change = df.at[idx,'Change']
+            assert consensus == pssm.at[position,'Consensus']
+            if change in PSSM_AAs:
+                df.at[idx,'PSSM'] = pssm.at[position,change]
+            else: #change is some weird amino acid, e.g. 'X'
+                max_for_idx = np.amax(pssm[PSSM_AAs].loc[idx,:].values)
+                print('Using the max PSSM',max_for_idx,'for change',change)
+                df.at[idx,'PSSM'] = max_for_idx
+        return df
+    
+    def _add_roe(self, df):
+        print('Adding rate of evolution info')
+        roe_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_rate_of_evolution.csv'))
+        roe = pd.read_csv(roe_file,header = 0)
+        return df.merge(roe, how = 'inner', on = 'Position')
+    
+    def _run_sanity_check(self, df):
+        """A quick santiy check to ensure consensus!=change and to ensure no
+        duplicates"""
+        #Ensure consensus!=change
+        assert (df.loc[:,'Consensus'].values == df.loc[:,'Change'].values).sum() == 0, 'Data is not clean: consensus==change at'+str(position)
+        #Ensure no duplicates
+        if len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]) > 0:
+            assert False, 'Data is not clean: duplicates remain'
+    
+    def _clean_up_columns_to_ensure(self):
+        draft_columns_to_ensure = (['Position', 'Conservation','SigNoise']
+            +['Consensus_'+letter for letter in AMINO_ACIDS]
+            +['Change_'+letter for letter in AMINO_ACIDS]
+            +copy.deepcopy(self.domains_used)+['PSSM','RateOfEvolution'])
+        final_columns_to_ensure = []
+        for col in draft_columns_to_ensure: #e.g. Consensus_A
+            for keep_col in self.features_to_use: #e.g. Consensus
+                if keep_col in col: #e.g. if Consensus in Consensus_A
+                    if col not in final_columns_to_ensure:
+                        final_columns_to_ensure.append(col)
+        self.columns_to_ensure = final_columns_to_ensure
+        print('Columns to ensure:',self.columns_to_ensure)
+        
 class Prepare_KCNQ1_CircGenetics(object):
     def __init__(self, results_dir):
         """Add PSSM and Rate of Evolution to the bare gene and make split"""
@@ -336,7 +399,7 @@ class Prepare_KCNQ1_CircGenetics(object):
         print('Adding PSSM info')
         PSSM_AAs = ['A','G','I','L','V','M','F','W','P','C',
                     'S','T','Y','N','Q','H','K','R','D','E']
-        pssm_file = os.path.join(os.path.join('data','circgenetics'),'kcnq1_pssm_matrix.csv')
+        pssm_file = os.path.join('data',os.path.join('kcnq1','kcnq1_pssm_matrix.csv'))
         pssm = pd.read_csv(pssm_file,header = 0, index_col=0) #index is Position
         self.inputx['PSSM'] = np.nan
         for idx in self.inputx.index.values.tolist():
@@ -353,7 +416,7 @@ class Prepare_KCNQ1_CircGenetics(object):
     
     def _add_roe(self):
         print('Adding rate of evolution info')
-        roe_file = os.path.join(os.path.join('data','circgenetics'),'kcnq1_rate_of_evolution.csv')
+        roe_file = os.path.join('data',os.path.join('kcnq1','kcnq1_rate_of_evolution.csv'))
         roe = pd.read_csv(roe_file,header = 0)
         self.inputx = self.inputx.merge(roe, how = 'inner', on = 'Position')
     
@@ -368,27 +431,41 @@ class Prepare_KCNQ1_CircGenetics(object):
 
 
 class PrepareData(object):
-    def __init__(self, gene_name, results_dir):
+    def __init__(self, gene_name, results_dir, features_to_use):
         """This class produces self.real_data_split and self.mysteryAAs_split
         which are needed for all the modeling."""
         print('*** Preparing data for',gene_name,'***')
         self.gene_name = gene_name
         self.results_dir = results_dir
-        self.shared_args = {'one_hotify_these_categorical':['Consensus','Change','Domain'],
-                'normalize_these_continuous':['Position', 'Conservation', 'SigNoise'],
-                'batch_size':256}
+        self._prep_shared_args(features_to_use)
         
         #Load real data consisting of benign and pathologic mutations
-        ag = AnnotatedGene(self.gene_name, results_dir)
+        ag = AnnotatedGene(self.gene_name, results_dir, features_to_use)
         ag.annotate_everything()
         self.ag = ag
         
         self._prep_train_val_data() #creates self.real_data_split
         self._prep_mysteryAAs() #creates self.mysteryAAs_split and self.ori_position
-            
+    
+    def _prep_shared_args(self, features_to_use):
+        catvars = ['Consensus','Change','Domain']
+        one_hotify_these_categorical = []
+        for cat in catvars:
+            if cat in features_to_use:
+                one_hotify_these_categorical.append(cat)
+        
+        contvars = ['Position', 'Conservation', 'SigNoise', 'PSSM','RateOfEvolution']
+        normalize_these_continuous = []
+        for cont in contvars:
+            if cont in features_to_use:
+                normalize_these_continuous.append(cont)
+        
+        self.shared_args = {'one_hotify_these_categorical':one_hotify_these_categorical,
+                'normalize_these_continuous':normalize_these_continuous,
+                'batch_size':256}
+    
     def _prep_train_val_data(self):
         inputx = self.ag.inputx
-        self._run_sanity_check(inputx)
         
         #Prepare split data
         split_args = {'columns_to_ensure':self.ag.columns_to_ensure}
@@ -406,8 +483,6 @@ class PrepareData(object):
     def _prep_mysteryAAs(self):
         #mysteryAAs are from WES and ClinVar data. Will get predictions for these
         mysteryAAs_raw = self.ag.mysteryAAs
-        self._run_sanity_check(mysteryAAs_raw)
-        
         mysteryAAs_data = (copy.deepcopy(mysteryAAs_raw))
         mysteryAAs_labels = pd.DataFrame(np.zeros((mysteryAAs_data.shape[0],1)), columns=['Label'])
         mysteryAAs_split = utils.Splits(data = mysteryAAs_data,
@@ -422,10 +497,15 @@ class PrepareData(object):
         #end up normalizing the real data twice due to modifying the
         #underlying dataframe!
         all_real_data = copy.deepcopy(self.real_data_split.clean_data)
-        _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(all_real_data, mysteryAAs_split.clean_data)
-        assert mysteryAAs_final_clean_data.shape[0] == mysteryAAs_raw.shape[0]
         self.mysteryAAs_dict = {}
-        self.mysteryAAs_dict['scaler'] = mysteryAAs_split.scaler
+        if len(mysteryAAs_split.normalize_these_continuous)>0:
+            _, mysteryAAs_final_clean_data = mysteryAAs_split._normalize(all_real_data, mysteryAAs_split.clean_data)
+            self.mysteryAAs_dict['scaler'] = mysteryAAs_split.scaler
+        else:
+            mysteryAAs_final_clean_data = mysteryAAs_split.clean_data
+            self.mysteryAAs_dict['scaler'] = None
+        assert mysteryAAs_final_clean_data.shape[0] == mysteryAAs_raw.shape[0]
+        
         tempdata = copy.deepcopy(mysteryAAs_data)
         tempdata['True_Label'] = mysteryAAs_labels['Label']
         self.mysteryAAs_dict['raw_data'] = tempdata
@@ -436,15 +516,6 @@ class PrepareData(object):
                                                 label_meanings = mysteryAAs_split.clean_labels.columns.values.tolist(),
                                                 batch_size = 256)
     
-    def _run_sanity_check(self, df):
-        """A quick santiy check to ensure consensus!=change and to ensure no
-        duplicates"""
-        #Ensure consensus!=change
-        assert (df.loc[:,'Consensus'].values == df.loc[:,'Change'].values).sum() == 0, 'Data is not clean: consensus==change at'+str(position)
-        #Ensure no duplicates
-        if len(df[df.duplicated(subset=['Consensus', 'Position', 'Change'], keep=False)]) > 0:
-            assert False, 'Data is not clean: duplicates remain'
-
 class PrepareEveryAA(object):
     """everyAA is an alternative to mysteryAAs. everyAA contains every possible
     amino acid mutation for a given gene"""

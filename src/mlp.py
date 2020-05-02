@@ -151,10 +151,10 @@ class MLP(object):
             #empty
             test_out_df = pd.DataFrame(np.concatenate((entire_x, self.entire_pred_probs, self.entire_pred_labels, self.labels_true),axis = 1),
                                    columns=self.train_set.data_meanings+['Pred_Prob','Pred_Label','True_Label'])
-            if self.descriptor == 'circgenetics':
-                test_out_df = test_out_df.sort_values(by='RateOfEvolution')
-            else: #out models
+            if 'Position' in test_out_df.columns.values.tolist():
                 test_out_df = test_out_df.sort_values(by='Position')
+            else:
+                test_out_df = test_out_df.sort_values(by=test_out_df.columns.values.tolist())
             self.test_out['epoch_'+str(self.num_epochs_done)] = test_out_df
             
         elif chosen_dataset == 'mysteryAAs':
@@ -210,7 +210,7 @@ class MLP(object):
                     print('\tcircgenetics replication: Momentum Optimizer') #momentum = 0.8 from circgenetics paper
                     self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learningrate, momentum=0.8).minimize(self.loss)
                 else: #our models
-                    print('Adam Optimizer')
+                    print('\tAdam Optimizer')
                     self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learningrate).minimize(self.loss)
             
             with tf.variable_scope('performance_measures'):

@@ -106,7 +106,8 @@ class Splits(object):
         test_labels = self.clean_labels.iloc[test_indices]
         
         # normalize
-        train_data, test_data = self._normalize(train_data, test_data)
+        if len(self.normalize_these_continuous)>0:
+            train_data, test_data = self._normalize(train_data, test_data)
          
         # convert everything to array
         train_data = train_data.values
