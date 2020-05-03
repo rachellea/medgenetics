@@ -4,7 +4,7 @@ import os
 import datetime
 
 #Custom imports
-from src import run_models, circgenetics_replication, visualization1, visualization1_all
+from src import run_models, circgenetics_replication, visualization1, visualization1_all, visualization2_all
 from data import clean_data
 
 def run(gene_name, what_to_run, modeling_approach, results_dir):
@@ -21,7 +21,8 @@ def run(gene_name, what_to_run, modeling_approach, results_dir):
             
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
-    d = clean_data.PrepareData(gene_name, results_dir)
+    all_features = ['Position', 'Conservation', 'SigNoise', 'Consensus', 'Change', 'PSSM', 'RateOfEvolution']
+    d = clean_data.PrepareData(gene_name, results_dir, features_to_use=all_features)
     if what_to_run == 'grid_search':
         run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
     elif what_to_run == 'test_pred':
@@ -104,6 +105,7 @@ def replicate_entire_study():
     
     #Visualization - One Figure Summarizing Everything
     visualization1_all.MakePanelFigure(date_dir)
+    visualization2_all.MakePanelFigure_SensSpec(date_dir)
     
     
 if __name__=='__main__':
