@@ -357,6 +357,7 @@ class AnnotatedGene(object):
         print('Adding rate of evolution info')
         roe_file = os.path.join('data',os.path.join(self.gene_name,self.gene_name+'_rate_of_evolution.csv'))
         roe = pd.read_csv(roe_file,header = 0)
+        roe = roe[['Position','RateOfEvolution']]
         return df.merge(roe, how = 'inner', on = 'Position')
     
     def _run_sanity_check(self, df):
