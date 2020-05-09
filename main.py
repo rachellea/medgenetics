@@ -21,7 +21,7 @@ def run(gene_name, what_to_run, modeling_approach, results_dir):
             
     <modeling_approach>: a string, either 'MLP' (for multilayer perceptron)
         or 'LR' for logistic regression"""
-    all_features = ['Position', 'Conservation', 'SigNoise', 'Consensus', 'Change', 'PSSM', 'RateOfEvolution']
+    all_features =['Position', 'Conservation', 'SigNoise','Consensus','Change','Domain','PSSM','RateOfEvolution']
     d = clean_data.PrepareData(gene_name, results_dir, features_to_use=all_features)
     if what_to_run == 'grid_search':
         run_models.RunPredictiveModels(gene_name, modeling_approach, results_dir, d.real_data_split, what_to_run, testing=False)
@@ -109,6 +109,6 @@ def replicate_entire_study():
     
     
 if __name__=='__main__':
-    replicate_circgenetics()
     replicate_entire_study()
+    replicate_circgenetics()
     

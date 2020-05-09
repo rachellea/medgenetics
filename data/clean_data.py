@@ -373,7 +373,8 @@ class AnnotatedGene(object):
         draft_columns_to_ensure = (['Position', 'Conservation','SigNoise']
             +['Consensus_'+letter for letter in AMINO_ACIDS]
             +['Change_'+letter for letter in AMINO_ACIDS]
-            +copy.deepcopy(self.domains_used)+['PSSM','RateOfEvolution'])
+            +['Domain_'+domain_name for domain_name in copy.deepcopy(self.domains_used)]
+            +['PSSM','RateOfEvolution'])
         final_columns_to_ensure = []
         for col in draft_columns_to_ensure: #e.g. Consensus_A
             for keep_col in self.features_to_use: #e.g. Consensus
@@ -446,7 +447,7 @@ class PrepareData(object):
         self.ag = ag
         
         self._prep_train_val_data() #creates self.real_data_split
-        self._prep_mysteryAAs() #creates self.mysteryAAs_split and self.ori_position
+        self._prep_mysteryAAs() #creates self.mysteryAAs_split
     
     def _prep_shared_args(self, features_to_use):
         catvars = ['Consensus','Change','Domain']
