@@ -15,10 +15,22 @@ class MakePanelFigure_SensSpec(object):
         of predictions below the threshold (so eventually at a decision
         threshold of 1, 100% of all predictions are represented.)"""
     def __init__(self, base_results_dir):
+        genes = ['ryr2','kcnq1','kcnh2','scn5a']
+        mlp_thresholds = [[0.4,0.41], #ryr2
+                      [0.4,0.6], #kcnq1
+                      [0.4,0.6], #kcnh2
+                      [0.3,0.31]] #scn5a
+        self.mlp_decision_thresholds = pd.DataFrame(mlp_thresholds, columns=['lower','upper'], index=genes)
+        
+        lr_thresholds = [[0.5,0.51], #ryr2
+                      [0.3,0.55], #kcnq1
+                      [0.18,0.6], #kcnh2
+                      [0.6,0.61]] #scn5a
+        self.lr_decision_thresholds = pd.DataFrame(lr_thresholds, columns=['lower','upper'], index=genes)
+        
         base_results_dir = base_results_dir
         fig, self.ax = plt.subplots(nrows = 4, ncols = 4, figsize=(16,17.33))
         
-        genes = ['ryr2','kcnq1','kcnh2','scn5a']
         for idx in range(len(genes)):
             self.idx = idx #column number
             gene_name = genes[idx]
@@ -78,13 +90,22 @@ class MakePanelFigure_SensSpec(object):
     def plot_1_four_curves(self):
         if self.model_name == 'MLP':
             row = 0
+            decision_thresholds_df = self.mlp_decision_thresholds
         elif self.model_name == 'LR':
             row = 2
+            decision_thresholds_df = self.lr_decision_thresholds
         
+        #Plot sens, spec, ppv, npv:
         self.ax[row,self.idx].plot(self.thresholds, self.sensitivity, label='Sensitivity')
         self.ax[row,self.idx].plot(self.thresholds, self.specificity, label='Specificity')
         self.ax[row,self.idx].plot(self.thresholds, self.ppv, label='PPV')
         self.ax[row,self.idx].plot(self.thresholds, self.npv, label='NPV')
+        
+        #Plot decision thresholds:
+        lower = decision_thresholds_df.iat[self.idx,0]
+        upper = decision_thresholds_df.iat[self.idx,1]
+        self.ax[row,self.idx].axvspan(lower, upper, alpha=0.3, color='black')
+        
         self.ax[row,self.idx].legend(loc='lower right', prop={'size': 6})
         self.ax[row,self.idx].set_title(self.model_name+' Metrics Per Threshold')
         self.ax[row,self.idx].set_xlabel('Threshold')
