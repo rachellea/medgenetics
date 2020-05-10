@@ -15,25 +15,13 @@ class MakePanelFigure_SensSpec(object):
         of predictions below the threshold (so eventually at a decision
         threshold of 1, 100% of all predictions are represented.)"""
     def __init__(self, base_results_dir):
-        genes = ['ryr2','kcnq1','kcnh2','scn5a']
-        mlp_thresholds = [[0.4,0.41], #ryr2
-                      [0.4,0.6], #kcnq1
-                      [0.4,0.6], #kcnh2
-                      [0.3,0.31]] #scn5a
-        self.mlp_decision_thresholds = pd.DataFrame(mlp_thresholds, columns=['lower','upper'], index=genes)
-        
-        lr_thresholds = [[0.5,0.51], #ryr2
-                      [0.3,0.55], #kcnq1
-                      [0.18,0.6], #kcnh2
-                      [0.6,0.61]] #scn5a
-        self.lr_decision_thresholds = pd.DataFrame(lr_thresholds, columns=['lower','upper'], index=genes)
-        
+        self.genes = ['ryr2','kcnq1','kcnh2','scn5a']
+        self.define_decision_thresholds() #manually defined; see method
         base_results_dir = base_results_dir
         fig, self.ax = plt.subplots(nrows = 4, ncols = 4, figsize=(16,17.33))
-        
-        for idx in range(len(genes)):
+        for idx in range(len(self.genes)):
             self.idx = idx #column number
-            gene_name = genes[idx]
+            gene_name = self.genes[idx]
             results_dir = os.path.join(base_results_dir, gene_name)
             possible_files = os.listdir(results_dir)
             
@@ -51,6 +39,12 @@ class MakePanelFigure_SensSpec(object):
                 self.calculate_plotting_data(true_labels, pred_probs)
                 self.plot_1_four_curves()
                 self.plot_2_below_threshold()
+                
+                #Calculate
+                chosen_mystery = [y for y in [x for x in possible_files if model_name in x] if 'all_mysteryAAs_out' in y][0]
+                print('Calculating',model_name,'mysteryAA counts based on file',chosen_mystery)
+                mystery_out = pd.read_csv(os.path.join(results_dir,chosen_mystery),header=0,index_col=0)
+                self.calculate_mystery_counts_relative_to_thresholds(mystery_out, gene_name, model_name)
         
         fig.suptitle('  RYR2                  KCNQ1                 KCNH2                 SCN5A', fontsize=32)
         #Matplotlib tight layout doesn't take into account title so we pass
@@ -58,6 +52,27 @@ class MakePanelFigure_SensSpec(object):
         #https://stackoverflow.com/questions/8248467/matplotlib-tight-layout-doesnt-take-into-account-figure-suptitle
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.savefig(os.path.join(base_results_dir, 'Visualization_All_Sens_Spec.pdf'))
+        self.mystery_counts_df.to_csv(os.path.join(base_results_dir,'MysteryAA_Counts_By_Threshold.csv'),header=True,index=True)
+    
+    def define_decision_thresholds(self):
+        """Manually chosen decision thresholds for each gene.
+        Note that the gene order in the df must match that defined by
+        <self.genes>"""
+        mlp_thresholds = [[0.4,0.41], #ryr2
+                      [0.4,0.6], #kcnq1
+                      [0.4,0.6], #kcnh2
+                      [0.3,0.31]] #scn5a
+        self.mlp_decision_thresholds = pd.DataFrame(mlp_thresholds, columns=['lower','upper'], index=self.genes)
+        lr_thresholds = [[0.5,0.51], #ryr2
+                      [0.3,0.55], #kcnq1
+                      [0.18,0.6], #kcnh2
+                      [0.6,0.61]] #scn5a
+        self.lr_decision_thresholds = pd.DataFrame(lr_thresholds, columns=['lower','upper'], index=self.genes)
+        
+        #Also init mystery_counts_df
+        self.mystery_counts_df = pd.DataFrame(np.zeros((8,4)),
+                index=['MLP_'+g for g in self.genes]+['LR_'+g for g in self.genes],
+                columns=['benign_below_thresh','grey_between_thresh','path_above_thresh','total'])
     
     def calculate_plotting_data(self, true_labels, pred_probs):
         """Calculate the data needed to make the plots including sensitivity,
@@ -102,8 +117,8 @@ class MakePanelFigure_SensSpec(object):
         self.ax[row,self.idx].plot(self.thresholds, self.npv, label='NPV')
         
         #Plot decision thresholds:
-        lower = decision_thresholds_df.iat[self.idx,0]
-        upper = decision_thresholds_df.iat[self.idx,1]
+        lower = decision_thresholds_df.at[self.genes[self.idx],'lower']
+        upper = decision_thresholds_df.at[self.genes[self.idx],'upper']
         self.ax[row,self.idx].axvspan(lower, upper, alpha=0.3, color='black')
         
         self.ax[row,self.idx].legend(loc='lower right', prop={'size': 6})
@@ -119,7 +134,25 @@ class MakePanelFigure_SensSpec(object):
         self.ax[row,self.idx].set_title(self.model_name+' Number of Predictions Below Threshold')
         self.ax[row,self.idx].set_ylabel('Number of Predictions')
         self.ax[row,self.idx].set_xlabel('Threshold')
-
+    
+    def calculate_mystery_counts_relative_to_thresholds(self, mystery_out, gene_name, model_name):
+        """Count how many mysteryAAs fall into the benign, grey zone, or
+        pathologic regions defined by the decision thresholds"""
+        if self.model_name == 'MLP': decision_thresholds_df = self.mlp_decision_thresholds
+        elif self.model_name == 'LR': decision_thresholds_df = self.lr_decision_thresholds
+        lower = decision_thresholds_df.at[self.genes[self.idx],'lower']
+        upper = decision_thresholds_df.at[self.genes[self.idx],'upper']
+        pred_probs = mystery_out.loc[:,'Pred_Prob']
+        below = np.sum(pred_probs<lower)
+        between = np.sum((pred_probs>=lower)&(pred_probs<=upper))
+        above = np.sum(pred_probs>upper)
+        total = mystery_out.shape[0]
+        assert (below+between+above)==total
+        index = model_name+'_'+gene_name
+        self.mystery_counts_df.at[index,'benign_below_thresh'] = below
+        self.mystery_counts_df.at[index,'grey_between_thresh'] = between
+        self.mystery_counts_df.at[index,'path_above_thresh'] = above
+        self.mystery_counts_df.at[index,'total'] =  total
 
 def confusion_matrix(true_label, pred_prob, threshold=0.5):
     pred_label = [0 if i < threshold else 1 for i in pred_prob]
