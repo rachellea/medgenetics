@@ -132,7 +132,8 @@ class RunPredictiveModels(object):
                 'learningrate':comb[0],
                 'mlp_layers': copy.deepcopy(comb[3]),
                 'dropout':comb[1],
-                'mysteryAAs':None}
+                'mysteryAAs':None,
+                'results_dir':self.results_dir}
             self._run_one_model_setup(mlp_args_specific, num_ensemble = comb[2])
     
     # LR Methods #--------------------------------------------------------------
@@ -159,7 +160,8 @@ class RunPredictiveModels(object):
                                 'C':comb[1],
                                 'decision_threshold':0.5,
                                 'num_epochs':self.max_epochs,
-                                'mysteryAAs':None}
+                                'mysteryAAs':None,
+                                'results_dir':self.results_dir}
             self._run_one_model_setup(lr_args_specific, num_ensemble = comb[2])
     
     # Generic Method to Run a Model Setup #-------------------------------------
@@ -261,7 +263,8 @@ def return_best_model_args(gene_name, results_dir, modeling_approach):
             'learningrate':best_model['Learning_Rate'],
             'mlp_layers':[int(x) for x in best_model['MLP_Layer'].replace(']','').replace('[','').split(',')],
             'dropout':best_model['Dropout_Rate'],
-            'mysteryAAs':None}
+            'mysteryAAs':None,
+            'results_dir':results_dir}
     
     elif modeling_approach == 'LR':        
         model_args = {'descriptor':gene_name,
@@ -269,7 +272,8 @@ def return_best_model_args(gene_name, results_dir, modeling_approach):
             'C':best_model['C'],
             'decision_threshold':0.5,
             'num_epochs':best_model['Gen_Best_Epoch'],
-            'mysteryAAs':None}
+            'mysteryAAs':None,
+            'results_dir':results_dir}
     return model_args, int(best_model['Ensemble_Size'])
 
 def return_best_model_string(gene_name, results_dir, modeling_approach):

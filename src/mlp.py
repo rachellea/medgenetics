@@ -21,7 +21,8 @@ class MLP(object):
                  mlp_layers,
                  dropout,
                  mysteryAAs,
-                 seed):
+                 seed,
+                 results_dir):
         """Variables
         <descriptor>: string describing the model
         <split>: created by Splits class in utils.py
@@ -29,7 +30,9 @@ class MLP(object):
             MLP has size 50 and is followed by two hidden layers, of sizes
             30 and 25 respectively.
         <seed>: the random seed. This must be explicitely set in order to get
-            reproducible results."""
+            reproducible results.
+        <results_dir>: directory for results. Currently this is not used and
+            is only included for compatibility with the LR class."""
         print('\tMLP Tensorflow',descriptor,'seed =',seed)
         self.descriptor = descriptor
         self.seed = seed

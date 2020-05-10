@@ -87,7 +87,7 @@ def create_fold_test_out(ensemble_lst, decision_threshold, what_to_run):
                 all_cols = df.columns.values.tolist()
                 samecols = [x for x in all_cols if 'Consensus' in x]+[x for x in all_cols if 'Change' in x]+['True_Label']
                 assert np.equal(df[samecols].values, fold_df[samecols].values).all()
-                closecols = ['Position','Conservation','SigNoise']
+                closecols = ['Position','Conservation','SigNoise','PSSM','RateOfEvolution']
                 assert np.isclose(df[closecols].values, fold_df[closecols].values, rtol=1e-4).all()
                 
                 #Now sum up the Pred_Prob column:
