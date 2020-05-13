@@ -20,7 +20,8 @@ def make_output_human_readable(gene_name, df, scaler, raw_data):
            right order"""
     col = [col for col in df.columns.values if col.startswith('Consensus') or col.startswith('Change') or col.startswith('Position')]
     #Ensure no duplicates:
-    assert len(df[df.duplicated(subset=col,keep=False)]) == 0
+    if len(col)>3:
+        assert len(df[df.duplicated(subset=col,keep=False)]) == 0
     
     consensusAA = []
     changeAA = []
