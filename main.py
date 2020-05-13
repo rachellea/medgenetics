@@ -4,7 +4,7 @@ import os
 import datetime
 
 #Custom imports
-from src import run_models, circgenetics_replication, visualization1, visualization1_all, visualization2_all
+from src import run_models, circgenetics_replication, visualization1, visualization1_all, visualization2_all, visualization3_all
 from data import clean_data
 
 def run(gene_name, what_to_run, modeling_approach, results_dir):
@@ -106,6 +106,7 @@ def replicate_entire_study():
     #Visualization - One Figure Summarizing Everything
     visualization1_all.MakePanelFigure(date_dir)
     visualization2_all.MakePanelFigure_SensSpec(date_dir)
+    visualization3_all.MakeFigure_MysteryViolin(date_dir)
     
     
 if __name__=='__main__':
