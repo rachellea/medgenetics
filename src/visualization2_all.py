@@ -60,13 +60,13 @@ class MakePanelFigure_SensSpec(object):
         <self.genes>"""
         mlp_thresholds = [[0.4,0.41], #ryr2
                       [0.4,0.6], #kcnq1
-                      [0.4,0.6], #kcnh2
+                      [0.35,0.4], #kcnh2
                       [0.3,0.31]] #scn5a
         self.mlp_decision_thresholds = pd.DataFrame(mlp_thresholds, columns=['lower','upper'], index=self.genes)
         lr_thresholds = [[0.5,0.51], #ryr2
                       [0.3,0.55], #kcnq1
-                      [0.18,0.6], #kcnh2
-                      [0.6,0.61]] #scn5a
+                      [0.2,0.4], #kcnh2
+                      [0.5,0.51]] #scn5a
         self.lr_decision_thresholds = pd.DataFrame(lr_thresholds, columns=['lower','upper'], index=self.genes)
         
         #Also init mystery_counts_df
