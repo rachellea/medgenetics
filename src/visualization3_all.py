@@ -13,7 +13,7 @@ class MakeFigure_MysteryViolin(object):
     def __init__(self, base_results_dir):
         self.genes = ['ryr2','kcnq1','kcnh2','scn5a']
         base_results_dir = base_results_dir
-        fig, self.ax = plt.subplots(nrows = 1, ncols = 4, figsize=(16,6))
+        fig, self.ax = plt.subplots(nrows = 1, ncols = 4, figsize=(16,7))
         for idx in range(len(self.genes)):
             self.idx = idx #column number
             gene_name = self.genes[idx]
@@ -39,11 +39,13 @@ class MakeFigure_MysteryViolin(object):
         plt.savefig(os.path.join(base_results_dir, 'Visualization_All_ViolinPlots_MysteryAA.pdf'))
     
     def plot_violin(self,input_data):
-        #https://seaborn.pydata.org/generated/seaborn.violinplot.html
-        seaborn.violinplot(x='Model', y='Pred_Prob', hue='Source',
+        #Rename so plot labels look good:
+        input_data = input_data.rename(columns={'Pred_Prob':'Predicted Probability'})
+        input_data = input_data.replace(to_replace='wes',value='WES')
+        input_data = input_data.replace(to_replace='clinvar',value='ClinVar')
+        #Plot. https://seaborn.pydata.org/generated/seaborn.violinplot.html
+        seaborn.violinplot(x='Model', y='Predicted Probability', hue='Source', hue_order=['ClinVar','WES'],
                     data=input_data, palette='muted', split=True, ax = self.ax[self.idx],
-                    inner='stick', bw=.2)        
-        self.ax[self.idx].legend(loc='lower right', prop={'size': 6})
-        #self.ax[self.idx].set_title('Predicted Probabilities')
-    
+                    inner='stick')
+        self.ax[self.idx].legend(loc='lower right', prop={'size': 6})    
     
