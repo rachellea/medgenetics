@@ -6,6 +6,11 @@ import numpy as np
 import seaborn
 import matplotlib.pyplot as plt
 
+from matplotlib import rc
+rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
+import matplotlib
+matplotlib.rcParams.update({'font.size': 14})
+
 class MakeFigure_MysteryViolin(object):
     """Make 2 violin plots x 4 genes. Show the distribution of the
     predicted probabilities for the mysteryAAs for the WES and ClinVar data
@@ -13,7 +18,8 @@ class MakeFigure_MysteryViolin(object):
     def __init__(self, base_results_dir):
         self.genes = ['ryr2','kcnq1','kcnh2','scn5a']
         base_results_dir = base_results_dir
-        fig, self.ax = plt.subplots(nrows = 1, ncols = 4, figsize=(16,7))
+        fig, self.ax = plt.subplots(nrows = 1, ncols = 4, figsize=(16,4.5))
+        
         for idx in range(len(self.genes)):
             self.idx = idx #column number
             gene_name = self.genes[idx]
@@ -30,8 +36,9 @@ class MakeFigure_MysteryViolin(object):
             
             input_data = pd.concat([chosen_mystery_LR,chosen_mystery_MLP],ignore_index=True)
             self.plot_violin(input_data)
-        
-        fig.suptitle('  RYR2                  KCNQ1                 KCNH2                 SCN5A', fontsize=32)
+            self.ax[self.idx].set_title(gene_name.upper(),fontsize=22)
+            self.ax[self.idx].set_ylim(0,1.0)
+                
         #Matplotlib tight layout doesn't take into account title so we pass
         #the rect argument
         #https://stackoverflow.com/questions/8248467/matplotlib-tight-layout-doesnt-take-into-account-figure-suptitle
@@ -47,5 +54,12 @@ class MakeFigure_MysteryViolin(object):
         seaborn.violinplot(x='Model', y='Predicted Probability', hue='Source', hue_order=['ClinVar','WES'],
                     data=input_data, palette='muted', split=True, ax = self.ax[self.idx],
                     inner='stick')
-        self.ax[self.idx].legend(loc='lower right', prop={'size': 6})    
+        if self.idx == 3:
+            self.ax[self.idx].legend(loc='upper right', prop={'size': 14})
+        else:
+            self.ax[self.idx].get_legend().remove()
+        if self.idx != 0:
+            self.ax[self.idx].set_ylabel('')
+            self.ax[self.idx].set_yticks([])
+        self.ax[self.idx].set_xlabel('')
     

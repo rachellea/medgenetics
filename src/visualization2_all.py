@@ -6,6 +6,11 @@ import numpy as np
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
+from matplotlib import rc
+rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
+import matplotlib
+matplotlib.rcParams.update({'font.size': 12})
+
 class MakePanelFigure_SensSpec(object):
     """Make 2 plots x 4 genes x 2 models (LR, MLP):
     plot 1: plot 'threshold' on the X axis, and on the Y axis, plot 4 curves:
@@ -46,7 +51,7 @@ class MakePanelFigure_SensSpec(object):
                 mystery_out = pd.read_csv(os.path.join(results_dir,chosen_mystery),header=0,index_col=0)
                 self.calculate_mystery_counts_relative_to_thresholds(mystery_out, gene_name, model_name)
         
-        fig.suptitle('  RYR2                  KCNQ1                 KCNH2                 SCN5A', fontsize=32)
+        fig.suptitle('  RYR2                      KCNQ1                    KCNH2                    SCN5A', fontsize=32)
         #Matplotlib tight layout doesn't take into account title so we pass
         #the rect argument
         #https://stackoverflow.com/questions/8248467/matplotlib-tight-layout-doesnt-take-into-account-figure-suptitle
@@ -121,7 +126,7 @@ class MakePanelFigure_SensSpec(object):
         upper = decision_thresholds_df.at[self.genes[self.idx],'upper']
         self.ax[row,self.idx].axvspan(lower, upper, alpha=0.3, color='black')
         
-        self.ax[row,self.idx].legend(loc='lower right', prop={'size': 6})
+        self.ax[row,self.idx].legend(loc='lower right', prop={'size': 8})
         self.ax[row,self.idx].set_title(self.model_name+' Metrics Per Threshold')
         self.ax[row,self.idx].set_xlabel('Threshold')
     
@@ -131,7 +136,7 @@ class MakePanelFigure_SensSpec(object):
         elif self.model_name == 'LR':
             row = 3
         self.ax[row,self.idx].plot(self.thresholds, self.preds_below)
-        self.ax[row,self.idx].set_title(self.model_name+' Number of Predictions Below Threshold')
+        self.ax[row,self.idx].set_title(self.model_name+' Predictions Below Threshold')
         self.ax[row,self.idx].set_ylabel('Number of Predictions')
         self.ax[row,self.idx].set_xlabel('Threshold')
     
