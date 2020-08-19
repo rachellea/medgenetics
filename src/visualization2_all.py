@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
 import matplotlib
-matplotlib.rcParams.update({'font.size': 12})
+matplotlib.rcParams.update({'font.size': 17})
 
 class MakePanelFigure_SensSpec(object):
     """Make 2 plots x 4 genes x 2 models (LR, MLP):
@@ -126,8 +126,9 @@ class MakePanelFigure_SensSpec(object):
         upper = decision_thresholds_df.at[self.genes[self.idx],'upper']
         self.ax[row,self.idx].axvspan(lower, upper, alpha=0.3, color='black')
         
-        self.ax[row,self.idx].legend(loc='lower right', prop={'size': 8})
-        self.ax[row,self.idx].set_title(self.model_name+' Metrics Per Threshold')
+        if (row == 0 and self.idx == 3):
+            self.ax[row,self.idx].legend(loc='lower right', prop={'size': 12})
+        self.ax[row,self.idx].set_title(self.model_name+' Performance')
         self.ax[row,self.idx].set_xlabel('Threshold')
     
     def plot_2_below_threshold(self):
@@ -136,7 +137,7 @@ class MakePanelFigure_SensSpec(object):
         elif self.model_name == 'LR':
             row = 3
         self.ax[row,self.idx].plot(self.thresholds, self.preds_below)
-        self.ax[row,self.idx].set_title(self.model_name+' Predictions Below Threshold')
+        self.ax[row,self.idx].set_title(self.model_name+' Preds < Threshold')
         self.ax[row,self.idx].set_ylabel('Number of Predictions')
         self.ax[row,self.idx].set_xlabel('Threshold')
     

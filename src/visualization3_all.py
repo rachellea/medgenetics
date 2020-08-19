@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
 import matplotlib
-matplotlib.rcParams.update({'font.size': 14})
+matplotlib.rcParams.update({'font.size': 17})
 
 class MakeFigure_MysteryViolin(object):
     """Make 2 violin plots x 4 genes. Show the distribution of the

@@ -14,7 +14,7 @@ import matplotlib.lines as mlines
 
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Arial']})
-matplotlib.rcParams.update({'font.size': 12})
+matplotlib.rcParams.update({'font.size': 17})
 
 from . import calibr
 
@@ -83,8 +83,10 @@ class MakePanelFigure(object):
         self.ax[0,self.idx].set_ylim([0.0, 1.05])
         self.ax[0,self.idx].set_xlabel('False Positive Rate')
         self.ax[0,self.idx].set_ylabel('True Positive Rate')
-        self.ax[0,self.idx].set_title('Receiver Operating Characteristic')
-        self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR AUC=%0.2f' % roc_auc_LR, 'MLP AUC=%0.2f' % roc_auc_MLP], loc='lower right', prop={'size': 8})
+        self.ax[0,self.idx].set_title('ROC Curve')
+        #self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR AUC=%0.2f' % roc_auc_LR, 'MLP AUC=%0.2f' % roc_auc_MLP], loc='lower right', prop={'size': 12})
+        if self.idx == 3:
+            self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR' % roc_auc_LR, 'MLP' % roc_auc_MLP], loc='lower right', prop={'size': 12})
     
     def plot_precision_recall_curve(self):
         #http://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html
@@ -103,7 +105,7 @@ class MakePanelFigure(object):
         self.ax[1,self.idx].set_ylim([0.0, 1.05])
         self.ax[1,self.idx].set_xlim([0.0, 1.0])
         self.ax[1,self.idx].set_title('Precision-Recall Curve')
-        self.ax[1,self.idx].legend([LR_line, MLP_line], ['LR AP=%0.2f' % average_precision_LR, 'MLP AP=%0.2f' % average_precision_MLP], loc='lower right', prop={'size': 8})
+        #self.ax[1,self.idx].legend([LR_line, MLP_line], ['LR AP=%0.2f' % average_precision_LR, 'MLP AP=%0.2f' % average_precision_MLP], loc='lower right', prop={'size': 8})
     
     def plot_calibration_curve(self):
         #https://scikit-learn.org/stable/modules/generated/sklearn.calibration.calibration_curve.html
@@ -134,7 +136,7 @@ class MakePanelFigure(object):
         self.ax[2,self.idx].set_xlabel('Mean Predicted Probability')
         self.ax[2,self.idx].set_ylabel('Fraction of Positives')
         self.ax[2,self.idx].set_title('Calibration Curve')
-        self.ax[2,self.idx].legend([LR_line, MLP_line], ['LR Slope=%0.2f' % LR_slope, 'MLP Slope=%0.2f' % MLP_slope], loc='lower right', prop={'size': 8})
+        #self.ax[2,self.idx].legend([LR_line, MLP_line], ['LR Slope=%0.2f' % LR_slope, 'MLP Slope=%0.2f' % MLP_slope], loc='lower right', prop={'size': 8})
 
 #Plot a line based on a slope and intercept in matplotlib
 def abline(ax, slope, intercept, color):
