@@ -1,0 +1,9 @@
+,benign_below_thresh,grey_between_thresh,path_above_thresh,total
+MLP_ryr2,353.0,5.0,71.0,429.0
+MLP_kcnq1,67.0,49.0,0.0,116.0
+MLP_kcnh2,16.0,5.0,120.0,141.0
+MLP_scn5a,228.0,4.0,11.0,243.0
+LR_ryr2,408.0,1.0,20.0,429.0
+LR_kcnq1,28.0,51.0,37.0,116.0
+LR_kcnh2,55.0,24.0,62.0,141.0
+LR_scn5a,238.0,0.0,5.0,243.0
