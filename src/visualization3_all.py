@@ -28,10 +28,12 @@ class MakeFigure_MysteryViolin(object):
             
             chosen_mystery_LR_fname = [y for y in [x for x in possible_files if 'LR' in x] if 'all_mysteryAAs_out' in y][0]
             chosen_mystery_LR = pd.read_csv(os.path.join(results_dir,chosen_mystery_LR_fname),header=0,index_col=0)
+            chosen_mystery_LR = chosen_mystery_LR[chosen_mystery_LR['Source'].isin(['clinvar','wes'])]
             chosen_mystery_LR['Model'] = 'LR'
             
             chosen_mystery_MLP_fname = [y for y in [x for x in possible_files if 'MLP' in x] if 'all_mysteryAAs_out' in y][0]
             chosen_mystery_MLP = pd.read_csv(os.path.join(results_dir,chosen_mystery_MLP_fname),header=0,index_col=0)
+            chosen_mystery_MLP = chosen_mystery_MLP[chosen_mystery_MLP['Source'].isin(['clinvar','wes'])]
             chosen_mystery_MLP['Model'] = 'MLP'
             
             input_data = pd.concat([chosen_mystery_LR,chosen_mystery_MLP],ignore_index=True)

@@ -109,6 +109,13 @@ def tag_mysteryAAs_with_wes_and_clinvar(gene_name, new_df):
     clinvar_raw = pd.read_csv(os.path.join('data/', os.path.join(gene_name,gene_name+'_variants_clinvar_raw.csv')),header= 0)
     wes_raw = pd.read_csv(os.path.join('data/',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header = 0)
     sources = {'clinvar':clinvar_raw,'wes':wes_raw}
+    
+    #add Duke AAs if applicable
+    duke_path = os.path.join('data/',os.path.join(gene_name,gene_name+'_variants_duke_raw.csv'))
+    if os.path.exists(duke_path):
+        duke_raw = pd.read_csv(duke_path,header=0)
+        sources['duke'] = duke_raw
+    
     new_df['Source'] = ''
     for idx in new_df.index.values.tolist():
         position = new_df.at[idx,'Position']

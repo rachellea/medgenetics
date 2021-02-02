@@ -35,10 +35,20 @@ class BareGene(object):
         
         self.healthy = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_healthy_raw.csv')),header=0)
         self.diseased = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_pathologic_raw.csv')),header=0)
+        
         wes = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_wes_raw.csv')),header=0)
         clinvar = pd.read_csv(os.path.join('data',os.path.join(gene_name,gene_name+'_variants_clinvar_raw.csv')),header=0)
-        self.mysteryAAs = pd.concat([wes,clinvar]).reset_index()
-       
+        #must use drop=True to remove the old index, otherwise there will be
+        #missing values in the kept index column if duke AAs are added next,
+        #which will then cause these AAs to be dropped by remove_missing_values()
+        self.mysteryAAs = pd.concat([wes,clinvar]).reset_index(drop=True)
+        
+        duke_path = os.path.join('data',os.path.join(gene_name,gene_name+'_variants_duke_raw.csv'))
+        if os.path.exists(duke_path):
+            print('including duke AAs')
+            duke = pd.read_csv(duke_path,header=0)
+            self.mysteryAAs = pd.concat([self.mysteryAAs,duke]).reset_index(drop=True)
+        
         #Copies for comparison at the end
         self.healthy_original = copy.deepcopy(self.healthy)
         self.diseased_original = copy.deepcopy(self.diseased)

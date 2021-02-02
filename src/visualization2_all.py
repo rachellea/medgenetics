@@ -49,6 +49,7 @@ class MakePanelFigure_SensSpec(object):
                 chosen_mystery = [y for y in [x for x in possible_files if model_name in x] if 'all_mysteryAAs_out' in y][0]
                 print('Calculating',model_name,'mysteryAA counts based on file',chosen_mystery)
                 mystery_out = pd.read_csv(os.path.join(results_dir,chosen_mystery),header=0,index_col=0)
+                mystery_out = mystery_out[mystery_out['Source'].isin(['clinvar','wes'])]
                 self.calculate_mystery_counts_relative_to_thresholds(mystery_out, gene_name, model_name)
         
         fig.suptitle('  RYR2                      KCNQ1                    KCNH2                    SCN5A', fontsize=32)
