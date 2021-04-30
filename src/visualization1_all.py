@@ -84,9 +84,7 @@ class MakePanelFigure(object):
         self.ax[0,self.idx].set_xlabel('False Positive Rate')
         self.ax[0,self.idx].set_ylabel('True Positive Rate')
         self.ax[0,self.idx].set_title('ROC Curve')
-        self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR AUC=%0.2f' % roc_auc_LR, 'MLP AUC=%0.2f' % roc_auc_MLP], loc='lower right', prop={'size': 12})
-        if self.idx == 3:
-            self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR' % roc_auc_LR, 'MLP' % roc_auc_MLP], loc='lower right', prop={'size': 12})
+        self.ax[0,self.idx].legend([LR_line, MLP_line], ['LR AUC=%0.2f' % roc_auc_LR, 'MLP AUC=%0.2f' % roc_auc_MLP], loc='lower right', prop={'size': 8})
     
     def plot_precision_recall_curve(self):
         #http://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html
